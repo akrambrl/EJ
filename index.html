@@ -6,81 +6,83 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a2747 0%,#2d3e6f 100%);color:#e8edf5;min-height:100vh;padding:24px}
-.header{text-align:center;margin-bottom:24px}
-.header h1{font-size:2.2rem;color:#ffd966;margin-bottom:8px;text-shadow:2px 2px 4px rgba(0,0,0,.3)}
-.header p{color:#b8c5e0;font-size:1rem}
+body{font-family:'Segoe UI',-apple-system,Arial,sans-serif;background:linear-gradient(135deg,#f7f2e9 0%,#efe7d6 100%);color:#2d3142;min-height:100vh;padding:24px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:2.2rem;color:#1f2a44;margin-bottom:8px;letter-spacing:.5px;font-weight:700}
+.header p{color:#7a8294;font-size:1rem;letter-spacing:.3px}
 .year-switcher{display:flex;justify-content:center;gap:10px;margin-bottom:24px}
-.year-btn{padding:12px 26px;background:rgba(255,255,255,.08);border:2px solid rgba(255,217,102,.3);color:#e8edf5;cursor:pointer;border-radius:10px;font-size:1rem;font-weight:600;transition:all .25s}
-.year-btn:hover{background:rgba(255,217,102,.18)}
-.year-btn.active{background:#ffd966;color:#1a2747;border-color:#ffd966;box-shadow:0 4px 12px rgba(255,217,102,.3)}
+.year-btn{padding:12px 26px;background:#fff;border:1px solid rgba(184,134,11,.4);color:#5b6577;cursor:pointer;border-radius:10px;font-size:1rem;font-weight:600;transition:all .25s;box-shadow:0 1px 3px rgba(31,42,68,.05)}
+.year-btn:hover{border-color:#b8860b;color:#b8860b}
+.year-btn.active{background:#1f2a44;color:#e6c200;border-color:#1f2a44;box-shadow:0 4px 14px rgba(31,42,68,.18)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:28px}
-.kpi{background:rgba(255,255,255,.08);backdrop-filter:blur(8px);border:1px solid rgba(255,217,102,.2);border-radius:12px;padding:18px;text-align:center;transition:transform .2s}
-.kpi:hover{transform:translateY(-3px);border-color:#ffd966}
-.kpi-label{font-size:.78rem;color:#b8c5e0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
-.kpi-value{font-size:1.45rem;font-weight:bold;color:#ffd966}
+.kpi{background:#fff;border:1px solid rgba(31,42,68,.07);border-top:3px solid #d4af37;border-radius:12px;padding:18px;text-align:center;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 10px rgba(31,42,68,.05)}
+.kpi:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(31,42,68,.1)}
+.kpi-label{font-size:.78rem;color:#8a92a3;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.kpi-value{font-size:1.45rem;font-weight:bold;color:#b8860b}
 .kpi-value.big{font-size:1.7rem}
-.kpi.success .kpi-value{color:#10b981}
-.kpi.danger .kpi-value{color:#ef4444}
-.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;border-bottom:2px solid rgba(255,217,102,.3);padding-bottom:6px}
-.tab{padding:9px 16px;background:rgba(255,255,255,.08);border:none;color:#e8edf5;cursor:pointer;border-radius:8px 8px 0 0;font-size:.9rem;font-weight:500;transition:all .2s}
-.tab:hover{background:rgba(255,217,102,.2)}
-.tab.active{background:#ffd966;color:#1a2747;font-weight:bold}
-.section{display:none;background:rgba(255,255,255,.05);backdrop-filter:blur(8px);border-radius:12px;padding:22px;margin-bottom:22px}
+.kpi.success{border-top-color:#10b981}
+.kpi.success .kpi-value{color:#0f9d6f}
+.kpi.danger{border-top-color:#ef4444}
+.kpi.danger .kpi-value{color:#dc2626}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;border-bottom:2px solid rgba(184,134,11,.25);padding-bottom:6px}
+.tab{padding:9px 16px;background:#fff;border:1px solid rgba(31,42,68,.08);color:#5b6577;cursor:pointer;border-radius:8px 8px 0 0;font-size:.9rem;font-weight:500;transition:all .2s}
+.tab:hover{background:#faf4e4;color:#b8860b}
+.tab.active{background:#1f2a44;color:#e6c200;border-color:#1f2a44;font-weight:bold}
+.section{display:none;background:#fff;border:1px solid rgba(31,42,68,.07);border-radius:12px;padding:22px;margin-bottom:22px;box-shadow:0 2px 12px rgba(31,42,68,.05)}
 .section.active{display:block}
-.section h2{color:#ffd966;margin-bottom:14px;font-size:1.3rem}
-.chart-container{background:rgba(255,255,255,.03);border-radius:8px;padding:18px;margin-bottom:18px;height:380px;position:relative}
+.section h2{color:#1f2a44;margin-bottom:14px;font-size:1.3rem;font-weight:700}
+.chart-container{background:#fcfaf5;border:1px solid rgba(31,42,68,.05);border-radius:8px;padding:18px;margin-bottom:18px;height:380px;position:relative}
 .chart-container.tall{height:480px}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 @media(max-width:900px){.grid-2{grid-template-columns:1fr}}
-table{width:100%;border-collapse:collapse;background:rgba(255,255,255,.03);border-radius:8px;overflow:hidden}
-th{background:#1f4e78;color:#ffd966;padding:11px;text-align:left;font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.5px}
-td{padding:9px 11px;border-bottom:1px solid rgba(255,255,255,.1);font-size:.92rem}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(31,42,68,.05)}
+th{background:#1f2a44;color:#e6c200;padding:11px;text-align:left;font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.5px}
+td{padding:9px 11px;border-bottom:1px solid rgba(31,42,68,.08);font-size:.92rem;color:#2d3142}
 tr.clickable{cursor:pointer;transition:background .15s}
-tr.clickable:hover td{background:rgba(255,217,102,.12)}
+tr.clickable:hover td{background:#faf4e4}
 tr:last-child td{border-bottom:none}
 .text-right{text-align:right}
 .text-center{text-align:center}
 .badge{display:inline-block;padding:3px 9px;border-radius:18px;font-size:.78rem;font-weight:600;white-space:nowrap}
 .badge-vip{background:#8b5cf6;color:#fff}
-.badge-vipblack{background:#1f2937;color:#ffd966;border:1px solid #ffd966}
+.badge-vipblack{background:#1f2937;color:#e6c200;border:1px solid #e6c200}
 .badge-royal{background:#3b82f6;color:#fff}
 .badge-brumes{background:#10b981;color:#fff}
 .badge-50ml{background:#f59e0b;color:#fff}
 .badge-remise{background:#ef4444;color:#fff}
-.amount{color:#ffd966;font-weight:600}
-.amount-positive{color:#10b981;font-weight:600}
-.amount-negative{color:#ef4444;font-weight:600}
+.amount{color:#b8860b;font-weight:600}
+.amount-positive{color:#0f9d6f;font-weight:600}
+.amount-negative{color:#dc2626;font-weight:600}
 .controls{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.search-box{padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;font-size:.92rem;min-width:200px}
-.search-box::placeholder{color:#94a3b8}
-.search-box:focus{outline:none;border-color:#ffd966}
-select{padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;font-size:.92rem;cursor:pointer}
-.warning-box{background:rgba(239,68,68,.12);border-left:4px solid #ef4444;padding:11px 16px;border-radius:4px;margin-bottom:14px;font-size:.92rem;color:#fca5a5}
-.info-box{background:rgba(255,217,102,.1);border-left:4px solid #ffd966;padding:11px 16px;border-radius:4px;margin-bottom:14px;font-size:.92rem}
-.alert-success{background:rgba(16,185,129,.12);border-left:4px solid #10b981;padding:11px 16px;border-radius:4px;margin-bottom:14px;font-size:.92rem;color:#a7f3d0}
-.footer{text-align:center;color:#b8c5e0;margin-top:28px;padding:18px;font-size:.85rem}
+.search-box{padding:8px 14px;background:#fff;border:1px solid rgba(31,42,68,.18);border-radius:8px;color:#2d3142;font-size:.92rem;min-width:200px}
+.search-box::placeholder{color:#9aa1b0}
+.search-box:focus{outline:none;border-color:#b8860b}
+select{padding:8px 14px;background:#fff;border:1px solid rgba(31,42,68,.18);border-radius:8px;color:#2d3142;font-size:.92rem;cursor:pointer}
+.warning-box{background:#fdf0f0;border-left:4px solid #ef4444;padding:11px 16px;border-radius:4px;margin-bottom:14px;font-size:.92rem;color:#b91c1c}
+.info-box{background:#faf4e4;border-left:4px solid #b8860b;padding:11px 16px;border-radius:4px;margin-bottom:14px;font-size:.92rem;color:#5b4a1a}
+.alert-success{background:#eafaf3;border-left:4px solid #10b981;padding:11px 16px;border-radius:4px;margin-bottom:14px;font-size:.92rem;color:#0a6b4a}
+.footer{text-align:center;color:#8a92a3;margin-top:28px;padding:18px;font-size:.85rem}
 .podium{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin:18px 0;height:180px}
-.podium-step{flex:1;max-width:200px;background:rgba(255,255,255,.08);border-radius:8px 8px 0 0;padding:14px;text-align:center;border-top:4px solid #ffd966;transition:transform .2s}
+.podium-step{flex:1;max-width:200px;background:#fff;border:1px solid rgba(31,42,68,.07);border-radius:8px 8px 0 0;padding:14px;text-align:center;border-top:4px solid #d4af37;transition:transform .2s;box-shadow:0 2px 10px rgba(31,42,68,.06)}
 .podium-step:hover{transform:translateY(-4px)}
-.podium-step.gold{height:100%;border-color:#FFD700}
-.podium-step.silver{height:80%;border-color:#C0C0C0}
-.podium-step.bronze{height:65%;border-color:#CD7F32}
+.podium-step.gold{height:100%;border-top-color:#FFD700}
+.podium-step.silver{height:80%;border-top-color:#C0C0C0}
+.podium-step.bronze{height:65%;border-top-color:#CD7F32}
 .podium-rank{font-size:1.8rem;margin-bottom:6px}
-.podium-name{font-weight:bold;color:#ffd966;margin-bottom:3px;font-size:.95rem}
-.podium-amount{font-size:.85rem;color:#e8edf5}
+.podium-name{font-weight:bold;color:#1f2a44;margin-bottom:3px;font-size:.95rem}
+.podium-amount{font-size:.85rem;color:#5b6577}
 
 /* Modal */
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(31,42,68,.55);z-index:1000;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
 .modal-overlay.active{display:flex}
-.modal{background:#1a2747;border:2px solid #ffd966;border-radius:14px;max-width:1000px;width:100%;max-height:90vh;overflow-y:auto;padding:28px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.modal-close{position:absolute;top:14px;right:18px;background:none;border:none;color:#ffd966;font-size:1.8rem;cursor:pointer;font-weight:bold;line-height:1}
-.modal h2{color:#ffd966;margin-bottom:6px;padding-right:30px}
-.modal-meta{color:#b8c5e0;font-size:.95rem;margin-bottom:18px}
+.modal{background:#fff;border:1px solid rgba(31,42,68,.1);border-top:4px solid #d4af37;border-radius:14px;max-width:1000px;width:100%;max-height:90vh;overflow-y:auto;padding:28px;position:relative;box-shadow:0 24px 60px rgba(31,42,68,.25)}
+.modal-close{position:absolute;top:14px;right:18px;background:none;border:none;color:#b8860b;font-size:1.8rem;cursor:pointer;font-weight:bold;line-height:1}
+.modal h2{color:#1f2a44;margin-bottom:6px;padding-right:30px}
+.modal-meta{color:#7a8294;font-size:.95rem;margin-bottom:18px}
 .modal-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:20px}
-.modal-stat{background:rgba(255,255,255,.05);padding:12px;border-radius:8px;text-align:center}
-.modal-stat-label{font-size:.75rem;color:#b8c5e0;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.modal-stat-value{font-size:1.15rem;font-weight:bold;color:#ffd966}
+.modal-stat{background:#fcfaf5;border:1px solid rgba(31,42,68,.06);padding:12px;border-radius:8px;text-align:center}
+.modal-stat-label{font-size:.75rem;color:#8a92a3;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.modal-stat-value{font-size:1.15rem;font-weight:bold;color:#b8860b}
 </style>
 </head>
 <body>
@@ -211,16 +213,16 @@ select{padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(2
 <h2>📈 Évolution du CA par Client (dans le temps)</h2>
 <div class="info-box">💡 Clique sur un client à gauche pour voir comment ses commandes ont évolué dans le temps. Tu verras tout de suite s'il est en croissance 📈 ou en baisse 📉.</div>
 <div style="display:grid;grid-template-columns:280px 1fr;gap:18px;@media(max-width:900px){grid-template-columns:1fr}" id="evolutionGrid">
-<div style="background:rgba(255,255,255,.03);border-radius:8px;padding:14px;max-height:600px;overflow-y:auto">
+<div style="background:rgba(31,42,68,.03);border-radius:8px;padding:14px;max-height:600px;overflow-y:auto">
 <input type="text" class="search-box" id="search-evo-client" placeholder="🔍 Rechercher un client..." style="width:100%;margin-bottom:10px">
 <div id="evoClientList"></div>
 </div>
 <div>
-<div id="evoSelectedHeader" style="background:rgba(255,217,102,.08);border-left:4px solid #ffd966;padding:14px;border-radius:6px;margin-bottom:14px;min-height:80px">
-<div style="color:#b8c5e0;font-size:.9rem">Sélectionne un client à gauche pour voir son évolution</div>
+<div id="evoSelectedHeader" style="background:rgba(184,134,11,.08);border-left:4px solid #b8860b;padding:14px;border-radius:6px;margin-bottom:14px;min-height:80px">
+<div style="color:#5b6577;font-size:.9rem">Sélectionne un client à gauche pour voir son évolution</div>
 </div>
 <div class="chart-container tall"><canvas id="chartEvoClient"></canvas></div>
-<h3 style="color:#ffd966;margin-bottom:10px">Détail des commandes</h3>
+<h3 style="color:#b8860b;margin-bottom:10px">Détail des commandes</h3>
 <table id="tableEvoClient">
 <thead><tr><th>Date</th><th>Facture</th><th class="text-right">Btl</th><th class="text-right">CA</th><th class="text-right">Bénéfice</th><th class="text-right">Variation</th></tr></thead>
 <tbody></tbody>
@@ -233,7 +235,7 @@ select{padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(2
 <h2>💰 Détail des prix de revient par collection</h2>
 <div class="info-box">💡 Tu trouveras ici le détail complet : composants physiques, main-d'œuvre, concentrés, coût total par bouteille et par carton vendu, ainsi que la marge réalisée au tarif standard.</div>
 <div class="controls">
-<label style="color:#b8c5e0;font-size:.9rem">Collection :</label>
+<label style="color:#5b6577;font-size:.9rem">Collection :</label>
 <select id="costCollSelect">
 <option value="VIP">VIP</option>
 <option value="VIP BLACK">VIP BLACK</option>
@@ -257,11 +259,11 @@ select{padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(2
 <div class="info-box">💡 Saisis les quantités souhaitées (en <strong>bouteilles</strong>) pour chaque référence. Le système compare avec le stock actuel et te dit si la commande est <strong>faisable</strong> ou si tu dois <strong>produire</strong> avant. Tu peux aussi basculer en mode "cartons" pour saisir en cartons.</div>
 <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
   <button id="simReset" style="padding:9px 16px;background:#ef4444;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">🗑️ Tout effacer</button>
-  <label style="color:#b8c5e0;font-size:.9rem;display:flex;align-items:center;gap:6px;cursor:pointer">
+  <label style="color:#5b6577;font-size:.9rem;display:flex;align-items:center;gap:6px;cursor:pointer">
     <input type="checkbox" id="simCartonMode" style="width:18px;height:18px;cursor:pointer">
     <span>Saisir en <strong>cartons</strong> (au lieu de bouteilles)</span>
   </label>
-  <label style="color:#b8c5e0;font-size:.9rem;display:flex;align-items:center;gap:6px;cursor:pointer">
+  <label style="color:#5b6577;font-size:.9rem;display:flex;align-items:center;gap:6px;cursor:pointer">
     <input type="checkbox" id="simIncludeTester" checked style="width:18px;height:18px;cursor:pointer">
     <span>Inclure les <strong>testers</strong> dans la déduction stock</span>
   </label>
@@ -278,7 +280,7 @@ select{padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(2
 <button id="prodClear" style="padding:9px 16px;background:rgba(239,68,68,.8);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">🗑️ Tout effacer</button>
 <button id="prodSave" style="padding:9px 16px;background:#10b981;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">💾 Sauver dans navigateur</button>
 </div>
-<div id="prodSummary" style="background:rgba(255,217,102,.08);border-left:4px solid #ffd966;padding:16px;border-radius:8px;margin-bottom:18px;display:none"></div>
+<div id="prodSummary" style="background:rgba(184,134,11,.08);border-left:4px solid #b8860b;padding:16px;border-radius:8px;margin-bottom:18px;display:none"></div>
 <div id="prodInputs"></div>
 <div id="prodNeeds"></div>
 </div>
@@ -292,17 +294,17 @@ select{padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(2
 <div id="objectifs" class="section">
 <h2>🎯 Objectifs & Projection annuelle</h2>
 <div class="info-box">💡 Fixe un objectif pour l'année en cours et regarde ta progression. La projection est calculée d'après ton rythme actuel.</div>
-<div style="background:rgba(255,217,102,.08);border-left:4px solid #ffd966;padding:18px;border-radius:8px;margin-bottom:18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+<div style="background:rgba(184,134,11,.08);border-left:4px solid #b8860b;padding:18px;border-radius:8px;margin-bottom:18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
 <div>
-<label style="color:#b8c5e0;font-size:.9rem;display:block;margin-bottom:5px">Année :</label>
-<select id="objYear" style="font-size:1rem;padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;cursor:pointer">
+<label style="color:#5b6577;font-size:.9rem;display:block;margin-bottom:5px">Année :</label>
+<select id="objYear" style="font-size:1rem;padding:8px 14px;background:rgba(31,42,68,.08);border:1px solid rgba(31,42,68,.2);border-radius:8px;color:#1f2a44;cursor:pointer">
 <option value="2026" selected>2026</option>
 <option value="2025">2025</option>
 </select>
 </div>
 <div>
-<label style="color:#b8c5e0;font-size:.9rem;display:block;margin-bottom:5px">Objectif CA (€) :</label>
-<input type="number" id="objCible" value="1500000" min="0" step="50000" style="font-size:1rem;padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;width:180px">
+<label style="color:#5b6577;font-size:.9rem;display:block;margin-bottom:5px">Objectif CA (€) :</label>
+<input type="number" id="objCible" value="1500000" min="0" step="50000" style="font-size:1rem;padding:8px 14px;background:rgba(31,42,68,.08);border:1px solid rgba(31,42,68,.2);border-radius:8px;color:#1f2a44;width:180px">
 </div>
 </div>
 <div id="objContent"></div>
@@ -315,7 +317,7 @@ select{padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(2
 </div>
 
 <!-- Tooltip flottant pour top 3 produits -->
-<div id="floatingTooltip" style="display:none;position:fixed;z-index:999;background:#1a2747;border:2px solid #ffd966;border-radius:8px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:300px;font-size:.85rem;pointer-events:none"></div>
+<div id="floatingTooltip" style="display:none;position:fixed;z-index:999;background:#ffffff;border:2px solid #b8860b;border-radius:8px;padding:12px;box-shadow:0 8px 24px rgba(31,42,68,.18);max-width:300px;font-size:.85rem;pointer-events:none"></div>
 
 <div id="compare" class="section">
 <h2>⚖️ Comparaison 2025 vs 2026</h2>
@@ -340,7 +342,7 @@ select{padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(2
 <h2 id="modalTitle"></h2>
 <div class="modal-meta" id="modalMeta"></div>
 <div class="modal-summary" id="modalSummary"></div>
-<h3 style="color:#ffd966;margin-bottom:10px;margin-top:10px">Détail des lignes</h3>
+<h3 style="color:#b8860b;margin-bottom:10px;margin-top:10px">Détail des lignes</h3>
 <table>
 <thead><tr><th>Collec.</th><th>Référence</th><th>Mode</th><th class="text-right">Cartons</th><th class="text-right">Btl</th><th class="text-right">Test.</th><th class="text-right">Prix u.</th><th class="text-right">CA</th><th class="text-right">Coût</th><th class="text-right">Bénéfice</th></tr></thead>
 <tbody id="modalLines"></tbody>
@@ -368,9 +370,9 @@ function getD(){ return ALL[currentYear]; }
 
 function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
 
-Chart.defaults.color = '#e8edf5';
-Chart.defaults.borderColor = 'rgba(255,255,255,.1)';
-const PALETTE = ['#FFD966','#8B5CF6','#3B82F6','#10B981','#F59E0B','#EF4444','#EC4899','#06B6D4','#84CC16','#F97316','#A855F7','#14B8A6','#FB7185','#F43F5E','#22D3EE'];
+Chart.defaults.color = '#243049';
+Chart.defaults.borderColor = 'rgba(31,42,68,.1)';
+const PALETTE = ['#b8860b','#8B5CF6','#3B82F6','#10B981','#F59E0B','#EF4444','#EC4899','#06B6D4','#84CC16','#F97316','#A855F7','#14B8A6','#FB7185','#F43F5E','#22D3EE'];
 
 function renderKpis(){
   const d = getD();
@@ -391,23 +393,23 @@ function renderOverview(){
   destroyChart('chartCollections');
   charts.chartCollections = new Chart(document.getElementById('chartCollections'),{
     type:'doughnut',
-    data:{labels:d.collections.map(c=>c.collection),datasets:[{data:d.collections.map(c=>c.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#1a2747'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Collection',font:{size:14},color:'#FFD966'},legend:{position:'right'}}}
+    data:{labels:d.collections.map(c=>c.collection),datasets:[{data:d.collections.map(c=>c.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#ffffff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Collection',font:{size:14},color:'#b8860b'},legend:{position:'right'}}}
   });
   destroyChart('chartPays');
   charts.chartPays = new Chart(document.getElementById('chartPays'),{
     type:'doughnut',
-    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#1a2747'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays',font:{size:14},color:'#FFD966'},legend:{position:'right'}}}
+    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#ffffff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays',font:{size:14},color:'#b8860b'},legend:{position:'right'}}}
   });
   destroyChart('chartMois');
   charts.chartMois = new Chart(document.getElementById('chartMois'),{
     type:'bar',
     data:{labels:d.mois.map(m=>m.mois),datasets:[
-      {label:'CA (€)',data:d.mois.map(m=>m.ca),backgroundColor:'#FFD966',borderRadius:6},
+      {label:'CA (€)',data:d.mois.map(m=>m.ca),backgroundColor:'#b8860b',borderRadius:6},
       {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),backgroundColor:'#10B981',borderRadius:6}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA & Bénéfice mensuel',font:{size:14},color:'#FFD966'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA & Bénéfice mensuel',font:{size:14},color:'#b8860b'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   // Podium
   const podium = document.getElementById('podium');
@@ -453,14 +455,14 @@ function showClientTooltip(key, e){
   if(top.length === 0) return;
   const tt = document.getElementById('floatingTooltip');
   tt.innerHTML = `
-    <div style="color:#ffd966;font-weight:bold;margin-bottom:6px;font-size:.9rem">⭐ Top 3 produits</div>
+    <div style="color:#b8860b;font-weight:bold;margin-bottom:6px;font-size:.9rem">⭐ Top 3 produits</div>
     ${top.map((p, i) => `
-      <div style="margin-bottom:6px;padding:6px;background:rgba(255,255,255,.05);border-radius:5px">
+      <div style="margin-bottom:6px;padding:6px;background:rgba(31,42,68,.05);border-radius:5px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-weight:bold">#${i+1} ${p.reference}</span>
           <span class="${collClass(p.collection)}" style="font-size:.7rem">${p.collection}</span>
         </div>
-        <div style="color:#b8c5e0;font-size:.75rem;margin-top:3px">${fmtNum(p.btl)} btl • ${fmtMoneyShort(p.ca)}</div>
+        <div style="color:#5b6577;font-size:.75rem;margin-top:3px">${fmtNum(p.btl)} btl • ${fmtMoneyShort(p.ca)}</div>
       </div>
     `).join('')}
   `;
@@ -485,14 +487,14 @@ function renderPays(){
   destroyChart('chartPaysCA');
   charts.chartPaysCA = new Chart(document.getElementById('chartPaysCA'),{
     type:'pie',
-    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#1a2747'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par pays (agrégé)',color:'#FFD966'},legend:{position:'bottom'}}}
+    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#ffffff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par pays (agrégé)',color:'#b8860b'},legend:{position:'bottom'}}}
   });
   destroyChart('chartPaysClientCA');
   charts.chartPaysClientCA = new Chart(document.getElementById('chartPaysClientCA'),{
     type:'pie',
-    data:{labels:d.pays_client.map(p=>p.label),datasets:[{data:d.pays_client.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#1a2747'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays × Client (2 irakiens séparés)',color:'#FFD966'},legend:{position:'bottom'}}}
+    data:{labels:d.pays_client.map(p=>p.label),datasets:[{data:d.pays_client.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#ffffff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays × Client (2 irakiens séparés)',color:'#b8860b'},legend:{position:'bottom'}}}
   });
   const tb = document.getElementById('tbody-pays-client');
   tb.innerHTML = '';
@@ -507,16 +509,16 @@ function renderMois(){
   charts.chartMoisCA = new Chart(document.getElementById('chartMoisCA'),{
     type:'line',
     data:{labels:d.mois.map(m=>m.mois),datasets:[
-      {label:'CA (€)',data:d.mois.map(m=>m.ca),borderColor:'#FFD966',backgroundColor:'rgba(255,217,102,.2)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#FFD966'},
+      {label:'CA (€)',data:d.mois.map(m=>m.ca),borderColor:'#b8860b',backgroundColor:'rgba(184,134,11,.2)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#b8860b'},
       {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.15)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#10B981'}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Évolution mensuelle (CA + Bénéfice)',color:'#FFD966'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Évolution mensuelle (CA + Bénéfice)',color:'#b8860b'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   destroyChart('chartMoisMarge');
   charts.chartMoisMarge = new Chart(document.getElementById('chartMoisMarge'),{
     type:'bar',
     data:{labels:d.mois.map(m=>m.mois),datasets:[{label:'Bouteilles',data:d.mois.map(m=>m.btl),backgroundColor:'#3B82F6',borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Bouteilles vendues par mois',color:'#FFD966'},legend:{display:false}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Bouteilles vendues par mois',color:'#b8860b'},legend:{display:false}}}
   });
   const tb = document.getElementById('tbody-mois');
   tb.innerHTML = '';
@@ -532,8 +534,8 @@ function renderRefs(){
   destroyChart('chartTopRefs');
   charts.chartTopRefs = new Chart(document.getElementById('chartTopRefs'),{
     type:'bar',
-    data:{labels:top15.map(r=>r.reference),datasets:[{label:'Bouteilles vendues',data:top15.map(r=>r.btl),backgroundColor:'#FFD966',borderRadius:4}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Top 15 références (par bouteilles vendues)',font:{size:14},color:'#FFD966'},legend:{display:false}}}
+    data:{labels:top15.map(r=>r.reference),datasets:[{label:'Bouteilles vendues',data:top15.map(r=>r.btl),backgroundColor:'#b8860b',borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Top 15 références (par bouteilles vendues)',font:{size:14},color:'#b8860b'},legend:{display:false}}}
   });
   filterRefs();
 }
@@ -562,10 +564,10 @@ function filterRefs(){
     if(currentColl !== r.collection){
       // Insérer le total de la collection précédente si applicable
       if(currentColl !== null){
-        tb.innerHTML += `<tr style="background:rgba(255,217,102,.10);font-weight:bold"><td colspan="3"><em>↳ Sous-total ${currentColl} (${collCount} réf.)</em></td><td></td><td class="text-right">${fmtNum(collTotalBtl)}</td><td class="text-right amount">${fmtMoneyShort(collTotalCA)}</td><td class="text-right amount-negative">${fmtMoneyShort(collTotalCout)}</td><td class="text-right amount-positive">${fmtMoneyShort(collTotalMarge)}</td></tr>`;
+        tb.innerHTML += `<tr style="background:rgba(184,134,11,.10);font-weight:bold"><td colspan="3"><em>↳ Sous-total ${currentColl} (${collCount} réf.)</em></td><td></td><td class="text-right">${fmtNum(collTotalBtl)}</td><td class="text-right amount">${fmtMoneyShort(collTotalCA)}</td><td class="text-right amount-negative">${fmtMoneyShort(collTotalCout)}</td><td class="text-right amount-positive">${fmtMoneyShort(collTotalMarge)}</td></tr>`;
       }
       // En-tête de la nouvelle collection
-      tb.innerHTML += `<tr style="background:#1f4e78"><td colspan="8" style="padding:10px 12px;color:#ffd966;font-weight:bold;font-size:.95rem;text-transform:uppercase;letter-spacing:.5px"><span class="${collClass(r.collection)}" style="margin-right:8px">${r.collection}</span></td></tr>`;
+      tb.innerHTML += `<tr style="background:#1f4e78"><td colspan="8" style="padding:10px 12px;color:#b8860b;font-weight:bold;font-size:.95rem;text-transform:uppercase;letter-spacing:.5px"><span class="${collClass(r.collection)}" style="margin-right:8px">${r.collection}</span></td></tr>`;
       currentColl = r.collection;
       collTotalCA = 0; collTotalBtl = 0; collTotalCout = 0; collTotalMarge = 0; collCount = 0;
     }
@@ -580,7 +582,7 @@ function filterRefs(){
   });
   // Total de la dernière collection
   if(currentColl !== null){
-    tb.innerHTML += `<tr style="background:rgba(255,217,102,.10);font-weight:bold"><td colspan="3"><em>↳ Sous-total ${currentColl} (${collCount} réf.)</em></td><td></td><td class="text-right">${fmtNum(collTotalBtl)}</td><td class="text-right amount">${fmtMoneyShort(collTotalCA)}</td><td class="text-right amount-negative">${fmtMoneyShort(collTotalCout)}</td><td class="text-right amount-positive">${fmtMoneyShort(collTotalMarge)}</td></tr>`;
+    tb.innerHTML += `<tr style="background:rgba(184,134,11,.10);font-weight:bold"><td colspan="3"><em>↳ Sous-total ${currentColl} (${collCount} réf.)</em></td><td></td><td class="text-right">${fmtNum(collTotalBtl)}</td><td class="text-right amount">${fmtMoneyShort(collTotalCA)}</td><td class="text-right amount-negative">${fmtMoneyShort(collTotalCout)}</td><td class="text-right amount-positive">${fmtMoneyShort(collTotalMarge)}</td></tr>`;
   }
 }
 
@@ -635,24 +637,24 @@ function renderCompare(){
     type:'bar',
     data:{labels:['CA','Coût','Bénéfice'],datasets:[
       {label:'2025',data:[d25.kpi_ca,d25.kpi_cout,d25.kpi_marge],backgroundColor:'#3B82F6',borderRadius:6},
-      {label:'2026',data:[d26.kpi_ca,d26.kpi_cout,d26.kpi_marge],backgroundColor:'#FFD966',borderRadius:6}
+      {label:'2026',data:[d26.kpi_ca,d26.kpi_cout,d26.kpi_marge],backgroundColor:'#b8860b',borderRadius:6}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Comparaison 2025 vs 2026',color:'#FFD966'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Comparaison 2025 vs 2026',color:'#b8860b'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   destroyChart('chartCompareMarge');
   charts.chartCompareMarge = new Chart(document.getElementById('chartCompareMarge'),{
     type:'doughnut',
-    data:{labels:['CA 2025','CA 2026'],datasets:[{data:[d25.kpi_ca,d26.kpi_ca],backgroundColor:['#3B82F6','#FFD966'],borderWidth:2,borderColor:'#1a2747'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Part de chaque année',color:'#FFD966'},legend:{position:'bottom'}}}
+    data:{labels:['CA 2025','CA 2026'],datasets:[{data:[d25.kpi_ca,d26.kpi_ca],backgroundColor:['#3B82F6','#b8860b'],borderWidth:2,borderColor:'#ffffff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Part de chaque année',color:'#b8860b'},legend:{position:'bottom'}}}
   });
   destroyChart('chartCompareMois');
   charts.chartCompareMois = new Chart(document.getElementById('chartCompareMois'),{
     type:'line',
     data:{labels:d25.mois.map(m=>m.mois),datasets:[
       {label:'CA 2025',data:d25.mois.map(m=>m.ca),borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.2)',fill:false,tension:.3,pointRadius:5},
-      {label:'CA 2026',data:d26.mois.map(m=>m.ca),borderColor:'#FFD966',backgroundColor:'rgba(255,217,102,.2)',fill:false,tension:.3,pointRadius:5}
+      {label:'CA 2026',data:d26.mois.map(m=>m.ca),borderColor:'#b8860b',backgroundColor:'rgba(184,134,11,.2)',fill:false,tension:.3,pointRadius:5}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA mensuel — 2025 vs 2026',color:'#FFD966'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA mensuel — 2025 vs 2026',color:'#b8860b'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   // Tableau comparatif
   const evol = (a,b) => {
@@ -708,8 +710,8 @@ function renderEvolutionList(filter=''){
     }
     const isSelected = selectedEvoClient && selectedEvoClient.client === c.client && selectedEvoClient.pays === c.pays;
     const btn = document.createElement('div');
-    btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(255,217,102,.25)':'rgba(255,255,255,.05)'};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#ffd966':'transparent'};transition:all .15s`;
-    btn.innerHTML = `<div style="font-weight:600;color:#ffd966;font-size:.92rem">${trendIcon} ${c.client}</div><div style="color:#b8c5e0;font-size:.78rem;margin-top:2px">${c.pays} • ${factures.length} fact. • ${fmtMoneyShort(c.ca)}</div>`;
+    btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(184,134,11,.25)':'rgba(31,42,68,.05)'};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#b8860b':'transparent'};transition:all .15s`;
+    btn.innerHTML = `<div style="font-weight:600;color:#b8860b;font-size:.92rem">${trendIcon} ${c.client}</div><div style="color:#5b6577;font-size:.78rem;margin-top:2px">${c.pays} • ${factures.length} fact. • ${fmtMoneyShort(c.ca)}</div>`;
     btn.addEventListener('click', () => {
       selectedEvoClient = c;
       renderEvolutionList(document.getElementById('search-evo-client').value);
@@ -721,7 +723,7 @@ function renderEvolutionList(filter=''){
 
 function renderEvolutionChart(){
   if(!selectedEvoClient){
-    document.getElementById('evoSelectedHeader').innerHTML = '<div style="color:#b8c5e0;font-size:.9rem">Sélectionne un client à gauche pour voir son évolution</div>';
+    document.getElementById('evoSelectedHeader').innerHTML = '<div style="color:#5b6577;font-size:.9rem">Sélectionne un client à gauche pour voir son évolution</div>';
     destroyChart('chartEvoClient');
     document.querySelector('#tableEvoClient tbody').innerHTML = '';
     return;
@@ -737,7 +739,7 @@ function renderEvolutionChart(){
 
   // Tendance globale
   let trendText = 'pas assez de données';
-  let trendColor = '#b8c5e0';
+  let trendColor = '#5b6577';
   let trendIcon = '➡️';
   if(factures.length >= 2){
     const first = factures[0].ca;
@@ -759,8 +761,8 @@ function renderEvolutionChart(){
   document.getElementById('evoSelectedHeader').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:10px">
       <div>
-        <div style="color:#ffd966;font-size:1.2rem;font-weight:bold">${c.client}</div>
-        <div style="color:#b8c5e0;font-size:.9rem">${c.pays} • ${factures.length} commande(s)</div>
+        <div style="color:#b8860b;font-size:1.2rem;font-weight:bold">${c.client}</div>
+        <div style="color:#5b6577;font-size:.9rem">${c.pays} • ${factures.length} commande(s)</div>
       </div>
       <div style="text-align:right">
         <div style="font-size:1.6rem">${trendIcon}</div>
@@ -768,9 +770,9 @@ function renderEvolutionChart(){
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px">
-      <div><div style="color:#b8c5e0;font-size:.75rem">CA Total</div><div style="color:#ffd966;font-weight:bold">${fmtMoneyShort(totalCA)}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.75rem">Bénéfice</div><div style="color:#10b981;font-weight:bold">${fmtMoneyShort(totalMarge)}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.75rem">CA moyen / commande</div><div style="color:#ffd966;font-weight:bold">${fmtMoneyShort(avgCA)}</div></div>
+      <div><div style="color:#5b6577;font-size:.75rem">CA Total</div><div style="color:#b8860b;font-weight:bold">${fmtMoneyShort(totalCA)}</div></div>
+      <div><div style="color:#5b6577;font-size:.75rem">Bénéfice</div><div style="color:#10b981;font-weight:bold">${fmtMoneyShort(totalMarge)}</div></div>
+      <div><div style="color:#5b6577;font-size:.75rem">CA moyen / commande</div><div style="color:#b8860b;font-weight:bold">${fmtMoneyShort(avgCA)}</div></div>
     </div>
   `;
 
@@ -780,13 +782,13 @@ function renderEvolutionChart(){
     data:{
       labels:factures.map(f=>f.date),
       datasets:[
-        {label:'CA par commande (€)',data:factures.map(f=>f.ca),borderColor:'#FFD966',backgroundColor:'rgba(255,217,102,.2)',fill:true,tension:.25,pointRadius:7,pointHoverRadius:10,pointBackgroundColor:'#FFD966'},
+        {label:'CA par commande (€)',data:factures.map(f=>f.ca),borderColor:'#b8860b',backgroundColor:'rgba(184,134,11,.2)',fill:true,tension:.25,pointRadius:7,pointHoverRadius:10,pointBackgroundColor:'#b8860b'},
         {label:'Bénéfice net (€)',data:factures.map(f=>f.marge),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.15)',fill:false,tension:.25,pointRadius:5,pointBackgroundColor:'#10B981',borderDash:[5,5]}
       ]
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      plugins:{title:{display:true,text:`Évolution des commandes — ${c.client}`,color:'#FFD966',font:{size:14}},legend:{position:'top'}},
+      plugins:{title:{display:true,text:`Évolution des commandes — ${c.client}`,color:'#b8860b',font:{size:14}},legend:{position:'top'}},
       scales:{y:{ticks:{callback:v=>(v/1000).toFixed(1)+' k€'}}}
     }
   });
@@ -796,7 +798,7 @@ function renderEvolutionChart(){
   tb.innerHTML = '';
   factures.forEach((f, i) => {
     let variation = '—';
-    let varColor = '#b8c5e0';
+    let varColor = '#5b6577';
     if(i > 0){
       const prev = factures[i-1].ca;
       const ev = ((f.ca - prev) / prev * 100);
@@ -831,14 +833,14 @@ function renderCosts(){
     out.innerHTML = `
       <div class="info-box" style="background:rgba(59,130,246,.12);border-left:4px solid #3b82f6">
         ℹ️ <strong>Prix de revient provisoire : ${c.total_fixed.toFixed(2)} €/bouteille</strong><br>
-        <span style="font-size:.88rem;color:#b8c5e0">À affiner avec le détail réel des composants, concentrés et production. En attendant, les marges affichées sont basées sur ce coût forfaitaire.</span>
+        <span style="font-size:.88rem;color:#5b6577">À affiner avec le détail réel des composants, concentrés et production. En attendant, les marges affichées sont basées sur ce coût forfaitaire.</span>
       </div>
-      <div style="background:rgba(255,217,102,.08);border-left:4px solid #ffd966;padding:14px;border-radius:6px;margin:18px 0">
+      <div style="background:rgba(184,134,11,.08);border-left:4px solid #b8860b;padding:14px;border-radius:6px;margin:18px 0">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
-          <div><div style="color:#b8c5e0;font-size:.75rem">Bouteilles / carton</div><div style="color:#ffd966;font-weight:bold">${c.carton_size}</div></div>
-          <div><div style="color:#b8c5e0;font-size:.75rem">Système</div><div style="color:#ffd966;font-weight:bold">${c.tester_info}</div></div>
-          <div><div style="color:#b8c5e0;font-size:.75rem">Prix vente carton</div><div style="color:#ffd966;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
-          <div><div style="color:#b8c5e0;font-size:.75rem">Prix vente bouteille</div><div style="color:#ffd966;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
+          <div><div style="color:#5b6577;font-size:.75rem">Bouteilles / carton</div><div style="color:#b8860b;font-weight:bold">${c.carton_size}</div></div>
+          <div><div style="color:#5b6577;font-size:.75rem">Système</div><div style="color:#b8860b;font-weight:bold">${c.tester_info}</div></div>
+          <div><div style="color:#5b6577;font-size:.75rem">Prix vente carton</div><div style="color:#b8860b;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
+          <div><div style="color:#5b6577;font-size:.75rem">Prix vente bouteille</div><div style="color:#b8860b;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
         </div>
       </div>
       <div style="background:rgba(16,185,129,.12);border:1px solid #10b981;padding:18px;border-radius:8px;margin-bottom:18px;text-align:center">
@@ -846,7 +848,7 @@ function renderCosts(){
         <div style="font-size:2.1rem;color:#10b981;font-weight:bold;margin-top:6px">${fmtMoney(margeCarton)} (${margePct}%)</div>
         <div style="color:#a7f3d0;font-size:.85rem;margin-top:6px">Vente ${fmtMoney(c.standard_price_carton)} − Coût ${fmtMoney(c.total_fixed * (c.carton_size + 1))} (${c.carton_size + 1} btl × ${c.total_fixed}€)</div>
       </div>
-      <h3 style="color:#ffd966;margin-bottom:10px">📋 Références ${collName}</h3>
+      <h3 style="color:#b8860b;margin-bottom:10px">📋 Références ${collName}</h3>
       <table>
         <thead><tr><th>Référence</th><th class="text-right">Coût/btl</th><th class="text-right">Coût/carton (+ tester)</th><th class="text-right">Marge/carton</th></tr></thead>
         <tbody>
@@ -859,13 +861,13 @@ function renderCosts(){
   let html = '';
   // En-tête
   html += `
-    <div style="background:rgba(255,217,102,.08);border-left:4px solid #ffd966;padding:14px;border-radius:6px;margin-bottom:18px">
+    <div style="background:rgba(184,134,11,.08);border-left:4px solid #b8860b;padding:14px;border-radius:6px;margin-bottom:18px">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
-        <div><div style="color:#b8c5e0;font-size:.75rem">Volume bouteille</div><div style="color:#ffd966;font-weight:bold">${c.volume_ml} ml</div></div>
-        <div><div style="color:#b8c5e0;font-size:.75rem">Bouteilles / carton</div><div style="color:#ffd966;font-weight:bold">${c.carton_size}</div></div>
-        <div><div style="color:#b8c5e0;font-size:.75rem">Système</div><div style="color:#ffd966;font-weight:bold">${c.tester_info}</div></div>
-        <div><div style="color:#b8c5e0;font-size:.75rem">Prix vente carton</div><div style="color:#ffd966;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
-        <div><div style="color:#b8c5e0;font-size:.75rem">Prix vente bouteille</div><div style="color:#ffd966;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
+        <div><div style="color:#5b6577;font-size:.75rem">Volume bouteille</div><div style="color:#b8860b;font-weight:bold">${c.volume_ml} ml</div></div>
+        <div><div style="color:#5b6577;font-size:.75rem">Bouteilles / carton</div><div style="color:#b8860b;font-weight:bold">${c.carton_size}</div></div>
+        <div><div style="color:#5b6577;font-size:.75rem">Système</div><div style="color:#b8860b;font-weight:bold">${c.tester_info}</div></div>
+        <div><div style="color:#5b6577;font-size:.75rem">Prix vente carton</div><div style="color:#b8860b;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
+        <div><div style="color:#5b6577;font-size:.75rem">Prix vente bouteille</div><div style="color:#b8860b;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
       </div>
     </div>
   `;
@@ -874,22 +876,22 @@ function renderCosts(){
   html += `
     <div class="grid-2" style="margin-bottom:18px">
       <div>
-        <h3 style="color:#ffd966;margin-bottom:10px">🧱 Composants physiques</h3>
+        <h3 style="color:#b8860b;margin-bottom:10px">🧱 Composants physiques</h3>
         <table>
           <thead><tr><th>Élément</th><th class="text-right">Prix d'origine</th><th class="text-right">En EUR</th></tr></thead>
           <tbody>
-            ${c.components.map(comp => `<tr><td>${comp.name}</td><td class="text-right" style="color:#b8c5e0;font-size:.85rem">${comp.price_orig}</td><td class="text-right amount">${comp.price_eur.toFixed(4)} €</td></tr>`).join('')}
-            <tr style="background:rgba(255,217,102,.12);font-weight:bold"><td colspan="2"><strong>TOTAL composants</strong></td><td class="text-right amount" style="font-size:1rem">${c.total_components.toFixed(4)} €</td></tr>
+            ${c.components.map(comp => `<tr><td>${comp.name}</td><td class="text-right" style="color:#5b6577;font-size:.85rem">${comp.price_orig}</td><td class="text-right amount">${comp.price_eur.toFixed(4)} €</td></tr>`).join('')}
+            <tr style="background:rgba(184,134,11,.12);font-weight:bold"><td colspan="2"><strong>TOTAL composants</strong></td><td class="text-right amount" style="font-size:1rem">${c.total_components.toFixed(4)} €</td></tr>
           </tbody>
         </table>
       </div>
       <div>
-        <h3 style="color:#ffd966;margin-bottom:10px">⚙️ Main-d'œuvre / Production</h3>
+        <h3 style="color:#b8860b;margin-bottom:10px">⚙️ Main-d'œuvre / Production</h3>
         <table>
           <thead><tr><th>Étape</th><th class="text-right">Détail</th><th class="text-right">Coût €</th></tr></thead>
           <tbody>
-            ${c.production.map(p => `<tr><td>${p.name}</td><td class="text-right" style="color:#b8c5e0;font-size:.85rem">${p.detail}</td><td class="text-right amount">${p.price_eur.toFixed(4)} €</td></tr>`).join('')}
-            <tr style="background:rgba(255,217,102,.12);font-weight:bold"><td colspan="2"><strong>TOTAL production</strong></td><td class="text-right amount" style="font-size:1rem">${c.total_production.toFixed(4)} €</td></tr>
+            ${c.production.map(p => `<tr><td>${p.name}</td><td class="text-right" style="color:#5b6577;font-size:.85rem">${p.detail}</td><td class="text-right amount">${p.price_eur.toFixed(4)} €</td></tr>`).join('')}
+            <tr style="background:rgba(184,134,11,.12);font-weight:bold"><td colspan="2"><strong>TOTAL production</strong></td><td class="text-right amount" style="font-size:1rem">${c.total_production.toFixed(4)} €</td></tr>
           </tbody>
         </table>
       </div>
@@ -906,14 +908,14 @@ function renderCosts(){
       <div style="color:#a7f3d0;font-size:.95rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600">💎 Coût par bouteille (concentré inclus)</div>
       <div style="font-size:2.1rem;color:#10b981;font-weight:bold;margin-top:6px">${avg_total_cost.toFixed(4)} €</div>
       <div style="color:#a7f3d0;font-size:.85rem;margin-top:6px">Coût moyen — varie de <strong>${min_total.toFixed(2)} €</strong> à <strong>${max_total.toFixed(2)} €</strong> selon la référence</div>
-      <div style="color:#94a3b8;font-size:.75rem;margin-top:8px">Détail : ${c.total_fixed.toFixed(4)} € (composants+production fixe) + ${avg_conc_cost.toFixed(4)} € (concentré moyen)</div>
+      <div style="color:#8a92a3;font-size:.75rem;margin-top:8px">Détail : ${c.total_fixed.toFixed(4)} € (composants+production fixe) + ${avg_conc_cost.toFixed(4)} € (concentré moyen)</div>
     </div>
   `;
 
   // Concentré + Coût total + Marge
   const refs_sorted = [...c.refs].sort((a,b) => a.cost_per_bottle - b.cost_per_bottle);
   html += `
-    <h3 style="color:#ffd966;margin-bottom:10px">💎 Concentré + Coût total par référence</h3>
+    <h3 style="color:#b8860b;margin-bottom:10px">💎 Concentré + Coût total par référence</h3>
     <table>
       <thead>
         <tr>
@@ -940,7 +942,7 @@ function renderCosts(){
             <td class="text-right amount-negative" style="font-weight:bold">${r.cost_per_bottle.toFixed(4)} €</td>
             <td class="text-right amount-negative" style="font-weight:bold">${r.cost_per_carton_sold.toFixed(2)} €</td>
             <td class="text-right amount-positive" style="font-weight:bold">${r.margin_per_carton.toFixed(2)} €</td>
-            <td class="text-right" style="color:${r.margin_pct >= 60 ? '#10b981' : r.margin_pct >= 50 ? '#FFD966' : '#ef4444'};font-weight:bold">${r.margin_pct} %</td>
+            <td class="text-right" style="color:${r.margin_pct >= 60 ? '#10b981' : r.margin_pct >= 50 ? '#b8860b' : '#ef4444'};font-weight:bold">${r.margin_pct} %</td>
           </tr>
         `).join('')}
       </tbody>
@@ -974,10 +976,10 @@ function renderStock(){
 
   const COLL_ORDER = ['VIP', 'VIP BLACK', 'ROYAL', '50ML', 'BRUMES'];
   const statusColors = {
-    epuise: {bg:'rgba(0,0,0,.3)', border:'#000', text:'⚫ Épuisé', color:'#94a3b8'},
+    epuise: {bg:'rgba(31,42,68,.12)', border:'#000', text:'⚫ Épuisé', color:'#8a92a3'},
     critical: {bg:'rgba(239,68,68,.15)', border:'#ef4444', text:'🔴 Critique', color:'#ef4444'},
     low: {bg:'rgba(245,158,11,.12)', border:'#f59e0b', text:'🟠 Faible', color:'#f59e0b'},
-    medium: {bg:'rgba(255,217,102,.10)', border:'#ffd966', text:'🟡 Moyen', color:'#ffd966'},
+    medium: {bg:'rgba(184,134,11,.10)', border:'#b8860b', text:'🟡 Moyen', color:'#b8860b'},
     ok: {bg:'rgba(16,185,129,.10)', border:'#10b981', text:'🟢 OK', color:'#10b981'},
   };
 
@@ -1002,7 +1004,7 @@ function renderStock(){
       <div class="kpi danger"><div class="kpi-label">Réf. critiques</div><div class="kpi-value">${totalCritique}</div></div>
       <div class="kpi danger"><div class="kpi-label">Réf. épuisées</div><div class="kpi-value">${totalEpuise}</div></div>
     </div>
-    <div style="color:#b8c5e0;font-size:.78rem;margin-bottom:14px">*Bénéfice calculé hors ROYAL (coût non renseigné). CA potentiel calculé au prix de vente unitaire standard (VIP 16€, VIP BLACK 18€, ROYAL 9€, 50ML 13€, BRUMES 4€).</div>
+    <div style="color:#5b6577;font-size:.78rem;margin-bottom:14px">*Bénéfice calculé hors ROYAL (coût non renseigné). CA potentiel calculé au prix de vente unitaire standard (VIP 16€, VIP BLACK 18€, ROYAL 9€, 50ML 13€, BRUMES 4€).</div>
   `;
 
   let html = '';
@@ -1011,12 +1013,12 @@ function renderStock(){
     const s = stock[coll];
     const benefDisplay = s.has_cost ? fmtMoneyShort(s.total_benef_pot) : '—';
     html += `
-      <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:18px;margin-bottom:18px">
+      <div style="background:rgba(31,42,68,.04);border-radius:8px;padding:18px;margin-bottom:18px">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:14px">
-          <h3 style="color:#ffd966"><span class="${collClass(coll)}">${coll}</span></h3>
-          <div style="color:#b8c5e0;font-size:.95rem">
-            <strong style="color:#ffd966">${fmtNum(s.total_qty)}</strong> btl •
-            CA : <strong style="color:#ffd966">${fmtMoneyShort(s.total_ca_pot)}</strong> •
+          <h3 style="color:#b8860b"><span class="${collClass(coll)}">${coll}</span></h3>
+          <div style="color:#5b6577;font-size:.95rem">
+            <strong style="color:#b8860b">${fmtNum(s.total_qty)}</strong> btl •
+            CA : <strong style="color:#b8860b">${fmtMoneyShort(s.total_ca_pot)}</strong> •
             Bénéfice : <strong style="color:#10b981">${benefDisplay}</strong>
           </div>
         </div>
@@ -1147,8 +1149,8 @@ function renderProduction(){
   COLL_ORDER.forEach(coll => {
     const c = costs[coll];
     if(!c || c.not_yet) return;
-    html += `<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:18px;margin-bottom:16px">
-      <h3 style="color:#ffd966;margin-bottom:10px"><span class="${collClass(coll)}">${coll}</span> <span style="color:#b8c5e0;font-size:.85rem;font-weight:normal">(${c.volume_ml}ml • prix vente btl : ${c.standard_price_bottle}€)</span></h3>
+    html += `<div style="background:rgba(31,42,68,.04);border-radius:8px;padding:18px;margin-bottom:16px">
+      <h3 style="color:#b8860b;margin-bottom:10px"><span class="${collClass(coll)}">${coll}</span> <span style="color:#5b6577;font-size:.85rem;font-weight:normal">(${c.volume_ml}ml • prix vente btl : ${c.standard_price_bottle}€)</span></h3>
       <table>
         <thead><tr><th>Référence</th><th class="text-right">Stock actuel</th><th class="text-right">Quantité à produire</th><th class="text-right">Concentré nécessaire</th><th class="text-right">Coût estimé</th><th class="text-right">CA si vendu</th></tr></thead>
         <tbody>`;
@@ -1164,8 +1166,8 @@ function renderProduction(){
       html += `<tr>
         <td><strong>${r.name}</strong></td>
         <td class="text-right">${fmtNum(stockQty)}</td>
-        <td class="text-right"><input type="number" min="0" step="100" value="${qty}" data-prod-key="${key}" style="width:90px;padding:6px 10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;text-align:right;font-size:.95rem"></td>
-        <td class="text-right">${qty > 0 ? `<strong style="color:#ffd966">${concKg} kg</strong><br><span style="color:#b8c5e0;font-size:.78rem">${concEur} €</span>` : '—'}</td>
+        <td class="text-right"><input type="number" min="0" step="100" value="${qty}" data-prod-key="${key}" style="width:90px;padding:6px 10px;background:rgba(31,42,68,.08);border:1px solid rgba(31,42,68,.2);border-radius:6px;color:#1f2a44;text-align:right;font-size:.95rem"></td>
+        <td class="text-right">${qty > 0 ? `<strong style="color:#b8860b">${concKg} kg</strong><br><span style="color:#5b6577;font-size:.78rem">${concEur} €</span>` : '—'}</td>
         <td class="text-right amount-negative">${qty > 0 ? fmtMoneyShort(totalCost) : '—'}</td>
         <td class="text-right amount">${qty > 0 ? fmtMoneyShort(caPot) : '—'}</td>
       </tr>`;
@@ -1217,7 +1219,7 @@ function updateProductionNeeds(){
   }
 
   let totalBtlAll = 0, totalCostAll = 0, totalCaAll = 0;
-  let html = '<h2 style="color:#ffd966;margin-top:20px;margin-bottom:12px">📋 Ce que tu dois commander</h2>';
+  let html = '<h2 style="color:#b8860b;margin-top:20px;margin-bottom:12px">📋 Ce que tu dois commander</h2>';
 
   Object.keys(byColl).forEach(coll => {
     const data = byColl[coll];
@@ -1227,11 +1229,11 @@ function updateProductionNeeds(){
     totalCostAll += data.total_cost;
     totalCaAll += data.total_ca;
 
-    html += `<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:18px;margin-bottom:16px">
-      <h3 style="color:#ffd966;margin-bottom:12px"><span class="${collClass(coll)}">${coll}</span> — <strong>${fmtNum(N)}</strong> bouteilles à produire</h3>
+    html += `<div style="background:rgba(31,42,68,.04);border-radius:8px;padding:18px;margin-bottom:16px">
+      <h3 style="color:#b8860b;margin-bottom:12px"><span class="${collClass(coll)}">${coll}</span> — <strong>${fmtNum(N)}</strong> bouteilles à produire</h3>
       <div class="grid-2">
         <div>
-          <h4 style="color:#ffd966;margin-bottom:8px;font-size:.95rem">🧱 Composants physiques</h4>
+          <h4 style="color:#b8860b;margin-bottom:8px;font-size:.95rem">🧱 Composants physiques</h4>
           <table>
             <thead><tr><th>Élément</th><th class="text-right">Quantité</th><th class="text-right">Coût</th></tr></thead>
             <tbody>`;
@@ -1281,12 +1283,12 @@ function updateProductionNeeds(){
       compTotal += total;
       html += `<tr><td>${name}</td><td class="text-right">${fmtNum(qty)}</td><td class="text-right amount-negative">${fmtMoney(total)}</td></tr>`;
     });
-    html += `<tr style="background:rgba(255,217,102,.10);font-weight:bold"><td><strong>Sous-total composants</strong></td><td></td><td class="text-right amount-negative">${fmtMoneyShort(compTotal)}</td></tr>`;
+    html += `<tr style="background:rgba(184,134,11,.10);font-weight:bold"><td><strong>Sous-total composants</strong></td><td></td><td class="text-right amount-negative">${fmtMoneyShort(compTotal)}</td></tr>`;
     html += '</tbody></table></div>';
 
     // Concentré
     html += `<div>
-      <h4 style="color:#ffd966;margin-bottom:8px;font-size:.95rem">💎 Concentré nécessaire</h4>
+      <h4 style="color:#b8860b;margin-bottom:8px;font-size:.95rem">💎 Concentré nécessaire</h4>
       <table>
         <thead><tr><th>Référence</th><th class="text-right">Quantité (kg)</th><th class="text-right">Coût</th></tr></thead>
         <tbody>`;
@@ -1297,7 +1299,7 @@ function updateProductionNeeds(){
       concTotal += cost;
       html += `<tr><td><strong>${refName}</strong></td><td class="text-right">${info.kg.toFixed(2)} kg</td><td class="text-right amount-negative">${fmtMoney(cost)}</td></tr>`;
     });
-    html += `<tr style="background:rgba(255,217,102,.10);font-weight:bold"><td><strong>Sous-total concentré</strong></td><td></td><td class="text-right amount-negative">${fmtMoneyShort(concTotal)}</td></tr>`;
+    html += `<tr style="background:rgba(184,134,11,.10);font-weight:bold"><td><strong>Sous-total concentré</strong></td><td></td><td class="text-right amount-negative">${fmtMoneyShort(concTotal)}</td></tr>`;
     html += '</tbody></table></div></div>';
 
     // Production / main d'œuvre
@@ -1314,11 +1316,11 @@ function updateProductionNeeds(){
 
     // Recap collection
     const benefice = data.total_ca - data.total_cost;
-    html += `<div style="margin-top:14px;padding:12px;background:rgba(255,217,102,.08);border-radius:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
-      <div><div style="color:#b8c5e0;font-size:.75rem">Main-d'œuvre</div><div style="color:#ef4444;font-weight:bold">${fmtMoneyShort(prodCost)}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.75rem">Coût TOTAL ${coll}</div><div style="color:#ef4444;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_cost)}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.75rem">CA potentiel</div><div style="color:#ffd966;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_ca)}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.75rem">Bénéfice</div><div style="color:#10b981;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(benefice)}</div></div>
+    html += `<div style="margin-top:14px;padding:12px;background:rgba(184,134,11,.08);border-radius:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+      <div><div style="color:#5b6577;font-size:.75rem">Main-d'œuvre</div><div style="color:#ef4444;font-weight:bold">${fmtMoneyShort(prodCost)}</div></div>
+      <div><div style="color:#5b6577;font-size:.75rem">Coût TOTAL ${coll}</div><div style="color:#ef4444;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_cost)}</div></div>
+      <div><div style="color:#5b6577;font-size:.75rem">CA potentiel</div><div style="color:#b8860b;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_ca)}</div></div>
+      <div><div style="color:#5b6577;font-size:.75rem">Bénéfice</div><div style="color:#10b981;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(benefice)}</div></div>
     </div></div>`;
   });
 
@@ -1328,12 +1330,12 @@ function updateProductionNeeds(){
   const totalBenef = totalCaAll - totalCostAll;
   document.getElementById('prodSummary').style.display = 'block';
   document.getElementById('prodSummary').innerHTML = `
-    <h3 style="color:#ffd966;margin-bottom:10px">💼 Récap global de la production</h3>
+    <h3 style="color:#b8860b;margin-bottom:10px">💼 Récap global de la production</h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
-      <div><div style="color:#b8c5e0;font-size:.78rem">Total bouteilles</div><div style="font-size:1.5rem;color:#ffd966;font-weight:bold">${fmtNum(totalBtlAll)}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.78rem">Investissement total</div><div style="font-size:1.5rem;color:#ef4444;font-weight:bold">${fmtMoneyShort(totalCostAll)}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.78rem">CA potentiel</div><div style="font-size:1.5rem;color:#ffd966;font-weight:bold">${fmtMoneyShort(totalCaAll)}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.78rem">💚 Bénéfice attendu</div><div style="font-size:1.5rem;color:#10b981;font-weight:bold">${fmtMoneyShort(totalBenef)}</div></div>
+      <div><div style="color:#5b6577;font-size:.78rem">Total bouteilles</div><div style="font-size:1.5rem;color:#b8860b;font-weight:bold">${fmtNum(totalBtlAll)}</div></div>
+      <div><div style="color:#5b6577;font-size:.78rem">Investissement total</div><div style="font-size:1.5rem;color:#ef4444;font-weight:bold">${fmtMoneyShort(totalCostAll)}</div></div>
+      <div><div style="color:#5b6577;font-size:.78rem">CA potentiel</div><div style="font-size:1.5rem;color:#b8860b;font-weight:bold">${fmtMoneyShort(totalCaAll)}</div></div>
+      <div><div style="color:#5b6577;font-size:.78rem">💚 Bénéfice attendu</div><div style="font-size:1.5rem;color:#10b981;font-weight:bold">${fmtMoneyShort(totalBenef)}</div></div>
     </div>
   `;
 }
@@ -1377,7 +1379,7 @@ function renderAnticipation(){
     html += renderPredCards(overdue, 'danger');
   }
   if(upcoming.length){
-    html += `<h3 style="color:#ffd966;margin-bottom:10px;margin-top:18px">📅 Prochaines commandes prévues (${upcoming.length})</h3>`;
+    html += `<h3 style="color:#b8860b;margin-bottom:10px;margin-top:18px">📅 Prochaines commandes prévues (${upcoming.length})</h3>`;
     html += renderPredCards(upcoming, 'info');
   }
   if(inactive.length){
@@ -1385,7 +1387,7 @@ function renderAnticipation(){
     html += renderPredCards(inactive, 'warning');
   }
   if(noHistory.length){
-    html += `<h3 style="color:#b8c5e0;margin-bottom:10px;margin-top:18px">🆕 Clients avec 1 seule commande (${noHistory.length})</h3>`;
+    html += `<h3 style="color:#5b6577;margin-bottom:10px;margin-top:18px">🆕 Clients avec 1 seule commande (${noHistory.length})</h3>`;
     html += renderPredCards(noHistory, 'newbie');
   }
   out.innerHTML = html;
@@ -1396,7 +1398,7 @@ function renderPredCards(preds, level){
     danger:{bg:'rgba(239,68,68,.10)',border:'#ef4444',accent:'#fca5a5'},
     info:{bg:'rgba(59,130,246,.10)',border:'#3b82f6',accent:'#93c5fd'},
     warning:{bg:'rgba(245,158,11,.10)',border:'#f59e0b',accent:'#fcd34d'},
-    newbie:{bg:'rgba(255,255,255,.06)',border:'#94a3b8',accent:'#cbd5e1'}
+    newbie:{bg:'rgba(31,42,68,.06)',border:'#8a92a3',accent:'#cbd5e1'}
   };
   const c = colorMap[level];
   return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px">' +
@@ -1404,8 +1406,8 @@ function renderPredCards(preds, level){
       <div style="background:${c.bg};border-left:4px solid ${c.border};padding:14px;border-radius:8px">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
           <div>
-            <div style="color:#ffd966;font-weight:bold;font-size:1rem">${p.client}</div>
-            <div style="color:#b8c5e0;font-size:.8rem">${p.pays} • ${p.n_factures} commande(s)</div>
+            <div style="color:#b8860b;font-weight:bold;font-size:1rem">${p.client}</div>
+            <div style="color:#5b6577;font-size:.8rem">${p.pays} • ${p.n_factures} commande(s)</div>
           </div>
           <div style="text-align:right">
             <div style="color:${c.accent};font-size:.75rem;text-transform:uppercase">Confiance</div>
@@ -1413,12 +1415,12 @@ function renderPredCards(preds, level){
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;font-size:.85rem">
-          <div><span style="color:#b8c5e0">Dernière :</span><br><strong>${p.last_order}</strong> (il y a ${p.days_since_last}j)</div>
-          <div><span style="color:#b8c5e0">Prochaine prévue :</span><br><strong style="color:#ffd966">${p.predicted_date || '?'}</strong></div>
-          <div><span style="color:#b8c5e0">Intervalle moyen :</span><br><strong>${p.avg_interval ? p.avg_interval+' j' : 'N/A'}</strong></div>
-          <div><span style="color:#b8c5e0">CA attendu :</span><br><strong style="color:#10b981">${fmtMoneyShort(p.predicted_ca)}</strong></div>
+          <div><span style="color:#5b6577">Dernière :</span><br><strong>${p.last_order}</strong> (il y a ${p.days_since_last}j)</div>
+          <div><span style="color:#5b6577">Prochaine prévue :</span><br><strong style="color:#b8860b">${p.predicted_date || '?'}</strong></div>
+          <div><span style="color:#5b6577">Intervalle moyen :</span><br><strong>${p.avg_interval ? p.avg_interval+' j' : 'N/A'}</strong></div>
+          <div><span style="color:#5b6577">CA attendu :</span><br><strong style="color:#10b981">${fmtMoneyShort(p.predicted_ca)}</strong></div>
         </div>
-        ${p.top_refs.length ? `<div style="border-top:1px solid rgba(255,255,255,.1);padding-top:8px"><div style="color:#b8c5e0;font-size:.75rem;margin-bottom:4px">📦 À prévoir (top références) :</div>${p.top_refs.slice(0,3).map(r => `<div style="font-size:.8rem;display:flex;justify-content:space-between"><span><span class="${collClass(r.collection)}" style="font-size:.65rem">${r.collection}</span> ${r.reference}</span><span style="color:#ffd966">${r.cartons} cart.</span></div>`).join('')}</div>` : ''}
+        ${p.top_refs.length ? `<div style="border-top:1px solid rgba(31,42,68,.1);padding-top:8px"><div style="color:#5b6577;font-size:.75rem;margin-bottom:4px">📦 À prévoir (top références) :</div>${p.top_refs.slice(0,3).map(r => `<div style="font-size:.8rem;display:flex;justify-content:space-between"><span><span class="${collClass(r.collection)}" style="font-size:.65rem">${r.collection}</span> ${r.reference}</span><span style="color:#b8860b">${r.cartons} cart.</span></div>`).join('')}</div>` : ''}
       </div>
     `).join('') + '</div>';
 }
@@ -1447,13 +1449,13 @@ function renderObjectifs(){
     const evolution = dN1.kpi_ca > 0 ? ((d.kpi_ca - dN1.kpi_ca) / dN1.kpi_ca * 100) : 0;
     const projectionVsN1 = dN1.kpi_ca > 0 ? ((projectionAnnee - dN1.kpi_ca) / dN1.kpi_ca * 100) : 0;
     compHtml = `
-      <div style="background:rgba(255,255,255,.05);padding:16px;border-radius:8px;margin-bottom:16px">
-        <h3 style="color:#ffd966;margin-bottom:10px">📅 Comparaison avec ${yearN1}</h3>
+      <div style="background:rgba(31,42,68,.05);padding:16px;border-radius:8px;margin-bottom:16px">
+        <h3 style="color:#b8860b;margin-bottom:10px">📅 Comparaison avec ${yearN1}</h3>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
-          <div><div style="color:#b8c5e0;font-size:.8rem">CA ${yearN1} (réf.)</div><div style="color:#ffd966;font-weight:bold;font-size:1.15rem">${fmtMoney(dN1.kpi_ca)}</div></div>
-          <div><div style="color:#b8c5e0;font-size:.8rem">CA ${year} (actuel)</div><div style="color:#ffd966;font-weight:bold;font-size:1.15rem">${fmtMoney(d.kpi_ca)}</div></div>
-          <div><div style="color:#b8c5e0;font-size:.8rem">Évolution actuelle</div><div style="color:${evolution>=0?'#10b981':'#ef4444'};font-weight:bold;font-size:1.15rem">${evolution>=0?'+':''}${evolution.toFixed(1)}%</div></div>
-          <div><div style="color:#b8c5e0;font-size:.8rem">Évolution projetée</div><div style="color:${projectionVsN1>=0?'#10b981':'#ef4444'};font-weight:bold;font-size:1.15rem">${projectionVsN1>=0?'+':''}${projectionVsN1.toFixed(1)}%</div></div>
+          <div><div style="color:#5b6577;font-size:.8rem">CA ${yearN1} (réf.)</div><div style="color:#b8860b;font-weight:bold;font-size:1.15rem">${fmtMoney(dN1.kpi_ca)}</div></div>
+          <div><div style="color:#5b6577;font-size:.8rem">CA ${year} (actuel)</div><div style="color:#b8860b;font-weight:bold;font-size:1.15rem">${fmtMoney(d.kpi_ca)}</div></div>
+          <div><div style="color:#5b6577;font-size:.8rem">Évolution actuelle</div><div style="color:${evolution>=0?'#10b981':'#ef4444'};font-weight:bold;font-size:1.15rem">${evolution>=0?'+':''}${evolution.toFixed(1)}%</div></div>
+          <div><div style="color:#5b6577;font-size:.8rem">Évolution projetée</div><div style="color:${projectionVsN1>=0?'#10b981':'#ef4444'};font-weight:bold;font-size:1.15rem">${projectionVsN1>=0?'+':''}${projectionVsN1.toFixed(1)}%</div></div>
         </div>
       </div>
     `;
@@ -1469,17 +1471,17 @@ function renderObjectifs(){
 
   // Bar de progression
   html += `
-    <div style="background:rgba(255,255,255,.05);padding:18px;border-radius:8px;margin-bottom:16px">
+    <div style="background:rgba(31,42,68,.05);padding:18px;border-radius:8px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap">
-        <h3 style="color:#ffd966">🎯 Objectif ${year} : ${fmtMoney(cible)}</h3>
+        <h3 style="color:#b8860b">🎯 Objectif ${year} : ${fmtMoney(cible)}</h3>
         <div style="color:${statusColor};font-weight:bold;font-size:1.05rem">${statusIcon} ${statusText}</div>
       </div>
-      <div style="background:rgba(0,0,0,.3);height:30px;border-radius:15px;overflow:hidden;position:relative;margin-bottom:10px">
-        <div style="background:linear-gradient(90deg,#ffd966 0%,#10b981 100%);height:100%;width:${Math.min(pctObjectif,100)}%;border-radius:15px;transition:width .5s;display:flex;align-items:center;justify-content:center;color:#1a2747;font-weight:bold;font-size:.85rem">${pctObjectif.toFixed(1)}%</div>
-        ${pctProjection > pctObjectif ? `<div style="position:absolute;top:0;height:100%;width:2px;background:#fff;left:${Math.min(pctProjection,100)}%"><div style="position:absolute;top:-22px;left:-30px;color:#fff;font-size:.7rem">Projection ${pctProjection.toFixed(0)}%</div></div>`:''}
+      <div style="background:rgba(31,42,68,.12);height:30px;border-radius:15px;overflow:hidden;position:relative;margin-bottom:10px">
+        <div style="background:linear-gradient(90deg,#b8860b 0%,#10b981 100%);height:100%;width:${Math.min(pctObjectif,100)}%;border-radius:15px;transition:width .5s;display:flex;align-items:center;justify-content:center;color:#1a2747;font-weight:bold;font-size:.85rem">${pctObjectif.toFixed(1)}%</div>
+        ${pctProjection > pctObjectif ? `<div style="position:absolute;top:0;height:100%;width:2px;background:#1f2a44;left:${Math.min(pctProjection,100)}%"><div style="position:absolute;top:-22px;left:-30px;color:#fff;font-size:.7rem">Projection ${pctProjection.toFixed(0)}%</div></div>`:''}
       </div>
-      <div style="display:flex;justify-content:space-between;color:#b8c5e0;font-size:.85rem">
-        <span>CA actuel : <strong style="color:#ffd966">${fmtMoney(d.kpi_ca)}</strong></span>
+      <div style="display:flex;justify-content:space-between;color:#5b6577;font-size:.85rem">
+        <span>CA actuel : <strong style="color:#b8860b">${fmtMoney(d.kpi_ca)}</strong></span>
         <span>Reste à faire : <strong style="color:${cible-d.kpi_ca>0?'#ef4444':'#10b981'}">${fmtMoney(Math.max(cible-d.kpi_ca,0))}</strong></span>
       </div>
     </div>
@@ -1498,7 +1500,7 @@ function renderObjectifs(){
 
   // Tableau mensuel
   html += `
-    <h3 style="color:#ffd966;margin-bottom:10px">Détail mensuel et cumul</h3>
+    <h3 style="color:#b8860b;margin-bottom:10px">Détail mensuel et cumul</h3>
     <table>
       <thead><tr><th>Mois</th><th class="text-right">CA du mois</th><th class="text-right">Cumul</th><th class="text-right">% objectif atteint</th></tr></thead>
       <tbody>
@@ -1507,7 +1509,7 @@ function renderObjectifs(){
   d.mois.forEach(m => {
     cumul += m.ca;
     const pct = cible > 0 ? (cumul/cible*100) : 0;
-    html += `<tr style="${m.ca===0?'opacity:.4':''}"><td><strong>${m.mois}</strong></td><td class="text-right amount">${fmtMoneyShort(m.ca)}</td><td class="text-right">${fmtMoneyShort(cumul)}</td><td class="text-right" style="color:${pct>=100?'#10b981':'#ffd966'}">${pct.toFixed(1)}%</td></tr>`;
+    html += `<tr style="${m.ca===0?'opacity:.4':''}"><td><strong>${m.mois}</strong></td><td class="text-right amount">${fmtMoneyShort(m.ca)}</td><td class="text-right">${fmtMoneyShort(cumul)}</td><td class="text-right" style="color:${pct>=100?'#10b981':'#b8860b'}">${pct.toFixed(1)}%</td></tr>`;
   });
   html += '</tbody></table>';
 
@@ -1536,8 +1538,8 @@ function renderInsights(){
       <div style="background:${c.bg};border-left:4px solid ${c.border};padding:14px 18px;border-radius:8px;margin-bottom:10px;display:flex;gap:14px;align-items:start">
         <div style="font-size:1.8rem">${ins.icon}</div>
         <div style="flex:1">
-          <div style="color:#ffd966;font-weight:bold;font-size:1rem;margin-bottom:4px">${ins.title}</div>
-          <div style="color:#e8edf5;font-size:.9rem">${ins.desc}</div>
+          <div style="color:#b8860b;font-weight:bold;font-size:1rem;margin-bottom:4px">${ins.title}</div>
+          <div style="color:#243049;font-size:.9rem">${ins.desc}</div>
         </div>
       </div>
     `;
@@ -1626,7 +1628,7 @@ function renderSimulation(){
       const statusColor = qtyBtl === 0 ? '#64748b' : (feasible ? '#10b981' : '#ef4444');
       const statusIcon = qtyBtl === 0 ? '—' : (feasible ? '✅' : '❌');
       const afterColor = after < 0 ? '#ef4444' : (after < 50 ? '#f59e0b' : '#10b981');
-      const stockColor = it.qty <= 0 ? '#ef4444' : (it.qty < 50 ? '#f59e0b' : '#e8edf5');
+      const stockColor = it.qty <= 0 ? '#ef4444' : (it.qty < 50 ? '#f59e0b' : '#243049');
 
       rows += `<tr>
         <td><strong>${it.reference}</strong></td>
@@ -1635,9 +1637,9 @@ function renderSimulation(){
           <input type="number" min="0" step="${simCartonMode ? 1 : 1}" value="${displayQty}"
                  data-key="${key}" data-coll="${coll}" data-size="${info.size}"
                  class="sim-input"
-                 style="width:100px;padding:6px 8px;border-radius:6px;border:1px solid #334155;background:#0f172a;color:#fff;text-align:right;font-weight:600">
+                 style="width:100px;padding:6px 8px;border-radius:6px;border:1px solid rgba(31,42,68,.18);background:#ffffff;color:#1f2a44;text-align:right;font-weight:600">
         </td>
-        <td class="text-right" style="color:#94a3b8;font-size:.85rem">${tester > 0 ? '+' + tester : '—'}</td>
+        <td class="text-right" style="color:#8a92a3;font-size:.85rem">${tester > 0 ? '+' + tester : '—'}</td>
         <td class="text-right" style="color:${afterColor};font-weight:600">${qtyBtl === 0 ? '—' : fmtNum(after)}</td>
         <td class="text-right amount">${qtyBtl === 0 ? '—' : fmtMoney(ca)}</td>
         <td class="text-center" style="font-size:1.1rem;color:${statusColor}">${statusIcon}</td>
@@ -1646,15 +1648,15 @@ function renderSimulation(){
 
     const collStatus = collKO > 0 ? `<span style="color:#ef4444">⚠️ ${collKO} ref(s) en rupture</span>` : (collQty > 0 ? '<span style="color:#10b981">✅ Faisable</span>' : '<span style="color:#64748b">Aucune saisie</span>');
     html += `
-      <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:18px;margin-bottom:16px">
+      <div style="background:rgba(31,42,68,.04);border-radius:8px;padding:18px;margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px">
-          <h3 style="color:#ffd966;margin:0">
+          <h3 style="color:#b8860b;margin:0">
             <span class="${collClass(coll)}">${coll}</span>
-            <span style="color:#b8c5e0;font-size:.85rem;font-weight:normal">
+            <span style="color:#5b6577;font-size:.85rem;font-weight:normal">
               (${info.price_btl}€/btl • carton de ${info.size}+1 à ${info.price_carton}€)
             </span>
           </h3>
-          <div style="font-size:.95rem">${collStatus} <span style="color:#b8c5e0;margin-left:14px">${fmtNum(collQty)} btl • ${fmtMoney(collCA)}</span></div>
+          <div style="font-size:.95rem">${collStatus} <span style="color:#5b6577;margin-left:14px">${fmtNum(collQty)} btl • ${fmtMoney(collCA)}</span></div>
         </div>
         <table>
           <thead><tr>
@@ -1678,11 +1680,11 @@ function renderSimulation(){
     ? `❌ ${refsKO} référence(s) en rupture — produire avant`
     : (totalBtl > 0 ? `✅ Commande entièrement faisable avec le stock actuel` : 'Aucune référence saisie');
   document.getElementById('simSummary').innerHTML = `
-    <div style="background:linear-gradient(135deg,rgba(255,217,102,.08),rgba(255,217,102,.02));border:1px solid ${summaryColor};border-radius:10px;padding:18px;margin-bottom:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
-      <div><div style="color:#b8c5e0;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Statut</div><div style="font-size:1.05rem;color:${summaryColor};font-weight:bold;margin-top:4px">${summaryMsg}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Total bouteilles</div><div style="font-size:1.6rem;color:#ffd966;font-weight:bold">${fmtNum(totalBtl)}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">CA estimé (prix standard)</div><div style="font-size:1.6rem;color:#10b981;font-weight:bold">${fmtMoney(totalCA)}</div></div>
-      <div><div style="color:#b8c5e0;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Réfs OK / KO</div><div style="font-size:1.6rem;font-weight:bold"><span style="color:#10b981">${refsOK}</span> <span style="color:#94a3b8">/</span> <span style="color:#ef4444">${refsKO}</span></div></div>
+    <div style="background:linear-gradient(135deg,rgba(184,134,11,.08),rgba(184,134,11,.02));border:1px solid ${summaryColor};border-radius:10px;padding:18px;margin-bottom:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
+      <div><div style="color:#5b6577;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Statut</div><div style="font-size:1.05rem;color:${summaryColor};font-weight:bold;margin-top:4px">${summaryMsg}</div></div>
+      <div><div style="color:#5b6577;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Total bouteilles</div><div style="font-size:1.6rem;color:#b8860b;font-weight:bold">${fmtNum(totalBtl)}</div></div>
+      <div><div style="color:#5b6577;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">CA estimé (prix standard)</div><div style="font-size:1.6rem;color:#10b981;font-weight:bold">${fmtMoney(totalCA)}</div></div>
+      <div><div style="color:#5b6577;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Réfs OK / KO</div><div style="font-size:1.6rem;font-weight:bold"><span style="color:#10b981">${refsOK}</span> <span style="color:#8a92a3">/</span> <span style="color:#ef4444">${refsKO}</span></div></div>
     </div>
   `;
   document.getElementById('simContent').innerHTML = html;
