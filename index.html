@@ -95,6 +95,19 @@ select{padding:8px 14px;background:#fff;border:1px solid rgba(31,42,68,.18);bord
 .modal-stat{background:#fcfaf5;border:1px solid rgba(31,42,68,.06);padding:12px;border-radius:8px;text-align:center}
 .modal-stat-label{font-size:.75rem;color:#8a92a3;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
 .modal-stat-value{font-size:1.15rem;font-weight:bold;color:#b8860b}
+/* Modules de gestion (tableaux éditables) */
+.section h3{color:#1f2a44;margin:20px 0 10px;font-size:1.1rem;font-weight:700}
+.mod-in{padding:5px 7px;background:#fff;border:1px solid rgba(31,42,68,.18);border-radius:5px;color:#2d3142;font-size:.85rem;font-family:inherit}
+.mod-in:focus{outline:none;border-color:#b8860b}
+.mod-add,.mod-reset{padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:.88rem;border:none;transition:all .2s}
+.mod-add{background:#1f2a44;color:#e6c200}
+.mod-add:hover{background:#2a3a5e}
+.mod-reset{background:#fff;border:1px solid rgba(31,42,68,.2);color:#5b6577}
+.mod-reset:hover{border-color:#b8860b;color:#b8860b}
+.mod-del:hover{transform:scale(1.2)}
+.stat-alert{color:#dc2626;font-weight:700}
+.stat-ok{color:#0f9d6f;font-weight:600}
+.stat-warn{color:#d97706;font-weight:700}
 </style>
 </head>
 <body>
@@ -151,6 +164,10 @@ select{padding:8px 14px;background:#fff;border:1px solid rgba(31,42,68,.18);bord
 <button class="tab" data-tab="objectifs">🎯 Objectifs & Projection</button>
 <button class="tab" data-tab="insights">🧠 Remarques intelligentes</button>
 <button class="tab" data-tab="compare">⚖️ Compare 25 vs 26</button>
+<button class="tab" data-tab="catalogue">🏷️ Catalogue &amp; Tarifs</button>
+<button class="tab" data-tab="treso">💶 Trésorerie</button>
+<button class="tab" data-tab="achats">🧪 Matières &amp; Achats</button>
+<button class="tab" data-tab="b2b">🏬 Réseau B2B</button>
 </div>
 
 <div id="overview" class="section active">
@@ -356,6 +373,48 @@ select{padding:8px 14px;background:#fff;border:1px solid rgba(31,42,68,.18);bord
 <thead><tr><th>Indicateur</th><th class="text-right">2025</th><th class="text-right">2026</th><th class="text-right">Évolution</th></tr></thead>
 <tbody id="tbody-compare"></tbody>
 </table>
+</div>
+
+<div id="catalogue" class="section">
+<h2>🏷️ Catalogue &amp; Tarifs multi-canal</h2>
+<div class="info-box">💡 <strong>Données d'exemple</strong> (à remplacer par les tiennes). Modifie les cellules directement, ajoute/supprime des lignes — tout est <strong>sauvegardé dans ton navigateur</strong>. Renseigne le prix de revient (PR), le prix de gros (B2B) et le prix public (B2C) : les marges se calculent automatiquement.</div>
+<div id="catalogueSummary"></div>
+<div class="controls"><button class="mod-add" data-m="catalogue">+ Ajouter une référence</button><button class="mod-reset" data-m="catalogue">↺ Réinitialiser l'exemple</button></div>
+<div id="catalogueContent" style="overflow-x:auto"></div>
+</div>
+
+<div id="treso" class="section">
+<h2>💶 Trésorerie &amp; impayés</h2>
+<div class="info-box">💡 <strong>Données d'exemple.</strong> Suis le statut de paiement de chaque facture (encours, retards) et tes flux de trésorerie (entrées/sorties). Sauvegarde automatique dans le navigateur.</div>
+<h3>📑 Factures clients &amp; encours</h3>
+<div id="tresoFactSummary"></div>
+<div class="controls"><button class="mod-add" data-m="tresoFact">+ Ajouter une facture</button><button class="mod-reset" data-m="tresoFact">↺ Réinitialiser l'exemple</button></div>
+<div id="tresoFactContent" style="overflow-x:auto"></div>
+<h3>💸 Flux de trésorerie (entrées / sorties)</h3>
+<div id="tresoFluxSummary"></div>
+<div class="controls"><button class="mod-add" data-m="tresoFlux">+ Ajouter un flux</button><button class="mod-reset" data-m="tresoFlux">↺ Réinitialiser l'exemple</button></div>
+<div id="tresoFluxContent" style="overflow-x:auto"></div>
+</div>
+
+<div id="achats" class="section">
+<h2>🧪 Matières premières &amp; Achats</h2>
+<div class="info-box">💡 <strong>Données d'exemple.</strong> Suis ton stock réel de matières (concentrés, flacons, coffrets…) avec seuils d'alerte, et tes bons de commande fournisseurs. Sauvegarde automatique dans le navigateur.</div>
+<h3>📦 Stock matières premières &amp; composants</h3>
+<div id="matieresSummary"></div>
+<div class="controls"><button class="mod-add" data-m="matieres">+ Ajouter une matière</button><button class="mod-reset" data-m="matieres">↺ Réinitialiser l'exemple</button></div>
+<div id="matieresContent" style="overflow-x:auto"></div>
+<h3>🧾 Bons de commande fournisseurs</h3>
+<div id="commandesSummary"></div>
+<div class="controls"><button class="mod-add" data-m="commandes">+ Ajouter une commande</button><button class="mod-reset" data-m="commandes">↺ Réinitialiser l'exemple</button></div>
+<div id="commandesContent" style="overflow-x:auto"></div>
+</div>
+
+<div id="b2b" class="section">
+<h2>🏬 Réseau B2B — Points de vente</h2>
+<div class="info-box">💡 <strong>Données d'exemple.</strong> Gère tes points de vente revendeurs : CA cumulé, dernier réassort et statut. Les points « À relancer » sont à recontacter pour un réassort. Sauvegarde automatique dans le navigateur.</div>
+<div id="b2bSummary"></div>
+<div class="controls"><button class="mod-add" data-m="b2b">+ Ajouter un point de vente</button><button class="mod-reset" data-m="b2b">↺ Réinitialiser l'exemple</button></div>
+<div id="b2bContent" style="overflow-x:auto"></div>
 </div>
 
 <!-- Modal pour les détails de facture -->
@@ -1788,6 +1847,300 @@ document.addEventListener('click', e => {
 
 // Initial render
 renderAll();
+</script>
+
+<script>
+/* ===================== MODULES DE GESTION =====================
+   Catalogue & tarifs · Trésorerie · Matières & achats · Réseau B2B
+   Tableaux éditables + sauvegarde locale (localStorage).
+   Données d'EXEMPLE — à remplacer par les vraies données.        */
+const MOD_PREFIX = 'ej_mod_';
+const eMoney = n => (Math.round(+n||0)).toLocaleString('fr-FR') + ' €';
+const eNum   = n => (+n||0).toLocaleString('fr-FR');
+const MODULES = {};
+
+function modLoad(key, defaults){
+  try{ const r = localStorage.getItem(MOD_PREFIX+key); if(r) return JSON.parse(r); }catch(e){}
+  return JSON.parse(JSON.stringify(defaults));
+}
+function modSave(m){ try{ localStorage.setItem(MOD_PREFIX+m.key, JSON.stringify(m.rows)); }catch(e){} }
+function escAttr(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function defineModule(cfg){ cfg.name = cfg.base; cfg.rows = modLoad(cfg.key, cfg.defaults); MODULES[cfg.base] = cfg; }
+
+function modCell(m, col, row, ri){
+  if(col.compute){
+    const v = col.compute(row);
+    return `<td class="text-right" data-comp="${m.name}|${ri}|${col.id}">${col.fmt?col.fmt(v):v}</td>`;
+  }
+  if(col.type==='select'){
+    const opts = col.options.map(o=>`<option${String(row[col.id])===String(o)?' selected':''}>${o}</option>`).join('');
+    return `<td><select class="mod-in" data-m="${m.name}" data-ri="${ri}" data-c="${col.id}" style="min-width:${col.w||110}px">${opts}</select></td>`;
+  }
+  const inType = (col.type==='number'||col.type==='money') ? 'number' : 'text';
+  const step = col.type==='money' ? ' step="0.01"' : (col.type==='number'?' step="1"':'');
+  const al = col.align==='right' ? 'text-align:right;' : '';
+  return `<td><input class="mod-in" type="${inType}"${step} value="${escAttr(row[col.id])}" data-m="${m.name}" data-ri="${ri}" data-c="${col.id}" style="width:${col.w||90}px;${al}"></td>`;
+}
+
+function renderModule(name){
+  const m = MODULES[name];
+  const cont = document.getElementById(m.base+'Content');
+  if(!cont) return;
+  const head = '<tr>' + m.cols.map(c=>`<th class="${c.align==='right'?'text-right':''}">${c.label}</th>`).join('') + '<th></th></tr>';
+  const body = m.rows.map((row,ri)=>'<tr>' + m.cols.map(c=>modCell(m,c,row,ri)).join('') +
+      `<td class="text-center"><button class="mod-del" data-m="${name}" data-ri="${ri}" title="Supprimer" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:1.05rem;font-weight:bold">✕</button></td></tr>`).join('');
+  cont.innerHTML = `<table><thead>${head}</thead><tbody>${body||''}</tbody></table>`;
+  updateModSummary(name);
+}
+
+function updateModComputed(name){
+  const m = MODULES[name];
+  document.querySelectorAll(`[data-comp^="${name}|"]`).forEach(td=>{
+    const p = td.dataset.comp.split('|'); const col = m.cols.find(c=>c.id===p[2]); const row = m.rows[+p[1]];
+    if(col && row){ const v = col.compute(row); td.innerHTML = col.fmt?col.fmt(v):v; }
+  });
+  updateModSummary(name);
+}
+function updateModSummary(name){
+  const m = MODULES[name];
+  const el = document.getElementById(m.base+'Summary');
+  if(el && m.summary) el.innerHTML = m.summary(m.rows);
+}
+function kpiRow(items){
+  return '<div class="kpis" style="margin-bottom:16px">' + items.map(it=>
+    `<div class="kpi ${it.cls||''}"><div class="kpi-label">${it.label}</div><div class="kpi-value">${it.value}</div></div>`).join('') + '</div>';
+}
+const sum = (rows,f) => rows.reduce((a,r)=>a+(+f(r)||0),0);
+
+/* -------- Délégation d'événements (une seule fois) -------- */
+document.addEventListener('input', e=>{
+  const el = e.target.closest('input.mod-in'); if(!el) return;
+  const m = MODULES[el.dataset.m]; if(!m) return;
+  const col = m.cols.find(c=>c.id===el.dataset.c);
+  let v = el.value;
+  if(col && (col.type==='number'||col.type==='money')) v = el.value==='' ? '' : parseFloat(el.value);
+  m.rows[+el.dataset.ri][el.dataset.c] = v; modSave(m); updateModComputed(m.name);
+});
+document.addEventListener('change', e=>{
+  const el = e.target.closest('select.mod-in'); if(!el) return;
+  const m = MODULES[el.dataset.m]; if(!m) return;
+  m.rows[+el.dataset.ri][el.dataset.c] = el.value; modSave(m); updateModComputed(m.name);
+});
+document.addEventListener('click', e=>{
+  const add = e.target.closest('.mod-add');
+  if(add){ const m=MODULES[add.dataset.m]; m.rows.push(JSON.parse(JSON.stringify(m.blank))); modSave(m); renderModule(m.name); return; }
+  const reset = e.target.closest('.mod-reset');
+  if(reset){ const m=MODULES[reset.dataset.m]; if(confirm("Réinitialiser les données d'exemple de ce tableau ?")){ m.rows=JSON.parse(JSON.stringify(m.defaults)); modSave(m); renderModule(m.name);} return; }
+  const del = e.target.closest('.mod-del');
+  if(del){ const m=MODULES[del.dataset.m]; m.rows.splice(+del.dataset.ri,1); modSave(m); renderModule(m.name); return; }
+});
+
+/* ===================== DÉFINITION DES MODULES ===================== */
+
+// 1) CATALOGUE & TARIFS
+defineModule({
+  base:'catalogue', key:'catalogue',
+  cols:[
+    {id:'collection',label:'Collection',type:'select',options:['VIP Black','VIP','Black','Royal','Brumes'],w:110},
+    {id:'reference',label:'Référence',type:'text',w:150},
+    {id:'ml',label:'ml',type:'number',align:'right',w:55},
+    {id:'notes',label:'Notes olfactives',type:'text',w:190},
+    {id:'pr',label:'PR €',type:'money',align:'right',w:75},
+    {id:'pgros',label:'Prix gros € (B2B)',type:'money',align:'right',w:90},
+    {id:'pv',label:'PV public € (B2C)',type:'money',align:'right',w:90},
+    {id:'mB2B',label:'Marge B2B',align:'right',compute:r=>(+r.pgros||0)-(+r.pr||0),fmt:eMoney},
+    {id:'mB2C',label:'Marge B2C',align:'right',compute:r=>(+r.pv||0)-(+r.pr||0),fmt:eMoney},
+    {id:'txB2C',label:'% marge B2C',align:'right',compute:r=>{const pv=+r.pv||0;return pv?Math.round((pv-(+r.pr||0))/pv*100)+' %':'—';}}
+  ],
+  blank:{collection:'VIP',reference:'',ml:50,notes:'',pr:0,pgros:0,pv:0},
+  defaults:[
+    {collection:'VIP Black',reference:'Miel Royal',ml:50,notes:'Oud, miel, vanille Bourbon',pr:9,pgros:70,pv:139.99},
+    {collection:'VIP Black',reference:'Cuir Rouge',ml:50,notes:'Cuir, safran persan, rose',pr:9,pgros:70,pv:139.99},
+    {collection:'VIP',reference:'VIP Oud Vanille',ml:50,notes:'Oud, vanille, ambre',pr:8,pgros:60,pv:119.99},
+    {collection:'VIP',reference:'VIP Red',ml:50,notes:'Fruits rouges, musc blanc',pr:8,pgros:60,pv:119.99},
+    {collection:'Black',reference:'Exotic Oud',ml:50,notes:'Oud rare, bois, épices',pr:6.5,pgros:45,pv:89},
+    {collection:'Black',reference:'Santal Wood',ml:50,notes:'Santal, vétiver, musc',pr:6.5,pgros:45,pv:89},
+    {collection:'Royal',reference:'Milano Men',ml:50,notes:'Aromatique boisé',pr:4.5,pgros:20,pv:39.90},
+    {collection:'Brumes',reference:'Flower Bomb',ml:30,notes:'Floral fruité',pr:2,pgros:9,pv:19.99},
+    {collection:'Brumes',reference:'Coco Shine',ml:30,notes:'Coco, fleur de tiaré',pr:2,pgros:9,pv:19.99}
+  ],
+  summary:rows=>{
+    const n=rows.length;
+    const avgB2C = n? Math.round(sum(rows,r=>{const pv=+r.pv||0;return pv?(pv-(+r.pr||0))/pv*100:0;})/n):0;
+    const avgB2B = n? Math.round(sum(rows,r=>{const pg=+r.pgros||0;return pg?(pg-(+r.pr||0))/pg*100:0;})/n):0;
+    const pvMoy = n? Math.round(sum(rows,r=>+r.pv||0)/n):0;
+    return kpiRow([
+      {label:'Références',value:eNum(n)},
+      {label:'PV public moyen',value:eMoney(pvMoy)},
+      {label:'Marge moy. B2C',value:avgB2C+' %',cls:'success'},
+      {label:'Marge moy. B2B',value:avgB2B+' %',cls:'success'}
+    ]);
+  }
+});
+
+// 2) TRÉSORERIE — Factures & encours
+defineModule({
+  base:'tresoFact', key:'treso_factures',
+  cols:[
+    {id:'client',label:'Client',type:'text',w:140},
+    {id:'canal',label:'Canal',type:'select',options:['B2B','B2C'],w:70},
+    {id:'date',label:'Date',type:'text',w:95},
+    {id:'echeance',label:'Échéance',type:'text',w:95},
+    {id:'montant',label:'Montant €',type:'money',align:'right',w:95},
+    {id:'statut',label:'Statut',type:'select',options:['Payée','En attente','En retard'],w:105}
+  ],
+  blank:{client:'',canal:'B2B',date:'',echeance:'',montant:0,statut:'En attente'},
+  defaults:[
+    {client:'Parfumerie Al Noor (Bagdad)',canal:'B2B',date:'05/01/2026',echeance:'05/02/2026',montant:18400,statut:'Payée'},
+    {client:'Galeries du Levant (Beyrouth)',canal:'B2B',date:'12/02/2026',echeance:'13/03/2026',montant:9750,statut:'En attente'},
+    {client:'Maison Dubai Mall',canal:'B2B',date:'20/12/2025',echeance:'19/01/2026',montant:14200,statut:'En retard'},
+    {client:'Boutique en ligne (web)',canal:'B2C',date:'28/02/2026',echeance:'28/02/2026',montant:1340,statut:'Payée'},
+    {client:'Concept Store Casablanca',canal:'B2B',date:'02/03/2026',echeance:'01/04/2026',montant:6800,statut:'En attente'}
+  ],
+  summary:rows=>{
+    const enc = sum(rows.filter(r=>r.statut==='Payée'),r=>r.montant);
+    const att = sum(rows.filter(r=>r.statut==='En attente'),r=>r.montant);
+    const ret = sum(rows.filter(r=>r.statut==='En retard'),r=>r.montant);
+    return kpiRow([
+      {label:'Encaissé',value:eMoney(enc),cls:'success'},
+      {label:'En attente',value:eMoney(att)},
+      {label:'En retard',value:eMoney(ret),cls:'danger'},
+      {label:'Encours total',value:eMoney(att+ret)}
+    ]);
+  }
+});
+
+// 2b) TRÉSORERIE — Flux
+defineModule({
+  base:'tresoFlux', key:'treso_flux',
+  cols:[
+    {id:'date',label:'Date',type:'text',w:95},
+    {id:'libelle',label:'Libellé',type:'text',w:180},
+    {id:'type',label:'Type',type:'select',options:['Entrée','Sortie'],w:80},
+    {id:'categorie',label:'Catégorie',type:'select',options:['Vente','Fournisseur','Production','Expédition','Marketing','Salaire','Charges','Autre'],w:115},
+    {id:'montant',label:'Montant €',type:'money',align:'right',w:95}
+  ],
+  blank:{date:'',libelle:'',type:'Sortie',categorie:'Autre',montant:0},
+  defaults:[
+    {date:'05/01/2026',libelle:'Règlement Parfumerie Al Noor',type:'Entrée',categorie:'Vente',montant:18400},
+    {date:'10/01/2026',libelle:'Achat concentrés (Grasse)',type:'Sortie',categorie:'Fournisseur',montant:7200},
+    {date:'15/01/2026',libelle:'Flaconnage + pompes',type:'Sortie',categorie:'Production',montant:3100},
+    {date:'20/02/2026',libelle:'Campagne réseaux sociaux',type:'Sortie',categorie:'Marketing',montant:1500},
+    {date:'28/02/2026',libelle:'Ventes web février',type:'Entrée',categorie:'Vente',montant:8600},
+    {date:'01/03/2026',libelle:'Transport export Moyen-Orient',type:'Sortie',categorie:'Expédition',montant:2400}
+  ],
+  summary:rows=>{
+    const ent = sum(rows.filter(r=>r.type==='Entrée'),r=>r.montant);
+    const sor = sum(rows.filter(r=>r.type==='Sortie'),r=>r.montant);
+    return kpiRow([
+      {label:'Total entrées',value:eMoney(ent),cls:'success'},
+      {label:'Total sorties',value:eMoney(sor),cls:'danger'},
+      {label:'Solde',value:eMoney(ent-sor),cls:(ent-sor)>=0?'success':'danger'}
+    ]);
+  }
+});
+
+// 3) MATIÈRES PREMIÈRES
+defineModule({
+  base:'matieres', key:'matieres_stock',
+  cols:[
+    {id:'matiere',label:'Matière / composant',type:'text',w:170},
+    {id:'categorie',label:'Catégorie',type:'select',options:['Concentré','Alcool','Flacon','Pompe','Capot','Étui','Coffret','Étiquette','Autre'],w:110},
+    {id:'unite',label:'Unité',type:'text',w:65},
+    {id:'stock',label:'Stock',type:'number',align:'right',w:75},
+    {id:'seuil',label:'Seuil',type:'number',align:'right',w:70},
+    {id:'cout',label:'Coût/u €',type:'money',align:'right',w:80},
+    {id:'fournisseur',label:'Fournisseur',type:'text',w:140},
+    {id:'valeur',label:'Valeur stock',align:'right',compute:r=>(+r.stock||0)*(+r.cout||0),fmt:eMoney},
+    {id:'etat',label:'État',compute:r=>(+r.stock||0)<=(+r.seuil||0)?'⚠️ À commander':'✓ OK',fmt:v=>v.indexOf('⚠')>=0?`<span class="stat-alert">${v}</span>`:`<span class="stat-ok">${v}</span>`}
+  ],
+  blank:{matiere:'',categorie:'Concentré',unite:'g',stock:0,seuil:0,cout:0,fournisseur:''},
+  defaults:[
+    {matiere:'Concentré Oud rare',categorie:'Concentré',unite:'g',stock:1200,seuil:500,cout:0.45,fournisseur:'Grasse Aromatics'},
+    {matiere:'Concentré Vanille Bourbon',categorie:'Concentré',unite:'g',stock:300,seuil:400,cout:0.30,fournisseur:'Grasse Aromatics'},
+    {matiere:'Alcool parfumeur 96°',categorie:'Alcool',unite:'L',stock:80,seuil:50,cout:6,fournisseur:'Distillerie Sud'},
+    {matiere:'Flacon 50ml VIP',categorie:'Flacon',unite:'u',stock:2500,seuil:1000,cout:1.8,fournisseur:'Verrerie Lux'},
+    {matiere:'Pompe spray dorée',categorie:'Pompe',unite:'u',stock:900,seuil:1000,cout:0.6,fournisseur:'Verrerie Lux'},
+    {matiere:'Étui VIP Black',categorie:'Étui',unite:'u',stock:1800,seuil:800,cout:0.9,fournisseur:'Cartonnage Paris'},
+    {matiere:'Flacon 30ml Brumes',categorie:'Flacon',unite:'u',stock:400,seuil:600,cout:0.7,fournisseur:'Verrerie Lux'}
+  ],
+  summary:rows=>{
+    const val = sum(rows,r=>(+r.stock||0)*(+r.cout||0));
+    const alert = rows.filter(r=>(+r.stock||0)<=(+r.seuil||0)).length;
+    return kpiRow([
+      {label:'Valeur du stock',value:eMoney(val)},
+      {label:'Réf. matières',value:eNum(rows.length)},
+      {label:'À commander',value:eNum(alert),cls:alert>0?'danger':'success'}
+    ]);
+  }
+});
+
+// 3b) BONS DE COMMANDE
+defineModule({
+  base:'commandes', key:'achats_commandes',
+  cols:[
+    {id:'fournisseur',label:'Fournisseur',type:'text',w:140},
+    {id:'matiere',label:'Matière',type:'text',w:160},
+    {id:'quantite',label:'Qté',type:'number',align:'right',w:70},
+    {id:'cout',label:'Coût total €',type:'money',align:'right',w:95},
+    {id:'delai',label:'Délai',type:'text',w:90},
+    {id:'statut',label:'Statut',type:'select',options:['Brouillon','Envoyée','Reçue'],w:105}
+  ],
+  blank:{fournisseur:'',matiere:'',quantite:0,cout:0,delai:'',statut:'Brouillon'},
+  defaults:[
+    {fournisseur:'Grasse Aromatics',matiere:'Concentré Vanille Bourbon',quantite:2000,cout:600,delai:'3 semaines',statut:'Envoyée'},
+    {fournisseur:'Verrerie Lux',matiere:'Pompe spray dorée',quantite:3000,cout:1800,delai:'2 semaines',statut:'Envoyée'},
+    {fournisseur:'Verrerie Lux',matiere:'Flacon 30ml Brumes',quantite:2000,cout:1400,delai:'2 semaines',statut:'Brouillon'},
+    {fournisseur:'Cartonnage Paris',matiere:'Étui VIP Black',quantite:2000,cout:1800,delai:'10 jours',statut:'Reçue'}
+  ],
+  summary:rows=>{
+    const enCours = rows.filter(r=>r.statut==='Envoyée').length;
+    const engage = sum(rows.filter(r=>r.statut!=='Reçue'),r=>r.cout);
+    return kpiRow([
+      {label:'Commandes en cours',value:eNum(enCours)},
+      {label:'Montant engagé',value:eMoney(engage)},
+      {label:'Total bons',value:eNum(rows.length)}
+    ]);
+  }
+});
+
+// 4) RÉSEAU B2B
+defineModule({
+  base:'b2b', key:'b2b_points',
+  cols:[
+    {id:'nom',label:'Point de vente',type:'text',w:160},
+    {id:'ville',label:'Ville',type:'text',w:100},
+    {id:'pays',label:'Pays',type:'text',w:90},
+    {id:'type',label:'Type',type:'select',options:['Parfumerie','Concept store','Grand magasin','Pharmacie','Spa/Hôtel','Autre'],w:120},
+    {id:'ca',label:'CA cumulé €',type:'money',align:'right',w:100},
+    {id:'dernier',label:'Dernier réassort',type:'text',w:110},
+    {id:'statut',label:'Statut',type:'select',options:['Actif','À relancer','Inactif'],w:100},
+    {id:'contact',label:'Contact',type:'text',w:150}
+  ],
+  blank:{nom:'',ville:'',pays:'',type:'Parfumerie',ca:0,dernier:'',statut:'Actif',contact:''},
+  defaults:[
+    {nom:'Parfumerie Al Noor',ville:'Bagdad',pays:'Irak',type:'Parfumerie',ca:84500,dernier:'05/01/2026',statut:'Actif',contact:'+964 ...'},
+    {nom:'Galeries du Levant',ville:'Beyrouth',pays:'Liban',type:'Grand magasin',ca:41200,dernier:'12/02/2026',statut:'Actif',contact:'contact@levant.lb'},
+    {nom:'Maison Dubai Mall',ville:'Dubaï',pays:'EAU',type:'Concept store',ca:67800,dernier:'20/11/2025',statut:'À relancer',contact:'sales@dubaimall.ae'},
+    {nom:'Concept Store Casablanca',ville:'Casablanca',pays:'Maroc',type:'Concept store',ca:23400,dernier:'02/03/2026',statut:'Actif',contact:'+212 ...'},
+    {nom:'Spa Royal Doha',ville:'Doha',pays:'Qatar',type:'Spa/Hôtel',ca:12900,dernier:'15/09/2025',statut:'Inactif',contact:'spa@royaldoha.qa'}
+  ],
+  summary:rows=>{
+    const actifs = rows.filter(r=>r.statut==='Actif').length;
+    const relancer = rows.filter(r=>r.statut==='À relancer').length;
+    const ca = sum(rows,r=>r.ca);
+    return kpiRow([
+      {label:'Points actifs',value:eNum(actifs),cls:'success'},
+      {label:'CA réseau cumulé',value:eMoney(ca)},
+      {label:'À relancer',value:eNum(relancer),cls:relancer>0?'danger':'success'},
+      {label:'Total points',value:eNum(rows.length)}
+    ]);
+  }
+});
+
+// Rendu initial de tous les modules
+Object.keys(MODULES).forEach(renderModule);
 </script>
 </body>
 </html>
