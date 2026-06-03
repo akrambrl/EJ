@@ -2,7 +2,10 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CA — Tableau de bord</title>
+<title>Emmanuelle Jane Paris — Outil de gestion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Parisienne&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <style>
@@ -11,6 +14,14 @@ body{font-family:'Segoe UI',-apple-system,Arial,sans-serif;background:linear-gra
 .header{text-align:center;margin-bottom:28px}
 .header h1{font-size:2.2rem;color:#1f2a44;margin-bottom:8px;letter-spacing:.5px;font-weight:700}
 .header p{color:#7a8294;font-size:1rem;letter-spacing:.3px}
+/* Logo Emmanuelle Jane Paris (recréation vectorielle — remplaçable par un PNG) */
+.brand-logo{display:inline-flex;flex-direction:column;align-items:center;line-height:1;color:#1a1a1a;margin-bottom:10px}
+.brand-logo img{max-width:340px;height:auto}
+.brand-top,.brand-bottom{font-family:'Cormorant Garamond',serif;font-weight:500;text-transform:uppercase;color:#1a1a1a}
+.brand-top{font-size:1.05rem;letter-spacing:.62em;margin-left:.62em;margin-bottom:2px}
+.brand-name{font-family:'Parisienne',cursive;font-size:3.3rem;color:#1a1a1a;line-height:.95;margin:2px 0}
+.brand-bottom{font-size:1.05rem;letter-spacing:.62em;margin-left:.62em;margin-top:2px}
+@media(max-width:600px){.brand-name{font-size:2.4rem}.brand-top,.brand-bottom{font-size:.85rem;letter-spacing:.45em;margin-left:.45em}}
 .year-switcher{display:flex;justify-content:center;gap:10px;margin-bottom:24px}
 .year-btn{padding:12px 26px;background:#fff;border:1px solid rgba(184,134,11,.4);color:#5b6577;cursor:pointer;border-radius:10px;font-size:1rem;font-weight:600;transition:all .25s;box-shadow:0 1px 3px rgba(31,42,68,.05)}
 .year-btn:hover{border-color:#b8860b;color:#b8860b}
@@ -88,8 +99,19 @@ select{padding:8px 14px;background:#fff;border:1px solid rgba(31,42,68,.18);bord
 </head>
 <body>
 <div class="header">
-<h1>🎯 Tableau de bord — CA Emmanuelle Jane</h1>
-<p>Analyse complète des ventes avec calcul des bénéfices nets</p>
+<!-- LOGO : dépose simplement un fichier "logo.png" à la racine du dépôt et il s'affichera
+     automatiquement à la place de la version texte ci-dessous (aucune autre modif nécessaire). -->
+<div class="brand-logo">
+<img src="logo.png" alt="Emmanuelle Jane Paris"
+     onload="document.getElementById('brandFallback').style.display='none'"
+     onerror="this.style.display='none'">
+<div id="brandFallback">
+<div class="brand-top">Parfums</div>
+<div class="brand-name">Emmanuelle Jane</div>
+<div class="brand-bottom">Paris</div>
+</div>
+</div>
+<p>Outil de gestion de l'activité — ventes, marges, stock, trésorerie &amp; réseau</p>
 </div>
 
 <div class="year-switcher">
