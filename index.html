@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Emmanuelle Jane Paris — Outil de gestion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -138,6 +139,39 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 .stat-alert{color:#dc2626;font-weight:700}
 .stat-ok{color:#0f9d6f;font-weight:600}
 .stat-warn{color:#d97706;font-weight:700}
+/* Conteneur de scroll horizontal pour les tableaux (mobile) */
+.table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:16px}
+/* ============ ADAPTATION MOBILE ============ */
+@media(max-width:760px){
+  .main{padding:14px}
+  .topbar{margin-bottom:16px}
+  .topbar-title{font-size:1.4rem}
+  .menu-toggle{width:42px;height:42px;border-radius:12px;font-size:1.2rem}
+  .section{padding:18px;border-radius:20px;margin-bottom:18px}
+  .section h2{font-size:1.2rem;margin-bottom:14px}
+  .section h3{font-size:1rem}
+  .kpis{grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+  .kpi{padding:15px 16px;border-radius:18px}
+  .kpi-label{font-size:.66rem;margin-bottom:6px}
+  .kpi-value{font-size:1.18rem}
+  .kpi-value.big{font-size:1.3rem}
+  .chart-container{height:320px;padding:14px;border-radius:16px}
+  .chart-container.tall{height:400px}
+  .year-switcher{gap:8px;margin-bottom:20px}
+  .year-btn{padding:9px 16px;font-size:.82rem}
+  .table-wrap table{min-width:580px}
+  th{font-size:.7rem;padding:11px 10px}
+  td{font-size:.85rem;padding:10px}
+  .modal{padding:20px;border-radius:20px}
+  .controls{gap:8px}
+  .search-box{min-width:0;width:100%}
+  .sidebar{width:84vw;max-width:300px}
+}
+@media(max-width:430px){
+  .kpis{grid-template-columns:1fr}
+  .kpi-value{font-size:1.35rem}
+  .kpi-value.big{font-size:1.5rem}
+}
 </style>
 </head>
 <body>
@@ -2199,6 +2233,18 @@ function buildNav(){
 document.getElementById('menuToggle').addEventListener('click', ()=>{ sidebar.classList.toggle('open'); backdrop.classList.toggle('open'); });
 backdrop.addEventListener('click', closeSidebar);
 buildNav();
+
+// Rend les tableaux scrollables horizontalement sur petit écran (sans casser la page)
+document.querySelectorAll('main table').forEach(t=>{
+  const p = t.parentElement;
+  if(p.classList.contains('table-wrap')) return;
+  // les tableaux des modules sont déjà dans un conteneur scrollable
+  if(p.style && p.style.overflowX === 'auto') return;
+  const w = document.createElement('div');
+  w.className = 'table-wrap';
+  p.insertBefore(w, t);
+  w.appendChild(t);
+});
 </script>
 </body>
 </html>
