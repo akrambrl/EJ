@@ -16,7 +16,8 @@ body{font-family:'Segoe UI',-apple-system,Arial,sans-serif;background:linear-gra
 .header p{color:#7a8294;font-size:1rem;letter-spacing:.3px}
 /* Logo Emmanuelle Jane Paris (recréation vectorielle — remplaçable par un PNG) */
 .brand-logo{display:inline-flex;flex-direction:column;align-items:center;line-height:1;color:#1a1a1a;margin-bottom:10px}
-.brand-logo img{max-width:340px;height:auto}
+/* mix-blend-mode:multiply => un logo noir sur fond blanc voit son fond blanc disparaître sur le fond crème (pas besoin de PNG transparent) */
+.brand-logo img{max-width:340px;height:auto;mix-blend-mode:multiply}
 .brand-top,.brand-bottom{font-family:'Cormorant Garamond',serif;font-weight:500;text-transform:uppercase;color:#1a1a1a}
 .brand-top{font-size:1.05rem;letter-spacing:.62em;margin-left:.62em;margin-bottom:2px}
 .brand-name{font-family:'Parisienne',cursive;font-size:3.3rem;color:#1a1a1a;line-height:.95;margin:2px 0}
@@ -36,10 +37,15 @@ body{font-family:'Segoe UI',-apple-system,Arial,sans-serif;background:linear-gra
 .kpi.success .kpi-value{color:#0f9d6f}
 .kpi.danger{border-top-color:#ef4444}
 .kpi.danger .kpi-value{color:#dc2626}
-.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;border-bottom:2px solid rgba(184,134,11,.25);padding-bottom:6px}
-.tab{padding:9px 16px;background:#fff;border:1px solid rgba(31,42,68,.08);color:#5b6577;cursor:pointer;border-radius:8px 8px 0 0;font-size:.9rem;font-weight:500;transition:all .2s}
-.tab:hover{background:#faf4e4;color:#b8860b}
-.tab.active{background:#1f2a44;color:#e6c200;border-color:#1f2a44;font-weight:bold}
+/* Navigation à deux niveaux (catégories -> sous-onglets) */
+.nav-groups{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+.nav-group{padding:11px 22px;background:#fff;border:1px solid rgba(31,42,68,.1);color:#1f2a44;cursor:pointer;border-radius:10px;font-size:.95rem;font-weight:600;transition:all .2s;box-shadow:0 1px 4px rgba(31,42,68,.05)}
+.nav-group:hover{border-color:#b8860b;color:#b8860b}
+.nav-group.active{background:#1f2a44;color:#e6c200;border-color:#1f2a44;box-shadow:0 4px 14px rgba(31,42,68,.18)}
+.nav-subtabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:24px;padding:10px;background:rgba(31,42,68,.035);border-radius:12px}
+.subtab{padding:7px 16px;background:transparent;border:1px solid transparent;color:#5b6577;cursor:pointer;border-radius:8px;font-size:.88rem;font-weight:500;transition:all .2s}
+.subtab:hover{background:#fff;color:#b8860b}
+.subtab.active{background:#b8860b;color:#fff;font-weight:600;box-shadow:0 2px 8px rgba(184,134,11,.3)}
 .section{display:none;background:#fff;border:1px solid rgba(31,42,68,.07);border-radius:12px;padding:22px;margin-bottom:22px;box-shadow:0 2px 12px rgba(31,42,68,.05)}
 .section.active{display:block}
 .section h2{color:#1f2a44;margin-bottom:14px;font-size:1.3rem;font-weight:700}
@@ -148,27 +154,8 @@ select{padding:8px 14px;background:#fff;border:1px solid rgba(31,42,68,.18);bord
 <div class="kpi"><div class="kpi-label">Clients</div><div class="kpi-value" id="kpi-clients"></div></div>
 </div>
 
-<div class="tabs">
-<button class="tab active" data-tab="overview">📊 Vue d'ensemble</button>
-<button class="tab" data-tab="clients">👥 Clients</button>
-<button class="tab" data-tab="pays">🌍 Pays</button>
-<button class="tab" data-tab="mois">📅 Mois</button>
-<button class="tab" data-tab="refs">🌹 Références</button>
-<button class="tab" data-tab="factures">📄 Factures</button>
-<button class="tab" data-tab="evolution">📈 Évolution Clients</button>
-<button class="tab" data-tab="costs">💰 Prix de Revient</button>
-<button class="tab" data-tab="stock">📦 Stock</button>
-<button class="tab" data-tab="simulation">🛒 Simulation commande</button>
-<button class="tab" data-tab="production">🏭 Production</button>
-<button class="tab" data-tab="anticipation">🔮 Anticipation</button>
-<button class="tab" data-tab="objectifs">🎯 Objectifs & Projection</button>
-<button class="tab" data-tab="insights">🧠 Remarques intelligentes</button>
-<button class="tab" data-tab="compare">⚖️ Compare 25 vs 26</button>
-<button class="tab" data-tab="catalogue">🏷️ Catalogue &amp; Tarifs</button>
-<button class="tab" data-tab="treso">💶 Trésorerie</button>
-<button class="tab" data-tab="achats">🧪 Matières &amp; Achats</button>
-<button class="tab" data-tab="b2b">🏬 Réseau B2B</button>
-</div>
+<div class="nav-groups" id="navGroups"></div>
+<div class="nav-subtabs" id="navSubtabs"></div>
 
 <div id="overview" class="section active">
 <h2>Vue d'ensemble</h2>
@@ -2141,6 +2128,43 @@ defineModule({
 
 // Rendu initial de tous les modules
 Object.keys(MODULES).forEach(renderModule);
+
+/* ===================== NAVIGATION À DEUX NIVEAUX ===================== */
+const NAV_GROUPS = [
+  {id:'g_pilotage', label:'📊 Pilotage', tabs:[['overview',"Vue d'ensemble"],['objectifs','Objectifs & Projection'],['insights','Remarques intelligentes'],['compare','Comparatif 2025/2026']]},
+  {id:'g_ventes', label:'💶 Ventes', tabs:[['clients','Clients'],['pays','Pays'],['mois','Mois'],['refs','Références'],['factures','Factures'],['evolution','Évolution clients']]},
+  {id:'g_finance', label:'🏷️ Catalogue & Finance', tabs:[['catalogue','Catalogue & Tarifs'],['costs','Prix de revient'],['treso','Trésorerie']]},
+  {id:'g_ops', label:'📦 Opérations', tabs:[['stock','Stock produits finis'],['achats','Matières & Achats'],['production','Production'],['simulation','Simulation commande'],['anticipation','Anticipation']]},
+  {id:'g_reseau', label:'🏬 Réseau B2B', tabs:[['b2b','Points de vente']]}
+];
+
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const sec = document.getElementById(id);
+  if(sec){ sec.classList.add('active'); window.dispatchEvent(new Event('resize')); }
+}
+function selectGroup(grp){
+  const st = document.getElementById('navSubtabs');
+  st.innerHTML = grp.tabs.map((t,i)=>`<button class="subtab${i===0?' active':''}" data-tab="${t[0]}">${t[1]}</button>`).join('');
+  st.querySelectorAll('.subtab').forEach(b=>b.addEventListener('click',()=>{
+    st.querySelectorAll('.subtab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); showSection(b.dataset.tab);
+  }));
+  // n'affiche qu'un seul sous-onglet : on masque l'éventuel sous-onglet unique pour épurer
+  st.style.display = grp.tabs.length > 1 ? 'flex' : 'none';
+  showSection(grp.tabs[0][0]);
+}
+function buildNav(){
+  const g = document.getElementById('navGroups');
+  g.innerHTML = NAV_GROUPS.map((grp,i)=>`<button class="nav-group${i===0?' active':''}" data-g="${grp.id}">${grp.label}</button>`).join('');
+  g.querySelectorAll('.nav-group').forEach(b=>b.addEventListener('click',()=>{
+    g.querySelectorAll('.nav-group').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    selectGroup(NAV_GROUPS.find(x=>x.id===b.dataset.g));
+  }));
+  selectGroup(NAV_GROUPS[0]);
+}
+buildNav();
 </script>
 </body>
 </html>
