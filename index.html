@@ -10,6 +10,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-geo@4"></script>
+<!-- ====== SAUVEGARDE EN LIGNE (Supabase) — à brancher plus tard ======
+     1. Crée un projet gratuit sur supabase.com
+     2. Colle ci-dessous l'URL du projet et la clé "anon public" (voir SETUP-SUPABASE.md)
+     3. Tant que c'est vide, l'outil fonctionne en MODE LOCAL (données dans ce navigateur). -->
+<script>window.EJ_CONFIG = { SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,Arial,sans-serif;background:linear-gradient(160deg,#f7f3ec 0%,#f1ece2 100%);color:#2d3142;min-height:100vh;padding:0;-webkit-font-smoothing:antialiased}
@@ -1928,7 +1933,7 @@ function modLoad(key, defaults){
   try{ const r = localStorage.getItem(MOD_PREFIX+key); if(r) return JSON.parse(r); }catch(e){}
   return JSON.parse(JSON.stringify(defaults));
 }
-function modSave(m){ try{ localStorage.setItem(MOD_PREFIX+m.key, JSON.stringify(m.rows)); }catch(e){} }
+function modSave(m){ try{ localStorage.setItem(MOD_PREFIX+m.key, JSON.stringify(m.rows)); }catch(e){} if(typeof cloudPush==='function') cloudPush(m.key, m.rows); }
 function escAttr(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 function defineModule(cfg){ cfg.name = cfg.base; cfg.rows = modLoad(cfg.key, cfg.defaults); MODULES[cfg.base] = cfg; }
@@ -2245,6 +2250,79 @@ function buildNav(){
 document.getElementById('menuToggle').addEventListener('click', ()=>{ sidebar.classList.toggle('open'); backdrop.classList.toggle('open'); });
 backdrop.addEventListener('click', closeSidebar);
 buildNav();
+
+/* ===================== SAUVEGARDE EN LIGNE + CONNEXION (optionnel) =====================
+   Mode LOCAL par défaut (données dans le navigateur). Si window.EJ_CONFIG contient
+   l'URL + la clé Supabase, on active : connexion sécurisée + sauvegarde cloud synchronisée. */
+const EJ_CONFIG = window.EJ_CONFIG || { SUPABASE_URL:'', SUPABASE_ANON_KEY:'' };
+const EJ_CLOUD = !!(EJ_CONFIG.SUPABASE_URL && EJ_CONFIG.SUPABASE_ANON_KEY);
+let _supa=null, _ejUser=null; const _pushTimers={};
+
+function cloudPush(key, rows){
+  if(!EJ_CLOUD || !_supa || !_ejUser) return;
+  clearTimeout(_pushTimers[key]);
+  _pushTimers[key]=setTimeout(async()=>{
+    try{ await _supa.from('ej_data').upsert({user_id:_ejUser.id,key,value:rows},{onConflict:'user_id,key'}); }
+    catch(e){ console.warn('Supabase push',e); }
+  },600);
+}
+async function cloudPullAll(){
+  if(!EJ_CLOUD || !_supa || !_ejUser) return;
+  try{
+    const {data}=await _supa.from('ej_data').select('key,value').eq('user_id',_ejUser.id);
+    (data||[]).forEach(r=>{ try{ localStorage.setItem(MOD_PREFIX+r.key, JSON.stringify(r.value)); }catch(e){} });
+    Object.keys(MODULES).forEach(name=>{ const m=MODULES[name]; m.rows=modLoad(m.key,m.defaults); renderModule(name); });
+    if(typeof renderWorldMap==='function') renderWorldMap();
+  }catch(e){ console.warn('Supabase pull',e); }
+}
+function ejFoot(txt){ const f=document.querySelector('.sidebar-foot'); if(f) f.innerHTML=txt; }
+function ejSignOutBtn(){
+  ejFoot(`<div style="margin-bottom:6px">🔒 ${_ejUser?_ejUser.email:''}</div><button id="ejSignOut" style="padding:6px 14px;border:1px solid rgba(31,42,68,.2);background:#fff;border-radius:999px;color:#5b6577;font-weight:700;cursor:pointer;font-size:.72rem">Se déconnecter</button>`);
+  const b=document.getElementById('ejSignOut'); if(b) b.addEventListener('click',async()=>{ await _supa.auth.signOut(); location.reload(); });
+}
+function ejShowAuth(){
+  if(document.getElementById('ejAuth')) return;
+  const o=document.createElement('div'); o.id='ejAuth';
+  o.style.cssText='position:fixed;inset:0;z-index:5000;background:linear-gradient(160deg,#f7f3ec,#e9e1d2);display:flex;align-items:center;justify-content:center;padding:20px';
+  o.innerHTML=`<div style="background:#fff;border-radius:26px;box-shadow:0 30px 70px rgba(31,42,68,.25);padding:34px 30px;max-width:380px;width:100%;text-align:center">
+    <div style="font-family:'Parisienne',cursive;font-size:2.2rem;color:#1f2a44;margin-bottom:2px">Emmanuelle Jane</div>
+    <div style="letter-spacing:.4em;font-size:.7rem;color:#b8860b;margin-bottom:22px;font-weight:700">PARIS · OUTIL DE GESTION</div>
+    <input id="ejEmail" type="email" placeholder="Email" style="width:100%;padding:12px 16px;border:1px solid rgba(31,42,68,.18);border-radius:12px;margin-bottom:10px;font-size:.95rem">
+    <input id="ejPwd" type="password" placeholder="Mot de passe" style="width:100%;padding:12px 16px;border:1px solid rgba(31,42,68,.18);border-radius:12px;margin-bottom:6px;font-size:.95rem">
+    <div id="ejErr" style="color:#dc2626;font-size:.82rem;min-height:18px;margin-bottom:8px"></div>
+    <button id="ejLogin" style="width:100%;padding:13px;background:#1f2a44;color:#e6c200;border:none;border-radius:999px;font-weight:800;font-size:.95rem;cursor:pointer;margin-bottom:10px">Se connecter</button>
+    <button id="ejSignup" style="width:100%;padding:11px;background:#fff;color:#5b6577;border:1px solid rgba(31,42,68,.18);border-radius:999px;font-weight:700;font-size:.9rem;cursor:pointer">Créer un compte</button>
+  </div>`;
+  document.body.appendChild(o);
+  const err=m=>{document.getElementById('ejErr').textContent=m;};
+  const creds=()=>[document.getElementById('ejEmail').value.trim(), document.getElementById('ejPwd').value];
+  document.getElementById('ejLogin').addEventListener('click',async()=>{
+    const [email,password]=creds(); err('');
+    const {data,error}=await _supa.auth.signInWithPassword({email,password});
+    if(error) return err(error.message);
+    _ejUser=data.user; o.remove(); await cloudPullAll(); ejSignOutBtn();
+  });
+  document.getElementById('ejSignup').addEventListener('click',async()=>{
+    const [email,password]=creds(); err('');
+    const {data,error}=await _supa.auth.signUp({email,password});
+    if(error) return err(error.message);
+    if(data.session){ _ejUser=data.user; o.remove(); await cloudPullAll(); ejSignOutBtn(); }
+    else err('Compte créé. Vérifie tes emails pour confirmer, puis connecte-toi.');
+  });
+}
+function ejInitCloud(){
+  const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  s.onload=async()=>{
+    _supa=supabase.createClient(EJ_CONFIG.SUPABASE_URL, EJ_CONFIG.SUPABASE_ANON_KEY);
+    const {data:{session}}=await _supa.auth.getSession();
+    if(session){ _ejUser=session.user; await cloudPullAll(); ejSignOutBtn(); }
+    else ejShowAuth();
+  };
+  s.onerror=()=>ejFoot('⚠️ Cloud indisponible · mode local');
+  document.head.appendChild(s);
+}
+if(EJ_CLOUD) ejInitCloud();
+else ejFoot("📍 Mode local · données sur cet appareil<br><span style='font-size:.66rem;color:#b8a86a'>Branchez Supabase pour la sauvegarde en ligne</span>");
 
 /* ===================== CARTE DU MONDE DES CLIENTS ===================== */
 const COORD={
