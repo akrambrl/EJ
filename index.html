@@ -156,6 +156,18 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 .mod-reset{background:#fff;border:1px solid rgba(31,42,68,.2);color:#5b6577}
 .mod-reset:hover{border-color:#b8860b;color:#b8860b}
 .mod-del:hover{transform:scale(1.2)}
+.saisie-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:8px}
+.saisie-head label{display:flex;flex-direction:column;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#9aa1b0;font-weight:700;gap:5px}
+.saisie-head input{padding:11px 14px;border:1px solid rgba(31,42,68,.14);border-radius:12px;font-size:.95rem;color:#1f2a44;font-weight:600;background:#fff}
+.saisie-head input:focus{outline:none;border-color:#b8860b}
+#sa-table .mod-in,#sa-table select.mod-in{width:100%;min-width:70px}
+#sa-table td{padding:8px 8px}
+.saisie-totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:20px 0;background:#1f2a44;border-radius:18px;padding:18px 22px}
+.saisie-totals .st{text-align:center}
+.saisie-totals .st-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#9fb0d0;font-weight:700;margin-bottom:4px}
+.saisie-totals .st-val{font-size:1.5rem;font-weight:800;color:#fff;line-height:1.1}
+.saisie-totals .st-val.gold{color:#e6c200}
+.saisie-totals .st-val.green{color:#34d399}
 .stat-alert{color:#dc2626;font-weight:700}
 .stat-ok{color:#0f9d6f;font-weight:600}
 .stat-warn{color:#d97706;font-weight:700}
@@ -258,6 +270,42 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 <div class="chart-container tall"><canvas id="chartMois"></canvas></div>
 <h2>🏆 Podium des Clients</h2>
 <div class="podium" id="podium"></div>
+</div>
+
+<div id="saisie" class="section">
+<h2>➕ Saisir une vente</h2>
+<div class="info-box">💡 Crée une facture comme dans ta liste : un client, une date, puis une ou plusieurs lignes produit. Les bouteilles, coûts et marges se calculent automatiquement. À l'enregistrement, <strong>tout le tableau de bord se met à jour</strong> (CA, podium, graphiques, pays…).</div>
+
+<div class="saisie-head">
+  <label>N° facture<input type="text" id="sa-fact" autocomplete="off"></label>
+  <label>Date<input type="date" id="sa-date"></label>
+  <label>Client<input type="text" id="sa-client" list="sa-clientlist" autocomplete="off" placeholder="Nom du client"><datalist id="sa-clientlist"></datalist></label>
+  <label>Pays<input type="text" id="sa-pays" list="sa-payslist" autocomplete="off" placeholder="Pays"><datalist id="sa-payslist"></datalist></label>
+</div>
+
+<h3 style="margin:18px 0 8px">Lignes de la facture</h3>
+<div class="table-wrap">
+<table id="sa-table">
+<thead><tr>
+<th>Collection</th><th>Référence</th><th>Mode</th><th class="text-right">Cartons / Btl</th><th class="text-right">Prix unit.</th><th class="text-right">Btl</th><th class="text-right">Test.</th><th class="text-right">CA</th><th class="text-right">Coût</th><th class="text-right">Bénéfice</th><th></th>
+</tr></thead>
+<tbody id="sa-lines"></tbody>
+</table>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+  <button class="mod-add" id="sa-addline">+ Ajouter une ligne</button>
+  <button class="mod-add" id="sa-addremise" style="background:#fff;color:#b8860b;border:1px solid rgba(184,134,11,.4)">+ Remise / réduction</button>
+</div>
+
+<div class="saisie-totals" id="sa-totals"></div>
+
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px">
+  <button class="mod-add" id="sa-save" style="padding:13px 28px;font-size:.95rem">💾 Enregistrer la vente</button>
+  <button class="mod-reset" id="sa-reset" style="background:#fff;color:#5b6577;border:1px solid rgba(31,42,68,.18)">Réinitialiser</button>
+  <span id="sa-msg" style="font-weight:700;font-size:.9rem"></span>
+</div>
+
+<div id="sa-listwrap" style="margin-top:30px"></div>
 </div>
 
 <div id="clients" class="section">
@@ -2032,11 +2080,11 @@ document.addEventListener('change', e=>{
 });
 document.addEventListener('click', e=>{
   const add = e.target.closest('.mod-add');
-  if(add){ const m=MODULES[add.dataset.m]; m.rows.push(JSON.parse(JSON.stringify(m.blank))); modSave(m); renderModule(m.name); return; }
+  if(add){ const m=MODULES[add.dataset.m]; if(!m) return; m.rows.push(JSON.parse(JSON.stringify(m.blank))); modSave(m); renderModule(m.name); return; }
   const reset = e.target.closest('.mod-reset');
-  if(reset){ const m=MODULES[reset.dataset.m]; if(confirm("Réinitialiser les données d'exemple de ce tableau ?")){ m.rows=JSON.parse(JSON.stringify(m.defaults)); modSave(m); renderModule(m.name);} return; }
+  if(reset){ const m=MODULES[reset.dataset.m]; if(!m) return; if(confirm("Réinitialiser les données d'exemple de ce tableau ?")){ m.rows=JSON.parse(JSON.stringify(m.defaults)); modSave(m); renderModule(m.name);} return; }
   const del = e.target.closest('.mod-del');
-  if(del){ const m=MODULES[del.dataset.m]; m.rows.splice(+del.dataset.ri,1); modSave(m); renderModule(m.name); return; }
+  if(del){ const m=MODULES[del.dataset.m]; if(!m) return; m.rows.splice(+del.dataset.ri,1); modSave(m); renderModule(m.name); return; }
 });
 
 /* ===================== DÉFINITION DES MODULES ===================== */
@@ -2248,7 +2296,7 @@ Object.keys(MODULES).forEach(renderModule);
 /* ===================== NAVIGATION À DEUX NIVEAUX ===================== */
 const NAV_GROUPS = [
   {id:'g_pilotage', label:'📊 Pilotage', tabs:[['overview',"Vue d'ensemble"],['objectifs','Objectifs & Projection'],['insights','Remarques intelligentes'],['compare','Comparatif 2025/2026']]},
-  {id:'g_ventes', label:'💶 Ventes', tabs:[['clients','Clients'],['pays','Pays'],['mois','Mois'],['refs','Références'],['factures','Factures'],['evolution','Évolution clients']]},
+  {id:'g_ventes', label:'💶 Ventes', tabs:[['saisie','➕ Saisir une vente'],['clients','Clients'],['pays','Pays'],['mois','Mois'],['refs','Références'],['factures','Factures'],['evolution','Évolution clients']]},
   {id:'g_finance', label:'🏷️ Catalogue & Finance', tabs:[['catalogue','Catalogue & Tarifs'],['costs','Prix de revient'],['treso','Trésorerie']]},
   {id:'g_ops', label:'📦 Opérations', tabs:[['stock','Stock produits finis'],['achats','Matières & Achats'],['production','Production'],['simulation','Simulation commande'],['anticipation','Anticipation']]},
   {id:'g_reseau', label:'🏬 Réseau B2B', tabs:[['b2b','Points de vente']]}
@@ -2306,6 +2354,7 @@ async function cloudPullAll(){
     const {data}=await _supa.from('ej_data').select('key,value').eq('user_id',_ejUser.id);
     (data||[]).forEach(r=>{ try{ localStorage.setItem(MOD_PREFIX+r.key, JSON.stringify(r.value)); }catch(e){} });
     Object.keys(MODULES).forEach(name=>{ const m=MODULES[name]; m.rows=modLoad(m.key,m.defaults); renderModule(name); });
+    if(typeof window.__reloadVentes==='function') window.__reloadVentes();
     if(typeof renderWorldMap==='function') renderWorldMap();
   }catch(e){ console.warn('Supabase pull',e); }
 }
@@ -2441,6 +2490,260 @@ document.querySelectorAll('main table').forEach(t=>{
   p.insertBefore(w, t);
   w.appendChild(t);
 });
+</script>
+
+<script>
+/* ===================== SAISIE DES VENTES =====================
+   Crée des factures multi-lignes, recalcule TOUT le dashboard de façon
+   additive (les données d'origine sont préservées, les ventes saisies
+   s'ajoutent par-dessus) et sauvegarde en local + cloud (si connecté). */
+(function(){
+  if(typeof ALL==='undefined') return;
+  const MN=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const clone = o => JSON.parse(JSON.stringify(o));
+
+  // --- Base figée : on capture les factures d'origine une seule fois ---
+  const BASE_FACT = { '2025': clone(ALL['2025'].factures||[]), '2026': clone(ALL['2026'].factures||[]) };
+
+  // --- Ventes saisies par l'utilisateur (persistées) ---
+  let ventes = (typeof modLoad==='function') ? modLoad('ventes', []) : [];
+
+  // ---------- Recalcul des agrégats à partir des factures ----------
+  function aggregate(F){
+    let ca=0,cout=0,marge=0,btl=0,testers=0;
+    const cl={},py={},rf={},co={},ctp={};
+    const mo={}; MN.forEach((m,i)=>mo[i+1]={mois:m,factures:0,btl:0,ca:0,cout:0,marge:0});
+    F.forEach(f=>{
+      ca+=f.ca||0; cout+=f.cout||0; marge+=f.marge||0; btl+=f.btl||0;
+      const mm=+String(f.date||'').split('/')[1];
+      if(mo[mm]){ mo[mm].factures++; mo[mm].btl+=f.btl||0; mo[mm].ca+=f.ca||0; mo[mm].cout+=f.cout||0; mo[mm].marge+=f.marge||0; }
+      const ck=f.client+'|'+f.pays;
+      const c=cl[ck]||(cl[ck]={client:f.client,pays:f.pays,factures:0,btl:0,testers:0,ca:0,cout:0,marge:0});
+      c.factures++; c.btl+=f.btl||0; c.ca+=f.ca||0; c.cout+=f.cout||0; c.marge+=f.marge||0;
+      const p=py[f.pays]||(py[f.pays]={pays:f.pays,clients:0,_s:{},factures:0,btl:0,ca:0,cout:0,marge:0});
+      p._s[f.client]=1; p.factures++; p.btl+=f.btl||0; p.ca+=f.ca||0; p.cout+=f.cout||0; p.marge+=f.marge||0;
+      (f.lines||[]).forEach(l=>{
+        testers+=l.testers||0; c.testers+=l.testers||0;
+        if(l.collection==='REMISE') return; // remises exclues du détail collections/références
+        const rk=l.collection+'|'+l.reference;
+        const r=rf[rk]||(rf[rk]={collection:l.collection,reference:l.reference,cartons:0,btl:0,testers:0,ca:0,cout:0,marge:0,cost_known:true});
+        r.cartons+=l.cartons||0; r.btl+=l.btl||0; r.testers+=l.testers||0; r.ca+=l.ca||0; r.cout+=l.cout||0; r.marge+=l.marge||0;
+        const c1=co[l.collection]||(co[l.collection]={collection:l.collection,_r:{},refs:0,btl:0,ca:0,cout:0,marge:0,cost_known:true});
+        c1._r[l.reference]=1; c1.btl+=l.btl||0; c1.ca+=l.ca||0; c1.cout+=l.cout||0; c1.marge+=l.marge||0;
+        const tp=ctp[ck]||(ctp[ck]={}); const e=tp[rk]||(tp[rk]={collection:l.collection,reference:l.reference,btl:0,ca:0});
+        e.btl+=l.btl||0; e.ca+=l.ca||0;
+      });
+    });
+    const clients=Object.values(cl).sort((a,b)=>b.ca-a.ca);
+    const pays=Object.values(py).map(p=>{p.clients=Object.keys(p._s).length;delete p._s;return p;}).sort((a,b)=>b.ca-a.ca);
+    const refs=Object.values(rf).sort((a,b)=>b.ca-a.ca);
+    const collections=Object.values(co).map(c=>{c.refs=Object.keys(c._r).length;delete c._r;return c;}).sort((a,b)=>b.ca-a.ca);
+    const client_top_products={};
+    Object.keys(ctp).forEach(k=>{ client_top_products[k]=Object.values(ctp[k]).sort((a,b)=>b.ca-a.ca).slice(0,3); });
+    return {
+      kpi_ca:ca,kpi_cout:cout,kpi_marge:marge,kpi_marge_pct_known:ca>0?(marge/ca*100):0,
+      kpi_ca_known:ca,kpi_ca_unknown:0,kpi_btl:btl,kpi_testers:testers,
+      kpi_factures:F.length,kpi_clients:clients.length,kpi_pays:pays.length,kpi_refs:refs.length,
+      clients,pays,mois:MN.map((m,i)=>mo[i+1]),refs,collections,client_top_products,factures:F.slice()
+    };
+  }
+  function ventesByYear(){ const v={'2025':[],'2026':[]}; ventes.forEach(x=>{const y=String(x.date||'').split('/')[2]; if(v[y]) v[y].push(x);}); return v; }
+  function rebuild(){
+    const v=ventesByYear();
+    Object.assign(ALL['2025'], aggregate(BASE_FACT['2025'].concat(v['2025'])));
+    Object.assign(ALL['2026'], aggregate(BASE_FACT['2026'].concat(v['2026'])));
+    Object.assign(ALL['total'], aggregate(BASE_FACT['2025'].concat(BASE_FACT['2026'],v['2025'],v['2026'])));
+  }
+  function persist(){
+    try{ localStorage.setItem('ej_mod_ventes', JSON.stringify(ventes)); }catch(e){}
+    if(typeof cloudPush==='function') cloudPush('ventes', ventes);
+  }
+  // Réintègre les ventes après une synchro cloud (login)
+  window.__reloadVentes=function(){ ventes=(typeof modLoad==='function')?modLoad('ventes',[]):[]; rebuild(); buildList(); if(typeof renderAll==='function') renderAll(); };
+
+  // ---------- Modèle de coût d'une ligne ----------
+  const costOf = c => ALL.costs ? ALL.costs[c] : null;
+  const refList = c => { const C=costOf(c); return (C&&C.refs)?C.refs:[]; };
+  function defPrix(l){ const C=costOf(l.collection); if(!C) return 0; return l.mode==='unite' ? (C.standard_price_bottle||0) : (C.standard_price_carton||0); }
+  function computeLine(l){
+    if(l.collection==='REMISE'){ l.mode='remise'; l.cartons=0; l.btl=0; l.testers=0; l.ca=-Math.abs(+l.prix||0); l.cout=0; l.marge=l.ca; return l; }
+    const C=costOf(l.collection); const cs=C?(C.carton_size||10):10;
+    const ref=(C&&C.refs||[]).find(r=>r.name===l.reference);
+    const cpb=ref?ref.cost_per_bottle:(C?(C.total_fixed||0):0);
+    const cpcs=ref?ref.cost_per_carton_sold:(cpb*(cs+1));
+    if(l.mode==='unite'){
+      l.cartons=0; l.btl=+l.btl||0; l.testers=+l.testers||0;
+      l.ca=l.btl*(+l.prix||0); l.cout=(l.btl+l.testers)*cpb; l.marge=l.ca-l.cout;
+    } else {
+      l.mode='carton'; l.cartons=+l.cartons||0; l.btl=l.cartons*cs; l.testers=l.cartons;
+      l.ca=l.cartons*(+l.prix||0); l.cout=l.cartons*cpcs; l.marge=l.ca-l.cout;
+    }
+    return l;
+  }
+
+  // ---------- Helpers date / n° facture ----------
+  function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function iso2fr(s){ if(!s) return ''; const p=s.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : s; }
+  function nextFactNo(year){
+    let mx=0; const re=new RegExp('^EJ'+year+'(\\d+)$');
+    BASE_FACT['2025'].concat(BASE_FACT['2026'],ventes).forEach(f=>{ const m=String(f.facture||'').match(re); if(m) mx=Math.max(mx,+m[1]); });
+    return 'EJ'+year+String(mx+1).padStart(3,'0');
+  }
+
+  // ---------- État du brouillon ----------
+  const sec=document.getElementById('saisie'); if(!sec) return;
+  const $=id=>document.getElementById(id);
+  let lastAutoFact='';
+  function newLine(){ const coll=Object.keys(ALL.costs||{})[0]||'VIP'; const rl=refList(coll); const l={collection:coll,reference:rl[0]?rl[0].name:'',mode:'carton',cartons:1,prix:0}; l.prix=defPrix(l); return computeLine(l); }
+  let draft={ lines:[ newLine() ] };
+
+  // Carte nom client -> pays (pour auto-remplissage)
+  function clientPaysMap(){ const m={}; (ALL.total.clients||[]).forEach(c=>{ if(!m[c.client]) m[c.client]=c.pays; }); return m; }
+
+  function collOptions(sel){ return Object.keys(ALL.costs||{}).map(k=>`<option value="${k}"${k===sel?' selected':''}>${k}</option>`).join(''); }
+  function refOptions(coll,sel){ return refList(coll).map(r=>`<option value="${r.name.replace(/"/g,'&quot;')}"${r.name===sel?' selected':''}>${r.name}</option>`).join(''); }
+
+  function lineRow(l,i){
+    if(l.collection==='REMISE'){
+      return `<tr data-i="${i}">
+        <td><span class="badge badge-remise">REMISE</span></td>
+        <td><input class="mod-in sa-f" data-f="reference" value="${String(l.reference||'').replace(/"/g,'&quot;')}" style="width:100%"></td>
+        <td style="text-align:center;color:#9aa1b0">—</td>
+        <td class="text-right" style="color:#9aa1b0">—</td>
+        <td><input class="mod-in sa-n" type="number" step="0.01" data-f="remise" value="${Math.abs(l.prix||0)}" style="text-align:right" placeholder="montant"></td>
+        <td class="text-right" style="color:#9aa1b0">—</td><td class="text-right" style="color:#9aa1b0">—</td>
+        <td class="text-right amount" data-c="ca">${fmtMoneyShort(l.ca)}</td>
+        <td class="text-right" style="color:#9aa1b0">—</td>
+        <td class="text-right amount-negative" data-c="marge">${fmtMoneyShort(l.marge)}</td>
+        <td style="text-align:center"><span class="mod-del" data-i="${i}" style="cursor:pointer;color:#dc2626">🗑️</span></td>
+      </tr>`;
+    }
+    const qty = l.mode==='unite' ? l.btl : l.cartons;
+    return `<tr data-i="${i}">
+      <td><select class="mod-in sa-f" data-f="collection">${collOptions(l.collection)}</select></td>
+      <td><select class="mod-in sa-f" data-f="reference">${refOptions(l.collection,l.reference)}</select></td>
+      <td><select class="mod-in sa-f" data-f="mode"><option value="carton"${l.mode!=='unite'?' selected':''}>Carton</option><option value="unite"${l.mode==='unite'?' selected':''}>Unité</option></select></td>
+      <td><input class="mod-in sa-n" type="number" min="0" data-f="qty" value="${qty}" style="text-align:right"></td>
+      <td><input class="mod-in sa-n" type="number" min="0" step="0.01" data-f="prix" value="${l.prix}" style="text-align:right"></td>
+      <td class="text-right" data-c="btl">${fmtNum(l.btl)}</td>
+      <td class="text-right" data-c="testers">${l.testers}</td>
+      <td class="text-right amount" data-c="ca">${fmtMoneyShort(l.ca)}</td>
+      <td class="text-right amount-negative" data-c="cout">${fmtMoneyShort(l.cout)}</td>
+      <td class="text-right amount-positive" data-c="marge">${fmtMoneyShort(l.marge)}</td>
+      <td style="text-align:center"><span class="mod-del" data-i="${i}" style="cursor:pointer;color:#dc2626">🗑️</span></td>
+    </tr>`;
+  }
+  function renderLines(){ $('sa-lines').innerHTML = draft.lines.map((l,i)=>lineRow(l,i)).join(''); }
+  function updateRowCells(tr,l){
+    const set=(c,v)=>{ const td=tr.querySelector('[data-c="'+c+'"]'); if(td) td.textContent=v; };
+    if(l.collection==='REMISE'){ set('ca',fmtMoneyShort(l.ca)); set('marge',fmtMoneyShort(l.marge)); return; }
+    set('btl',fmtNum(l.btl)); set('testers',l.testers); set('ca',fmtMoneyShort(l.ca)); set('cout',fmtMoneyShort(l.cout)); set('marge',fmtMoneyShort(l.marge));
+  }
+  function totals(){ return draft.lines.reduce((a,l)=>{a.ca+=l.ca||0;a.cout+=l.cout||0;a.marge+=l.marge||0;a.btl+=l.btl||0;return a;},{ca:0,cout:0,marge:0,btl:0}); }
+  function renderTotals(){
+    const t=totals(); const pct=t.ca>0?(t.marge/t.ca*100):0;
+    $('sa-totals').innerHTML=`
+      <div class="st"><div class="st-label">Chiffre d'affaires</div><div class="st-val gold">${fmtMoneyShort(t.ca)}</div></div>
+      <div class="st"><div class="st-label">Coût</div><div class="st-val">${fmtMoneyShort(t.cout)}</div></div>
+      <div class="st"><div class="st-label">Bénéfice</div><div class="st-val green">${fmtMoneyShort(t.marge)} <span style="font-size:.9rem;opacity:.8">(${pct.toFixed(1)}%)</span></div></div>
+      <div class="st"><div class="st-label">Bouteilles</div><div class="st-val">${fmtNum(t.btl)}</div></div>`;
+  }
+  function buildList(){
+    const w=$('sa-listwrap'); if(!w) return;
+    if(!ventes.length){ w.innerHTML=''; return; }
+    const rows=ventes.map((v,i)=>`<tr><td><strong>${v.facture}</strong></td><td>${v.date}</td><td>${v.client}</td><td>${v.pays}</td><td class="text-right">${fmtNum(v.btl)}</td><td class="text-right amount">${fmtMoneyShort(v.ca)}</td><td class="text-right amount-positive">${fmtMoneyShort(v.marge)}</td><td style="text-align:center"><span class="sa-vdel" data-i="${i}" style="cursor:pointer;color:#dc2626;font-weight:700">🗑️ Supprimer</span></td></tr>`).join('');
+    w.innerHTML=`<h3>📋 Mes ventes saisies (${ventes.length})</h3>
+      <div class="info-box" style="background:#eef6ff;border-left-color:#3b82f6;color:#1e3a5f">Ces ventes s'ajoutent à tes données d'origine et alimentent tout le dashboard. Tu peux les supprimer ici (les factures d'origine ne sont pas modifiables).</div>
+      <div class="table-wrap"><table><thead><tr><th>Facture</th><th>Date</th><th>Client</th><th>Pays</th><th class="text-right">Btl</th><th class="text-right">CA</th><th class="text-right">Bénéfice</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  function populateDatalists(){
+    const cmap=clientPaysMap();
+    $('sa-clientlist').innerHTML=Object.keys(cmap).sort().map(c=>`<option value="${c.replace(/"/g,'&quot;')}">`).join('');
+    const paysSet={}; (ALL.total.pays||[]).forEach(p=>paysSet[p.pays]=1);
+    $('sa-payslist').innerHTML=Object.keys(paysSet).sort().map(p=>`<option value="${p}">`).join('');
+  }
+
+  // ---------- Interactions ----------
+  const linesEl=$('sa-lines');
+  linesEl.addEventListener('input', e=>{
+    const inp=e.target.closest('input.sa-n, input.sa-f'); if(!inp) return;
+    const tr=e.target.closest('tr'); const l=draft.lines[+tr.dataset.i]; if(!l) return;
+    const f=inp.dataset.f, v=inp.value;
+    if(f==='qty'){ if(l.mode==='unite') l.btl=+v||0; else l.cartons=+v||0; }
+    else if(f==='prix'){ l.prix=+v||0; }
+    else if(f==='remise'){ l.prix=-Math.abs(+v||0); }
+    else if(f==='reference'){ l.reference=v; }
+    computeLine(l); updateRowCells(tr,l); renderTotals();
+  });
+  linesEl.addEventListener('change', e=>{
+    const selOrTxt=e.target.closest('select.sa-f'); if(!selOrTxt) return;
+    const tr=e.target.closest('tr'); const l=draft.lines[+tr.dataset.i]; if(!l) return;
+    const f=selOrTxt.dataset.f, v=selOrTxt.value;
+    if(f==='collection'){ l.collection=v; const rl=refList(v); l.reference=rl[0]?rl[0].name:''; l.prix=defPrix(l); }
+    else if(f==='reference'){ l.reference=v; }
+    else if(f==='mode'){ l.mode=v; l.prix=defPrix(l); }
+    computeLine(l); renderLines(); renderTotals();
+  });
+  linesEl.addEventListener('click', e=>{
+    const del=e.target.closest('.mod-del'); if(!del) return;
+    draft.lines.splice(+del.dataset.i,1);
+    if(!draft.lines.length) draft.lines.push(newLine());
+    renderLines(); renderTotals();
+  });
+  $('sa-addline').addEventListener('click', ()=>{ draft.lines.push(newLine()); renderLines(); renderTotals(); });
+  $('sa-addremise').addEventListener('click', ()=>{ draft.lines.push(computeLine({collection:'REMISE',reference:'Réduction exceptionnelle',mode:'remise',prix:0})); renderLines(); renderTotals(); });
+
+  $('sa-date').addEventListener('change', ()=>{
+    const y=($('sa-date').value||'').split('-')[0];
+    if(y && (!$('sa-fact').value.trim() || $('sa-fact').value===lastAutoFact)){ lastAutoFact=nextFactNo(y); $('sa-fact').value=lastAutoFact; }
+  });
+  $('sa-client').addEventListener('change', ()=>{
+    const cmap=clientPaysMap(); const c=$('sa-client').value.trim();
+    if(cmap[c] && !$('sa-pays').value.trim()) $('sa-pays').value=cmap[c];
+  });
+
+  function msg(txt,ok){ const m=$('sa-msg'); m.textContent=txt; m.style.color=ok?'#0f9d6f':'#dc2626'; if(txt) setTimeout(()=>{ if(m.textContent===txt) m.textContent=''; }, 5000); }
+  function resetDraft(){ draft={lines:[newLine()]}; $('sa-client').value=''; $('sa-pays').value=''; $('sa-date').value=todayISO(); lastAutoFact=nextFactNo($('sa-date').value.split('-')[0]); $('sa-fact').value=lastAutoFact; renderLines(); renderTotals(); }
+
+  $('sa-reset').addEventListener('click', ()=>{ resetDraft(); msg('',true); });
+  $('sa-save').addEventListener('click', ()=>{
+    const facture=$('sa-fact').value.trim(), iso=$('sa-date').value, client=$('sa-client').value.trim(), pays=$('sa-pays').value.trim();
+    if(!facture){ return msg('Indique un n° de facture.'); }
+    if(!iso){ return msg('Choisis une date.'); }
+    if(!client){ return msg('Indique le client.'); }
+    if(!pays){ return msg('Indique le pays.'); }
+    const lines=draft.lines.map(l=>computeLine(Object.assign({},l))).filter(l=>l.ca||l.cout||l.btl);
+    if(!lines.length){ return msg('Ajoute au moins une ligne avec un montant.'); }
+    const year=iso.split('-')[0];
+    if(year!=='2025' && year!=='2026'){ return msg('La date doit être en 2025 ou 2026.'); }
+    const all=BASE_FACT['2025'].concat(BASE_FACT['2026'],ventes);
+    if(all.some(f=>f.facture===facture)){ return msg('Ce n° de facture existe déjà.'); }
+    const t=lines.reduce((a,l)=>{a.btl+=l.btl||0;a.ca+=l.ca||0;a.cout+=l.cout||0;a.marge+=l.marge||0;return a;},{btl:0,ca:0,cout:0,marge:0});
+    ventes.push({ facture, date:iso2fr(iso), client, pays, btl:t.btl, ca:t.ca, cout:t.cout, marge:t.marge, lines, _user:true });
+    persist(); rebuild();
+    if(typeof renderAll==='function') renderAll();
+    populateDatalists(); buildList(); resetDraft();
+    msg('✅ Vente enregistrée — dashboard mis à jour.', true);
+  });
+
+  $('sa-listwrap').addEventListener('click', e=>{
+    const del=e.target.closest('.sa-vdel'); if(!del) return;
+    const i=+del.dataset.i; const v=ventes[i]; if(!v) return;
+    if(!confirm('Supprimer la vente '+v.facture+' ('+v.client+') ?')) return;
+    ventes.splice(i,1);
+    persist(); rebuild();
+    if(typeof renderAll==='function') renderAll();
+    populateDatalists(); buildList();
+  });
+
+  // ---------- Démarrage ----------
+  $('sa-date').value=todayISO();
+  lastAutoFact=nextFactNo($('sa-date').value.split('-')[0]);
+  $('sa-fact').value=lastAutoFact;
+  renderLines(); renderTotals(); populateDatalists(); buildList();
+  rebuild();
+  if(ventes.length && typeof renderAll==='function') renderAll();
+})();
 </script>
 </body>
 </html>
