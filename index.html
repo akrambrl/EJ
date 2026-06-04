@@ -320,6 +320,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 </div>
 
 <div id="saisie" class="section">
+<div class="nav-subtabs"><button class="subtab active" data-sub="saisie">🧾 Commandes &amp; Factures</button><button class="subtab" data-sub="factures">📑 Liste des factures</button></div>
 <h2>🧾 Commandes &amp; Factures</h2>
 <div class="info-box">💡 Crée un <strong>bon de commande</strong> pour ton client, imprime-le en PDF, puis transforme-le en <strong>facture</strong> en un clic (ou crée directement une facture). <strong>Seules les factures</strong> alimentent le tableau de bord — une commande reste un engagement tant qu'elle n'est pas facturée.</div>
 
@@ -380,6 +381,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 </div>
 
 <div id="clients" class="section">
+<div class="nav-subtabs"><button class="subtab active" data-sub="clients">👤 Clients</button><button class="subtab" data-sub="pays">🌍 Pays</button><button class="subtab" data-sub="evolution">📈 Évolution clients</button></div>
 <h2>Tous les clients (triés par CA)</h2>
 <div class="info-box">💡 Clique sur une ligne pour voir le détail des factures du client</div>
 <div class="controls">
@@ -392,6 +394,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 </div>
 
 <div id="pays" class="section">
+<div class="nav-subtabs"><button class="subtab" data-sub="clients">👤 Clients</button><button class="subtab active" data-sub="pays">🌍 Pays</button><button class="subtab" data-sub="evolution">📈 Évolution clients</button></div>
 <h2>🌍 Carte des clients dans le monde</h2>
 <div class="info-box">💡 Chaque bulle représente un pays. Bascule entre <strong>chiffre d'affaires</strong> (tes ventes réelles) et <strong>points de vente</strong> (ton réseau B2B). Survole une bulle pour le détail.</div>
 <div class="controls" style="margin-bottom:14px">
@@ -443,6 +446,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 </div>
 
 <div id="factures" class="section">
+<div class="nav-subtabs"><button class="subtab" data-sub="saisie">🧾 Commandes &amp; Factures</button><button class="subtab active" data-sub="factures">📑 Liste des factures</button></div>
 <h2>Toutes les factures</h2>
 <div class="info-box">💡 Clique sur une facture pour voir tout le détail des lignes (références, quantités, prix, marges)</div>
 <div class="controls">
@@ -455,6 +459,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 </div>
 
 <div id="evolution" class="section">
+<div class="nav-subtabs"><button class="subtab" data-sub="clients">👤 Clients</button><button class="subtab" data-sub="pays">🌍 Pays</button><button class="subtab active" data-sub="evolution">📈 Évolution clients</button></div>
 <h2>📈 Évolution du CA par Client (dans le temps)</h2>
 <div class="info-box">💡 Clique sur un client à gauche pour voir comment ses commandes ont évolué dans le temps. Tu verras tout de suite s'il est en croissance 📈 ou en baisse 📉.</div>
 <div style="display:grid;grid-template-columns:280px 1fr;gap:18px;@media(max-width:900px){grid-template-columns:1fr}" id="evolutionGrid">
@@ -2464,7 +2469,7 @@ Object.keys(MODULES).forEach(renderModule);
 /* ===================== NAVIGATION À DEUX NIVEAUX ===================== */
 const NAV_GROUPS = [
   {id:'g_pilotage', label:'📊 Pilotage', tabs:[['overview',"Vue d'ensemble"],['objectifs','Objectifs & Projection'],['insights','Remarques intelligentes'],['compare','Comparatif 2025/2026']]},
-  {id:'g_ventes', label:'💶 Ventes', tabs:[['saisie','🧾 Commandes & Factures'],['clients','Clients'],['pays','Pays'],['evolution','Évolution clients'],['mois','Mois'],['refs','Références'],['factures','Factures']]},
+  {id:'g_ventes', label:'💶 Ventes', tabs:[['saisie','🧾 Commandes & Factures'],['clients','Clients & Pays'],['mois','Mois'],['refs','Références']]},
   {id:'g_finance', label:'🏷️ Catalogue & Finance', tabs:[['catalogue','Catalogue & Tarifs'],['costs','Prix de revient'],['treso','Trésorerie']]},
   {id:'g_ops', label:'📦 Opérations', tabs:[['stock','Stock produits finis'],['stock2ml','Stock 2 ml (échantillons)'],['achats','Matières & Achats'],['arrivages','Arrivages matières'],['production','Production'],['simulation','Simulation commande'],['anticipation','Anticipation']]},
   {id:'g_reseau', label:'🏬 Réseau B2B', tabs:[['b2b','Points de vente']]},
@@ -2484,6 +2489,11 @@ function showSection(id, label){
   if(id==='pays' && typeof renderWorldMap==='function') setTimeout(renderWorldMap,60);
   if(id==='treso' && typeof window.renderReglements==='function') window.renderReglements();
 }
+// Sous-onglets (pages fusionnées : Clients/Pays/Évolution et Commandes&Factures/Factures)
+document.addEventListener('click', e=>{
+  const st = e.target.closest('.subtab'); if(!st || !st.dataset.sub) return;
+  showSection(st.dataset.sub, st.textContent.trim());
+});
 function buildNav(){
   const nav = document.getElementById('sideNav');
   nav.innerHTML = NAV_GROUPS.map(grp =>
