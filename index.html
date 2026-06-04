@@ -171,8 +171,8 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 .mod-del:hover{transform:scale(1.2)}
 .saisie-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:8px}
 .saisie-head label{display:flex;flex-direction:column;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#9aa1b0;font-weight:700;gap:5px}
-.saisie-head input{padding:11px 14px;border:1px solid rgba(31,42,68,.14);border-radius:12px;font-size:.95rem;color:#1f2a44;font-weight:600;background:#fff}
-.saisie-head input:focus{outline:none;border-color:#b8860b}
+.saisie-head input,.saisie-head select{padding:11px 14px;border:1px solid rgba(31,42,68,.14);border-radius:12px;font-size:.95rem;color:#1f2a44;font-weight:600;background:#fff}
+.saisie-head input:focus,.saisie-head select:focus{outline:none;border-color:#b8860b}
 #sa-table .mod-in,#sa-table select.mod-in{width:100%;min-width:70px}
 #sa-table td{padding:8px 8px}
 .saisie-totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:20px 0;background:#1f2a44;border-radius:18px;padding:18px 22px}
@@ -316,6 +316,11 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
   <label>Date<input type="date" id="sa-date"></label>
   <label>Client<input type="text" id="sa-client" list="sa-clientlist" autocomplete="off" placeholder="Nom du client"><datalist id="sa-clientlist"></datalist></label>
   <label>Pays<input type="text" id="sa-pays" list="sa-payslist" autocomplete="off" placeholder="Pays"><datalist id="sa-payslist"></datalist></label>
+  <label>Régime TVA<select id="sa-tva">
+    <option value="export">Exonérée — export hors UE</option>
+    <option value="intracom">Exonérée — livraison intra-UE</option>
+    <option value="fr20">TVA 20 % (France)</option>
+  </select></label>
 </div>
 
 <h3 style="margin:18px 0 8px">Lignes</h3>
@@ -2730,9 +2735,28 @@ document.querySelectorAll('main table').forEach(t=>{
       const qty = l.mode==='unite' ? (fmtNum(l.btl)+' btl') : (l.cartons+' cart. ('+fmtNum(l.btl)+' btl)');
       return `<tr><td>${esc(l.collection)}</td><td>${esc(l.reference)}</td><td class="r">${qty}</td><td class="r">${fmtMoney(l.prix)}</td><td class="r">${fmtMoney(l.ca)}</td></tr>`;
     }).join('');
+    const regime = d.tvaRegime || 'export';
+    const rate = regime==='fr20' ? 20 : 0;
+    const tvaMention = regime==='export' ? 'Exonération de TVA — art. 262 I du CGI (exportation hors Union européenne).'
+      : regime==='intracom' ? 'Exonération de TVA — art. 262 ter I du CGI (livraison intracommunautaire) — autoliquidation par le preneur.'
+      : '';
+    let totRows;
+    if(rate>0){ const ht=d.ca, tva=ht*rate/100, ttc=ht+tva;
+      totRows = `<tr><td>Total bouteilles</td><td class="r">${fmtNum(d.btl)}</td></tr>
+        <tr><td>Total HT</td><td class="r">${fmtMoney(ht)}</td></tr>
+        <tr><td>TVA ${rate} %</td><td class="r">${fmtMoney(tva)}</td></tr>
+        <tr class="pd-grand"><td>Total TTC</td><td class="r">${fmtMoney(ttc)}</td></tr>`;
+    } else {
+      totRows = `<tr><td>Total bouteilles</td><td class="r">${fmtNum(d.btl)}</td></tr>
+        <tr class="pd-grand"><td>Total à payer</td><td class="r">${fmtMoney(d.ca)}</td></tr>`;
+    }
+    const baseNote = isFac
+      ? 'Montants exprimés en euros. Conditions de règlement : à réception, sauf accord particulier.'
+      : 'Bon de commande valable 30 jours à compter de la date ci-dessus. Livraison et règlement selon conditions convenues.';
+    const noteText = (tvaMention ? '<strong>'+tvaMention+'</strong> ' : '') + baseNote;
     const note = isFac
-      ? `<div class="pd-note">Montants exprimés en euros. Conditions de règlement : à réception, sauf accord particulier. Merci de votre confiance.</div>`
-      : `<div class="pd-note">Bon de commande valable 30 jours à compter de la date ci-dessus. Livraison et règlement selon conditions convenues.</div>
+      ? `<div class="pd-note">${noteText}</div>`
+      : `<div class="pd-note">${noteText}</div>
          <div class="pd-sign"><div>Cachet &amp; signature du client<br><span style="color:#9aa1b0">(bon pour accord)</span></div><div>Emmanuelle Jane Paris</div></div>`;
     const p=$('ej-print');
     p.innerHTML=`<style>
@@ -2767,10 +2791,7 @@ document.querySelectorAll('main table').forEach(t=>{
     </div>
     <div class="pd-client"><div class="pd-lab">${isFac?'Facturé à':'Client'}</div><div class="pd-cli">${esc(d.client)}</div><div>${esc(d.pays)}</div></div>
     <table class="pd-t"><thead><tr><th>Collection</th><th>Référence</th><th class="r">Quantité</th><th class="r">Prix unit.</th><th class="r">Montant</th></tr></thead><tbody>${linesHtml}</tbody></table>
-    <div class="pd-tot"><table>
-      <tr><td>Total bouteilles</td><td class="r">${fmtNum(d.btl)}</td></tr>
-      <tr class="pd-grand"><td>Total</td><td class="r">${fmtMoney(d.ca)}</td></tr>
-    </table></div>
+    <div class="pd-tot"><table>${totRows}</table></div>
     ${note}
     <div class="pd-foot">${legal||'Emmanuelle Jane Paris'}<br><span style="opacity:.8">Document généré le ${iso2fr(todayISO())}</span></div>`;
     setTimeout(()=>window.print(), 60);
@@ -2841,7 +2862,7 @@ document.querySelectorAll('main table').forEach(t=>{
   });
 
   function showSectionMsg(txt,ok){ const m=$('sa-msg'); m.textContent=txt; m.style.color=ok?'#0f9d6f':'#dc2626'; if(txt) setTimeout(()=>{ if(m.textContent===txt) m.textContent=''; }, 6000); }
-  function resetDraft(){ draft={lines:[newLine()]}; $('sa-client').value=''; $('sa-pays').value=''; $('sa-date').value=todayISO(); lastAutoNum=nextNum(docType,$('sa-date').value.split('-')[0]); $('sa-fact').value=lastAutoNum; renderLines(); renderTotals(); }
+  function resetDraft(){ draft={lines:[newLine()]}; $('sa-client').value=''; $('sa-pays').value=''; if($('sa-tva')) $('sa-tva').value='export'; $('sa-date').value=todayISO(); lastAutoNum=nextNum(docType,$('sa-date').value.split('-')[0]); $('sa-fact').value=lastAutoNum; renderLines(); renderTotals(); }
 
   $('sa-reset').addEventListener('click', ()=>{ resetDraft(); showSectionMsg('',true); });
   $('sa-save').addEventListener('click', ()=>{
@@ -2856,7 +2877,7 @@ document.querySelectorAll('main table').forEach(t=>{
     if(year!=='2025' && year!=='2026') return showSectionMsg('La date doit être en 2025 ou 2026.');
     if(BASE_FACT['2025'].concat(BASE_FACT['2026'],docs).some(f=>(f.numero||f.facture)===numero)) return showSectionMsg('Ce numéro existe déjà.');
     const t=lines.reduce((a,l)=>{a.btl+=l.btl||0;a.ca+=l.ca||0;a.cout+=l.cout||0;a.marge+=l.marge||0;return a;},{btl:0,ca:0,cout:0,marge:0});
-    const doc={ type:docType, numero, date:iso2fr(iso), client, pays, btl:t.btl, ca:t.ca, cout:t.cout, marge:t.marge, lines, createdAt:Date.now(), _user:true };
+    const doc={ type:docType, numero, date:iso2fr(iso), client, pays, tvaRegime:($('sa-tva')?$('sa-tva').value:'export'), btl:t.btl, ca:t.ca, cout:t.cout, marge:t.marge, lines, createdAt:Date.now(), _user:true };
     if(docType==='facture') doc.facture=numero;
     docs.push(doc); persist();
     if(docType==='facture'){ rebuild(); if(typeof renderAll==='function') renderAll(); }
