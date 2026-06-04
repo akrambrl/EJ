@@ -17,7 +17,20 @@
 <script>window.EJ_CONFIG = {
   SUPABASE_URL: "https://furirpuapaowduaqqpbo.supabase.co",
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmlycHVhcGFvd2R1YXFxcGJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzI2NTcsImV4cCI6MjA5NjE0ODY1N30.jtwOnsCSt9_V2hoUQS7ULEot1pQy7qpIMDG66MGwjkM",
-  requireAuth: false  // PHASE DEV : accès libre sans compte. Mettre true pour sécuriser (connexion obligatoire).
+  requireAuth: false, // PHASE DEV : accès libre sans compte. Mettre true pour sécuriser (connexion obligatoire).
+  // Coordonnées légales affichées sur les bons de commande et factures
+  societe: {
+    nom: "PARFUMS EMMANUELLE JANE",
+    forme: "SARL au capital de 100 000 €",
+    adresse: "3 rue Robespierre",
+    cp_ville: "94500 Champigny-sur-Marne",
+    siret: "532 707 684 00025",
+    tva: "FR49532707684",
+    rcs: "RCS Créteil 532 707 684",
+    ape: "46.49Z",
+    email: "",
+    tel: ""
+  }
 };</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -2704,7 +2717,14 @@ document.querySelectorAll('main table').forEach(t=>{
     const isFac = isFacture(d);
     const title = isFac ? 'FACTURE' : 'BON DE COMMANDE';
     const num = d.numero||d.facture||'';
-    const socLines=[SOC.adresse,SOC.cp_ville,SOC.email,SOC.tel,SOC.siret?('SIRET '+SOC.siret):'',SOC.tva?('TVA '+SOC.tva):''].filter(Boolean).map(esc).join('<br>');
+    const socLines=[
+      SOC.nom?('<strong>'+esc(SOC.nom)+'</strong>'):'',
+      SOC.adresse?esc(SOC.adresse):'',
+      SOC.cp_ville?esc(SOC.cp_ville):'',
+      [SOC.siret?('SIRET '+esc(SOC.siret)):'', SOC.tva?('TVA '+esc(SOC.tva)):''].filter(Boolean).join(' · '),
+      SOC.email?esc(SOC.email):'', SOC.tel?esc(SOC.tel):''
+    ].filter(Boolean).join('<br>');
+    const legal=[SOC.nom, SOC.forme, (SOC.adresse&&SOC.cp_ville)?(SOC.adresse+', '+SOC.cp_ville):'', SOC.siret?('SIRET '+SOC.siret):'', SOC.rcs, SOC.tva?('TVA '+SOC.tva):'', SOC.ape?('APE '+SOC.ape):''].filter(Boolean).map(esc).join(' — ');
     const linesHtml=(d.lines||[]).map(l=>{
       if(l.collection==='REMISE') return `<tr><td colspan="4">${esc(l.reference||'Remise')}</td><td class="r">${fmtMoney(l.ca)}</td></tr>`;
       const qty = l.mode==='unite' ? (fmtNum(l.btl)+' btl') : (l.cartons+' cart. ('+fmtNum(l.btl)+' btl)');
@@ -2752,7 +2772,7 @@ document.querySelectorAll('main table').forEach(t=>{
       <tr class="pd-grand"><td>Total</td><td class="r">${fmtMoney(d.ca)}</td></tr>
     </table></div>
     ${note}
-    <div class="pd-foot">Emmanuelle Jane Paris · Document généré le ${iso2fr(todayISO())}</div>`;
+    <div class="pd-foot">${legal||'Emmanuelle Jane Paris'}<br><span style="opacity:.8">Document généré le ${iso2fr(todayISO())}</span></div>`;
     setTimeout(()=>window.print(), 60);
   }
 
