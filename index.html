@@ -16,7 +16,8 @@
      3. Tant que c'est vide, l'outil fonctionne en MODE LOCAL (données dans ce navigateur). -->
 <script>window.EJ_CONFIG = {
   SUPABASE_URL: "https://furirpuapaowduaqqpbo.supabase.co",
-  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmlycHVhcGFvd2R1YXFxcGJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzI2NTcsImV4cCI6MjA5NjE0ODY1N30.jtwOnsCSt9_V2hoUQS7ULEot1pQy7qpIMDG66MGwjkM"
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmlycHVhcGFvd2R1YXFxcGJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzI2NTcsImV4cCI6MjA5NjE0ODY1N30.jtwOnsCSt9_V2hoUQS7ULEot1pQy7qpIMDG66MGwjkM",
+  requireAuth: false  // PHASE DEV : accès libre sans compte. Mettre true pour sécuriser (connexion obligatoire).
 };</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -2259,6 +2260,7 @@ buildNav();
    l'URL + la clé Supabase, on active : connexion sécurisée + sauvegarde cloud synchronisée. */
 const EJ_CONFIG = window.EJ_CONFIG || { SUPABASE_URL:'', SUPABASE_ANON_KEY:'' };
 const EJ_CLOUD = !!(EJ_CONFIG.SUPABASE_URL && EJ_CONFIG.SUPABASE_ANON_KEY);
+const EJ_REQUIRE_AUTH = EJ_CONFIG.requireAuth !== false; // true par défaut, sauf si explicitement false
 let _supa=null, _ejUser=null; const _pushTimers={};
 
 function cloudPush(key, rows){
@@ -2283,7 +2285,11 @@ function ejSignOutBtn(){
   ejFoot(`<div style="margin-bottom:6px">🔒 ${_ejUser?_ejUser.email:''}</div><button id="ejSignOut" style="padding:6px 14px;border:1px solid rgba(31,42,68,.2);background:#fff;border-radius:999px;color:#5b6577;font-weight:700;cursor:pointer;font-size:.72rem">Se déconnecter</button>`);
   const b=document.getElementById('ejSignOut'); if(b) b.addEventListener('click',async()=>{ await _supa.auth.signOut(); location.reload(); });
 }
-function ejShowAuth(){
+function ejDevFoot(){
+  ejFoot("🛠️ Mode dév · accès libre<br><a id='ejConnect' style='color:#b8860b;font-weight:700;cursor:pointer;font-size:.72rem'>Se connecter (sauvegarde cloud)</a>");
+  const a=document.getElementById('ejConnect'); if(a) a.addEventListener('click',()=>ejShowAuth(true));
+}
+function ejShowAuth(closable){
   if(document.getElementById('ejAuth')) return;
   const o=document.createElement('div'); o.id='ejAuth';
   o.style.cssText='position:fixed;inset:0;z-index:5000;background:linear-gradient(160deg,#f7f3ec,#e9e1d2);display:flex;align-items:center;justify-content:center;padding:20px';
@@ -2297,6 +2303,12 @@ function ejShowAuth(){
     <button id="ejSignup" style="width:100%;padding:11px;background:#fff;color:#5b6577;border:1px solid rgba(31,42,68,.18);border-radius:999px;font-weight:700;font-size:.9rem;cursor:pointer">Créer un compte</button>
   </div>`;
   document.body.appendChild(o);
+  if(closable){
+    const c=document.createElement('div');
+    c.innerHTML="<a style='display:inline-block;margin-top:14px;color:#8a93a3;font-size:.82rem;cursor:pointer'>← Continuer sans compte</a>";
+    c.querySelector('a').addEventListener('click',()=>{ o.remove(); ejDevFoot(); });
+    o.querySelector('div').appendChild(c);
+  }
   const err=m=>{document.getElementById('ejErr').textContent=m;};
   const creds=()=>[document.getElementById('ejEmail').value.trim(), document.getElementById('ejPwd').value];
   document.getElementById('ejLogin').addEventListener('click',async()=>{
@@ -2319,7 +2331,8 @@ function ejInitCloud(){
     _supa=supabase.createClient(EJ_CONFIG.SUPABASE_URL, EJ_CONFIG.SUPABASE_ANON_KEY);
     const {data:{session}}=await _supa.auth.getSession();
     if(session){ _ejUser=session.user; await cloudPullAll(); ejSignOutBtn(); }
-    else ejShowAuth();
+    else if(EJ_REQUIRE_AUTH) ejShowAuth(false);
+    else ejDevFoot();
   };
   s.onerror=()=>ejFoot('⚠️ Cloud indisponible · mode local');
   document.head.appendChild(s);
