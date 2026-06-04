@@ -2653,7 +2653,9 @@ document.querySelectorAll('main table').forEach(t=>{
   const FX = () => SETT.fx || 0.92;
   let clientCompany = (typeof modLoad==='function') ? modLoad('clientco', {}) : {};
   let companyFilter = 'all';
-  function companyOf(f){ return f.societe || clientCompany[f.client] || 'BSD'; }
+  const NB_PAYS = ['Irak','Russie']; // pays rattachés par défaut à NB Evolution
+  function defaultCompany(pays){ return NB_PAYS.indexOf(pays)>=0 ? 'NB' : 'BSD'; }
+  function companyOf(f){ return f.societe || clientCompany[f.client] || defaultCompany(f.pays); }
   function inFilter(f){ return companyFilter==='all' || companyOf(f)===companyFilter; }
   function fxOf(f){ return f.devise==='USD' ? FX() : 1; }
   function saveSettings(){ try{ localStorage.setItem('ej_mod_settings', JSON.stringify(SETT)); }catch(e){} if(typeof cloudPush==='function') cloudPush('settings', SETT); }
@@ -3102,9 +3104,9 @@ document.querySelectorAll('main table').forEach(t=>{
   // ---------- Réglages : sociétés, devise, répartition clients ----------
   function allClients(){
     const set={};
-    BASE_FACT['2025'].concat(BASE_FACT['2026']).forEach(f=>{ if(f.client) set[f.client]=1; });
-    docs.forEach(d=>{ if(d.client) set[d.client]=1; });
-    return Object.keys(set).sort((a,b)=>a.localeCompare(b,'fr'));
+    BASE_FACT['2025'].concat(BASE_FACT['2026']).forEach(f=>{ if(f.client) set[f.client]=f.pays; });
+    docs.forEach(d=>{ if(d.client && !set[d.client]) set[d.client]=d.pays; });
+    return Object.keys(set).sort((a,b)=>a.localeCompare(b,'fr')).map(c=>({client:c,pays:set[c]}));
   }
   function socField(code,k,label,ph){
     const v=esc((SETT.societes[code]&&SETT.societes[code][k])||'').replace(/"/g,'&quot;');
@@ -3126,8 +3128,8 @@ document.querySelectorAll('main table').forEach(t=>{
   }
   function buildSettingsUI(){
     const el=$('set-content'); if(!el) return;
-    const rows=allClients().map(c=>{ const cur=clientCompany[c]||'BSD';
-      return `<tr><td>${esc(c)}</td><td style="text-align:right"><select class="set-cc" data-client="${esc(c).replace(/"/g,'&quot;')}"><option value="BSD"${cur==='BSD'?' selected':''}>🇫🇷 BSD</option><option value="NB"${cur==='NB'?' selected':''}>🇦🇪 NB Evolution</option></select></td></tr>`;
+    const rows=allClients().map(({client:c,pays})=>{ const cur=clientCompany[c]||defaultCompany(pays);
+      return `<tr><td>${esc(c)}</td><td style="color:#5b6577">${esc(pays||'')}</td><td style="text-align:right"><select class="set-cc" data-client="${esc(c).replace(/"/g,'&quot;')}"><option value="BSD"${cur==='BSD'?' selected':''}>🇫🇷 BSD</option><option value="NB"${cur==='NB'?' selected':''}>🇦🇪 NB Evolution</option></select></td></tr>`;
     }).join('');
     el.innerHTML=`
       <div style="background:#fff;border:1px solid rgba(31,42,68,.08);border-radius:16px;padding:16px 20px;margin-bottom:18px;box-shadow:0 6px 18px rgba(31,42,68,.05);display:flex;align-items:center;gap:14px;flex-wrap:wrap">
@@ -3136,8 +3138,8 @@ document.querySelectorAll('main table').forEach(t=>{
       </div>
       <div class="set-soc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px">${socCard('BSD')}${socCard('NB')}</div>
       <h3 style="margin-bottom:8px">👥 Répartition des clients (${allClients().length})</h3>
-      <div class="info-box" style="background:#eef6ff;border-left-color:#3b82f6;color:#1e3a5f">Attribue chaque client à une société : toutes ses factures (passées et futures) seront comptées pour elle. Par défaut : BSD. Modifie ici, le tableau de bord se met à jour aussitôt.</div>
-      <div class="table-wrap"><table><thead><tr><th>Client</th><th style="text-align:right">Société</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      <div class="info-box" style="background:#eef6ff;border-left-color:#3b82f6;color:#1e3a5f">Par défaut, les clients en <strong>Irak</strong> et <strong>Russie</strong> sont rattachés à <strong>NB Evolution</strong>, les autres à <strong>BSD</strong>. Tu peux corriger n'importe quel client ici — le tableau de bord se met à jour aussitôt.</div>
+      <div class="table-wrap"><table><thead><tr><th>Client</th><th>Pays</th><th style="text-align:right">Société</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
   const setEl=$('set-content');
   if(setEl){
