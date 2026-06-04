@@ -598,10 +598,10 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 
 <div id="treso" class="section">
 <h2>💶 Trésorerie &amp; impayés</h2>
-<div class="info-box">💡 <strong>Données d'exemple.</strong> Suis le statut de paiement de chaque facture (encours, retards) et tes flux de trésorerie (entrées/sorties). Sauvegarde automatique dans le navigateur.</div>
+<div class="info-box">💡 Suivi <strong>réel</strong> des règlements : chaque facture que tu crées apparaît ici avec son <strong>échéance</strong> et son <strong>statut</strong> (Payée / En attente / En retard). Modifie le statut ou l'échéance directement dans le tableau ; tout est sauvegardé automatiquement.</div>
 <h3>📑 Factures clients &amp; encours</h3>
 <div id="tresoFactSummary"></div>
-<div class="controls"><button class="mod-add" data-m="tresoFact">+ Ajouter une facture</button><button class="mod-reset" data-m="tresoFact">↺ Réinitialiser l'exemple</button></div>
+<div class="controls"><button class="mod-add" id="reglExport" style="background:#fff;color:#b8860b;border:1px solid rgba(184,134,11,.4)">⬇️ Export comptable (CSV)</button></div>
 <div id="tresoFactContent" style="overflow-x:auto"></div>
 <h3>💸 Flux de trésorerie (entrées / sorties)</h3>
 <div id="tresoFluxSummary"></div>
@@ -1828,7 +1828,9 @@ document.getElementById('objCible').addEventListener('input', renderObjectifs);
 function renderInsights(){
   const d = getD();
   const out = document.getElementById('insightsContent');
-  if(!d.insights || d.insights.length === 0){
+  const relances = (typeof window.relanceInsights==='function') ? window.relanceInsights() : [];
+  const items = relances.concat(d.insights || []);
+  if(items.length === 0){
     out.innerHTML = '<div class="info-box">Aucune remarque générée pour cette période.</div>';
     return;
   }
@@ -1838,7 +1840,7 @@ function renderInsights(){
     danger:{bg:'rgba(239,68,68,.12)',border:'#ef4444'},
     info:{bg:'rgba(59,130,246,.12)',border:'#3b82f6'}
   };
-  const html = d.insights.map(ins => {
+  const html = items.map(ins => {
     const c = colorMap[ins.level] || colorMap.info;
     return `
       <div style="background:${c.bg};border-left:4px solid ${c.border};padding:14px 18px;border-radius:8px;margin-bottom:10px;display:flex;gap:14px;align-items:start">
@@ -2211,37 +2213,7 @@ defineModule({
   }
 });
 
-// 2) TRÉSORERIE — Factures & encours
-defineModule({
-  base:'tresoFact', key:'treso_factures',
-  cols:[
-    {id:'client',label:'Client',type:'text',w:140},
-    {id:'canal',label:'Canal',type:'select',options:['B2B','B2C'],w:70},
-    {id:'date',label:'Date',type:'text',w:95},
-    {id:'echeance',label:'Échéance',type:'text',w:95},
-    {id:'montant',label:'Montant €',type:'money',align:'right',w:95},
-    {id:'statut',label:'Statut',type:'select',options:['Payée','En attente','En retard'],w:105}
-  ],
-  blank:{client:'',canal:'B2B',date:'',echeance:'',montant:0,statut:'En attente'},
-  defaults:[
-    {client:'Parfumerie Al Noor (Bagdad)',canal:'B2B',date:'05/01/2026',echeance:'05/02/2026',montant:18400,statut:'Payée'},
-    {client:'Galeries du Levant (Beyrouth)',canal:'B2B',date:'12/02/2026',echeance:'13/03/2026',montant:9750,statut:'En attente'},
-    {client:'Maison Dubai Mall',canal:'B2B',date:'20/12/2025',echeance:'19/01/2026',montant:14200,statut:'En retard'},
-    {client:'Boutique en ligne (web)',canal:'B2C',date:'28/02/2026',echeance:'28/02/2026',montant:1340,statut:'Payée'},
-    {client:'Concept Store Casablanca',canal:'B2B',date:'02/03/2026',echeance:'01/04/2026',montant:6800,statut:'En attente'}
-  ],
-  summary:rows=>{
-    const enc = sum(rows.filter(r=>r.statut==='Payée'),r=>r.montant);
-    const att = sum(rows.filter(r=>r.statut==='En attente'),r=>r.montant);
-    const ret = sum(rows.filter(r=>r.statut==='En retard'),r=>r.montant);
-    return kpiRow([
-      {label:'Encaissé',value:eMoney(enc),cls:'success'},
-      {label:'En attente',value:eMoney(att)},
-      {label:'En retard',value:eMoney(ret),cls:'danger'},
-      {label:'Encours total',value:eMoney(att+ret)}
-    ]);
-  }
-});
+// 2) TRÉSORERIE — Factures & encours : rendu par le module de saisie (vraies factures), voir renderReglements()
 
 // 2b) TRÉSORERIE — Flux
 defineModule({
@@ -2450,6 +2422,7 @@ function showSection(id, label){
   if(kpiHero) kpiHero.style.display = (id==='overview') ? '' : 'none';
   if(label){ const tt=document.getElementById('topbarTitle'); if(tt) tt.textContent = label; }
   if(id==='pays' && typeof renderWorldMap==='function') setTimeout(renderWorldMap,60);
+  if(id==='treso' && typeof window.renderReglements==='function') window.renderReglements();
 }
 function buildNav(){
   const nav = document.getElementById('sideNav');
@@ -2727,7 +2700,7 @@ document.querySelectorAll('main table').forEach(t=>{
     try{ localStorage.setItem('ej_mod_ventes', JSON.stringify(docs)); }catch(e){}
     if(typeof cloudPush==='function') cloudPush('ventes', docs);
   }
-  window.__reloadVentes=function(){ docs=loadDocs(); SETT=loadSettings(); clientCompany=(typeof modLoad==='function')?modLoad('clientco',{}):{}; rebuild(); buildList(); if(typeof buildSettingsUI==='function') buildSettingsUI(); if(typeof renderAll==='function') renderAll(); };
+  window.__reloadVentes=function(){ docs=loadDocs(); SETT=loadSettings(); clientCompany=(typeof modLoad==='function')?modLoad('clientco',{}):{}; rebuild(); buildList(); if(typeof renderReglements==='function') renderReglements(); if(typeof buildSettingsUI==='function') buildSettingsUI(); if(typeof renderAll==='function') renderAll(); };
 
   // Décompte / réajout automatique des échantillons 2 ml dans le module de stock
   const norm = s => String(s||'').trim().toLowerCase();
@@ -2771,6 +2744,11 @@ document.querySelectorAll('main table').forEach(t=>{
   // ---------- Dates / numéros ----------
   function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
   function iso2fr(s){ if(!s) return ''; const p=s.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : s; }
+  function fr2iso(s){ if(!s) return ''; const p=String(s).split('/'); return p.length===3 ? p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0') : s; }
+  function addDaysFr(frDate, days){ const iso=fr2iso(frDate); if(!iso) return ''; const d=new Date(iso+'T00:00:00'); if(isNaN(d)) return ''; d.setDate(d.getDate()+days); return iso2fr(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')); }
+  // Statut de paiement effectif (calcule « En retard » si échéance dépassée et non payée)
+  function payStatut(d){ if(d.statut==='Payée') return 'Payée'; const ech=fr2iso(d.echeance); if(ech && ech < todayISO()) return 'En retard'; return 'En attente'; }
+  function daysLate(d){ const ech=fr2iso(d.echeance); if(!ech) return 0; const ms=new Date(todayISO()+'T00:00:00')-new Date(ech+'T00:00:00'); return Math.max(0, Math.round(ms/86400000)); }
   function prefOf(s,type){ return type==='facture'?(s.prefFac||'EJ'):type==='commande'?(s.prefCmd||'BC'):(s.prefDev||'DEV'); }
   function nextNum(type,year){
     const s = (SETT.societes && SETT.societes[draft.societe]) || {};
@@ -2880,6 +2858,66 @@ document.querySelectorAll('main table').forEach(t=>{
     w.innerHTML=`<h3>📋 Mes documents (${docs.length})</h3>
       <div class="info-box" style="background:#eef6ff;border-left-color:#3b82f6;color:#1e3a5f">Seules les <strong>factures</strong> entrent dans le CA. Un <strong>devis</strong> se transforme en commande ou directement en facture ; une <strong>commande</strong> se transforme en facture. <strong>« PDF »</strong> ouvre le document imprimable à envoyer au client.</div>
       <div class="table-wrap"><table><thead><tr><th>N°</th><th>Type</th><th>Société</th><th>Date</th><th>Client</th><th>Pays</th><th class="text-right">Montant</th><th class="text-right">Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  // ===== Suivi des règlements (vraies factures) =====
+  function reglMoney(d){ const sym=(d.devise==='USD')?'$':'€'; return Math.round(d.ca||0).toLocaleString('fr-FR')+' '+sym; }
+  function renderReglements(){
+    const sumEl=$('tresoFactSummary'), cont=$('tresoFactContent'); if(!cont) return;
+    const facts=docs.map((d,i)=>({d,i})).filter(x=>x.d.type==='facture');
+    if(!facts.length){ if(sumEl) sumEl.innerHTML=''; cont.innerHTML='<div class="info-box">Aucune facture créée pour le moment. Crée une facture dans « 🧾 Commandes & Factures » : elle apparaîtra ici pour le suivi du règlement.</div>'; return; }
+    let encE=0,attE=0,retE=0,encU=0,attU=0,retU=0;
+    facts.forEach(({d})=>{ const st=payStatut(d); const usd=d.devise==='USD'; const v=d.ca||0;
+      if(st==='Payée'){ usd?encU+=v:encE+=v; } else if(st==='En retard'){ usd?retU+=v:retE+=v; } else { usd?attU+=v:attE+=v; } });
+    const e=v=>Math.round(v).toLocaleString('fr-FR')+' €', u=v=>Math.round(v).toLocaleString('fr-FR')+' $';
+    const dual=(ve,vu)=>e(ve)+(vu?' · '+u(vu):'');
+    if(sumEl) sumEl.innerHTML=`<div class="kpis" style="margin-bottom:16px">
+      <div class="kpi success"><div class="kpi-label">Encaissé</div><div class="kpi-value">${dual(encE,encU)}</div></div>
+      <div class="kpi"><div class="kpi-label">En attente</div><div class="kpi-value">${dual(attE,attU)}</div></div>
+      <div class="kpi danger"><div class="kpi-label">En retard</div><div class="kpi-value">${dual(retE,retU)}</div></div>
+      <div class="kpi"><div class="kpi-label">Reste à encaisser</div><div class="kpi-value">${dual(attE+retE,attU+retU)}</div></div>
+    </div>`;
+    const order={'En retard':0,'En attente':1,'Payée':2};
+    const sorted=facts.slice().sort((a,b)=>{ const sa=order[payStatut(a.d)], sb=order[payStatut(b.d)]; if(sa!==sb) return sa-sb; return (fr2iso(a.d.echeance)||'').localeCompare(fr2iso(b.d.echeance)||''); });
+    const body=sorted.map(({d,i})=>{
+      const st=payStatut(d); const co=companyOf(d)==='NB'?'🇦🇪 NB':'🇫🇷 BSD';
+      const badge = st==='Payée'?'<span class="badge-doc" style="background:#10b981">Payée</span>': st==='En retard'?`<span class="badge-doc" style="background:#ef4444">En retard (${daysLate(d)} j)</span>`:'<span class="badge-doc" style="background:#f59e0b">En attente</span>';
+      const opts=['En attente','Payée'].map(o=>`<option${(d.statut==='Payée')===(o==='Payée')?' selected':''}>${o}</option>`).join('');
+      return `<tr>
+        <td><strong>${esc(d.numero||d.facture||'')}</strong></td>
+        <td>${co}</td>
+        <td>${esc(d.client)}</td>
+        <td>${esc(d.date)}</td>
+        <td><input type="date" class="regl-ech" data-i="${i}" value="${fr2iso(d.echeance)}" style="padding:7px 9px;border:1px solid rgba(31,42,68,.14);border-radius:9px;font-weight:600"></td>
+        <td class="text-right amount">${reglMoney(d)}</td>
+        <td>${badge}</td>
+        <td><select class="regl-st" data-i="${i}" style="padding:7px 9px;border:1px solid rgba(31,42,68,.14);border-radius:9px;font-weight:600">${opts}</select></td>
+      </tr>`;
+    }).join('');
+    cont.innerHTML=`<div class="table-wrap"><table><thead><tr><th>N°</th><th>Société</th><th>Client</th><th>Date</th><th>Échéance</th><th class="text-right">Montant</th><th>Statut</th><th>Marquer</th></tr></thead><tbody>${body}</tbody></table></div>`;
+  }
+  window.renderReglements = renderReglements;
+
+  // Relances impayés injectées dans « Remarques intelligentes »
+  window.relanceInsights = function(){
+    return docs.filter(d=>d.type==='facture' && payStatut(d)==='En retard')
+      .sort((a,b)=>daysLate(b)-daysLate(a))
+      .map(d=>({icon:'⏰',level:'danger',title:'Facture en retard — '+esc(d.client),
+        desc:'Facture '+esc(d.numero||d.facture||'')+' de '+reglMoney(d)+' — échéance du '+esc(d.echeance||'?')+' dépassée de '+daysLate(d)+' jour(s). À relancer.'}));
+  };
+
+  // Export comptable CSV (toutes les factures : historique + créées)
+  function csvCell(v){ v=String(v==null?'':v); return /[";\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+  function exportComptable(){
+    const out=[]; const header=['Société','Numéro','Date','Échéance','Devise','Client','Pays','CA','Coût','Bénéfice','Statut'];
+    const push=(d,base)=>{ const co=companyOf(d); const dev=d.devise||'EUR';
+      out.push([co,d.numero||d.facture||'',d.date||'',d.echeance||'',dev,d.client||'',d.pays||'',Math.round(d.ca||0),Math.round(d.cout||0),Math.round(d.marge||0),base?'Payée':payStatut(d)]); };
+    BASE_FACT['2025'].concat(BASE_FACT['2026']).forEach(d=>push(d,true));
+    docs.filter(d=>d.type==='facture').forEach(d=>push(d,false));
+    const csv=[header].concat(out).map(r=>r.map(csvCell).join(';')).join('\r\n');
+    const blob=new Blob([String.fromCharCode(0xFEFF)+csv],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download='factures_EJ_'+todayISO()+'.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   function populateDatalists(){
     const m=(typeof MODULES!=='undefined')?MODULES.stock2ml:null; const dl=$('sa-2ml-list');
@@ -3017,10 +3055,10 @@ document.querySelectorAll('main table').forEach(t=>{
     d.bcNumero=old;
     d.type=target;
     d.numero=pre+year+String(mx+1).padStart(3,'0');
-    if(target==='facture'){ d.facture=d.numero; } else { delete d.facture; }
+    if(target==='facture'){ d.facture=d.numero; if(!d.statut) d.statut='En attente'; if(!d.echeance) d.echeance=addDaysFr(d.date,30); } else { delete d.facture; }
     d.createdAt=Date.now();
     if(target==='facture') deductSamples(d);
-    persist(); if(target==='facture'){ rebuild(); if(typeof renderAll==='function') renderAll(); } buildList();
+    persist(); if(target==='facture'){ rebuild(); if(typeof renderAll==='function') renderAll(); } buildList(); renderReglements();
     const lab = target==='facture'?'facture':target==='commande'?'bon de commande':'devis';
     showSectionMsg('✅ '+old+' transformé en '+lab+' '+d.numero+(target==='facture'?' — dashboard mis à jour.':'.'), true);
   }
@@ -3112,12 +3150,12 @@ document.querySelectorAll('main table').forEach(t=>{
     if(BASE_FACT['2025'].concat(BASE_FACT['2026'],docs).some(f=>(f.numero||f.facture)===numero)) return showSectionMsg('Ce numéro existe déjà.');
     const t=lines.reduce((a,l)=>{a.btl+=l.btl||0;a.ca+=l.ca||0;a.cout+=l.cout||0;a.marge+=l.marge||0;return a;},{btl:0,ca:0,cout:0,marge:0});
     const doc={ type:docType, societe:draft.societe, devise:(draft.societe==='NB'?'USD':'EUR'), numero, date:iso2fr(iso), client, pays, tvaRegime:($('sa-tva')?$('sa-tva').value:'export'), btl:t.btl, ca:t.ca, cout:t.cout, marge:t.marge, lines, createdAt:Date.now(), _user:true };
-    if(docType==='facture') doc.facture=numero;
+    if(docType==='facture'){ doc.facture=numero; doc.statut='En attente'; doc.echeance=addDaysFr(doc.date,30); }
     docs.push(doc);
     if(docType==='facture'){ deductSamples(doc); }
     persist();
     if(docType==='facture'){ rebuild(); if(typeof renderAll==='function') renderAll(); }
-    populateDatalists(); buildList(); resetDraft();
+    populateDatalists(); buildList(); renderReglements(); resetDraft();
     showSectionMsg(docType==='facture' ? '✅ Facture enregistrée — dashboard mis à jour.' : (docType==='devis'?'✅ Devis enregistré. Tu peux l\'imprimer (PDF) ou le transformer en commande/facture ci-dessous.':'✅ Bon de commande enregistré. Tu peux l\'imprimer ou le transformer en facture ci-dessous.'), true);
   });
 
@@ -3131,9 +3169,18 @@ document.querySelectorAll('main table').forEach(t=>{
       if(!confirm('Supprimer le document '+(d.numero||d.facture||'')+' ('+d.client+') ?')) return;
       const wasFac=isFacture(d); restoreSamples(d); docs.splice(i,1); persist();
       if(wasFac){ rebuild(); if(typeof renderAll==='function') renderAll(); }
-      populateDatalists(); buildList();
+      populateDatalists(); buildList(); renderReglements();
     }
   });
+
+  // Suivi des règlements : édition du statut / de l'échéance + export
+  const reglCont=$('tresoFactContent');
+  if(reglCont) reglCont.addEventListener('change', e=>{
+    const sel=e.target.closest('.regl-st'), ech=e.target.closest('.regl-ech');
+    if(sel){ const d=docs[+sel.dataset.i]; if(d){ d.statut=sel.value; persist(); renderReglements(); } }
+    else if(ech){ const d=docs[+ech.dataset.i]; if(d){ d.echeance=iso2fr(ech.value); persist(); renderReglements(); } }
+  });
+  const reglExpBtn=$('reglExport'); if(reglExpBtn) reglExpBtn.addEventListener('click', exportComptable);
 
   // ---------- Réglages : sociétés, devise, répartition clients ----------
   function allClients(){
@@ -3192,7 +3239,7 @@ document.querySelectorAll('main table').forEach(t=>{
   // ---------- Démarrage ----------
   $('sa-date').value=todayISO();
   applyCompany();
-  populateDatalists(); buildList(); buildSettingsUI();
+  populateDatalists(); buildList(); renderReglements(); buildSettingsUI();
   attachAutocomplete($('sa-client'),
     ()=>{ const m=clientPaysMap(); return Object.keys(m).sort((a,b)=>a.localeCompare(b,'fr')).map(name=>({label:name, sub:m[name]||''})); },
     null);
