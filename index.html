@@ -351,7 +351,9 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
   <button class="mod-add" id="sa-addline">+ Ajouter une ligne</button>
   <button class="mod-add" id="sa-addremise" style="background:#fff;color:#b8860b;border:1px solid rgba(184,134,11,.4)">+ Remise / réduction</button>
+  <button class="mod-add" id="sa-addsample" style="background:#fff;color:#0369a1;border:1px solid rgba(3,105,161,.4)">+ Échantillon 2 ml offert</button>
 </div>
+<datalist id="sa-2ml-list"></datalist>
 
 <div class="saisie-totals" id="sa-totals"></div>
 
@@ -2365,48 +2367,52 @@ defineModule({
   base:'stock2ml', key:'stock_2ml',
   cols:[
     {id:'gamme',label:'Gamme',type:'select',options:['CP','ROYAL','VIP'],w:90},
-    {id:'reference',label:'Référence',type:'text',w:220},
-    {id:'qte',label:'Stock (flacons 2 ml)',type:'number',align:'right',w:130}
+    {id:'reference',label:'Référence',type:'text',w:200},
+    {id:'qte',label:'Stock (flacons 2 ml)',type:'number',align:'right',w:120},
+    {id:'seuil',label:"Seuil d'alerte",type:'number',align:'right',w:100},
+    {id:'etat',label:'État',align:'right',compute:r=>{const q=+r.qte||0,s=+r.seuil||0;return q<=0?'rupture':(s>0&&q<=s?'bas':'ok');},fmt:v=>v==='rupture'?'<span class="stat-alert">⛔ Rupture</span>':v==='bas'?'<span class="stat-warn">⚠️ Bas</span>':'<span class="stat-ok">✓ OK</span>'}
   ],
-  blank:{gamme:'VIP',reference:'',qte:0},
+  blank:{gamme:'VIP',reference:'',qte:0,seuil:300},
   defaults:[
-    {gamme:'CP',reference:'Bora Bora',qte:1256},
-    {gamme:'CP',reference:"Éloge d'Orient",qte:1957},
-    {gamme:'CP',reference:'Exotic Oud',qte:1958},
-    {gamme:'CP',reference:'Golden Caramel',qte:1261},
-    {gamme:'CP',reference:'Santal Wood',qte:1259},
-    {gamme:'CP',reference:'Cherry 2ml',qte:2000},
-    {gamme:'CP',reference:'Vetyver 2ml',qte:1084},
-    {gamme:'ROYAL',reference:'Milano M',qte:1054},
-    {gamme:'ROYAL',reference:'Milano Renaissance',qte:993},
-    {gamme:'ROYAL',reference:'Milano Ultra',qte:2026},
-    {gamme:'ROYAL',reference:'Milano W',qte:2143},
-    {gamme:'ROYAL',reference:'Uomo',qte:942},
-    {gamme:'ROYAL',reference:'Uomo Alternance',qte:944},
-    {gamme:'VIP',reference:'Caftan',qte:1917},
-    {gamme:'VIP',reference:'Dream Catcher',qte:761},
-    {gamme:'VIP',reference:'Éclat de Vanille',qte:1435},
-    {gamme:'VIP',reference:'Elixir',qte:1908},
-    {gamme:'VIP',reference:'Grey',qte:809},
-    {gamme:'VIP',reference:'Moon',qte:1925},
-    {gamme:'VIP',reference:'Oud Berry',qte:1919},
-    {gamme:'VIP',reference:'Oud Vanille',qte:799},
-    {gamme:'VIP',reference:'Piège',qte:785},
-    {gamme:'VIP',reference:'Pure',qte:0},
-    {gamme:'VIP',reference:'Red',qte:787},
-    {gamme:'VIP',reference:'Regatus',qte:1917},
-    {gamme:'VIP',reference:'Rivière Noire',qte:0},
-    {gamme:'VIP',reference:'Silver',qte:738}
+    {gamme:'CP',reference:'Bora Bora',qte:1256,seuil:300},
+    {gamme:'CP',reference:"Éloge d'Orient",qte:1957,seuil:300},
+    {gamme:'CP',reference:'Exotic Oud',qte:1958,seuil:300},
+    {gamme:'CP',reference:'Golden Caramel',qte:1261,seuil:300},
+    {gamme:'CP',reference:'Santal Wood',qte:1259,seuil:300},
+    {gamme:'CP',reference:'Cherry 2ml',qte:2000,seuil:300},
+    {gamme:'CP',reference:'Vetyver 2ml',qte:1084,seuil:300},
+    {gamme:'ROYAL',reference:'Milano M',qte:1054,seuil:300},
+    {gamme:'ROYAL',reference:'Milano Renaissance',qte:993,seuil:300},
+    {gamme:'ROYAL',reference:'Milano Ultra',qte:2026,seuil:300},
+    {gamme:'ROYAL',reference:'Milano W',qte:2143,seuil:300},
+    {gamme:'ROYAL',reference:'Uomo',qte:942,seuil:300},
+    {gamme:'ROYAL',reference:'Uomo Alternance',qte:944,seuil:300},
+    {gamme:'VIP',reference:'Caftan',qte:1917,seuil:300},
+    {gamme:'VIP',reference:'Dream Catcher',qte:761,seuil:300},
+    {gamme:'VIP',reference:'Éclat de Vanille',qte:1435,seuil:300},
+    {gamme:'VIP',reference:'Elixir',qte:1908,seuil:300},
+    {gamme:'VIP',reference:'Grey',qte:809,seuil:300},
+    {gamme:'VIP',reference:'Moon',qte:1925,seuil:300},
+    {gamme:'VIP',reference:'Oud Berry',qte:1919,seuil:300},
+    {gamme:'VIP',reference:'Oud Vanille',qte:799,seuil:300},
+    {gamme:'VIP',reference:'Piège',qte:785,seuil:300},
+    {gamme:'VIP',reference:'Pure',qte:0,seuil:300},
+    {gamme:'VIP',reference:'Red',qte:787,seuil:300},
+    {gamme:'VIP',reference:'Regatus',qte:1917,seuil:300},
+    {gamme:'VIP',reference:'Rivière Noire',qte:0,seuil:300},
+    {gamme:'VIP',reference:'Silver',qte:738,seuil:300}
   ],
   summary:rows=>{
     const byG=g=>sum(rows.filter(r=>r.gamme===g),r=>r.qte);
-    const rupture=rows.filter(r=>(+r.qte||0)===0).length;
+    const rupture=rows.filter(r=>(+r.qte||0)<=0).length;
+    const bas=rows.filter(r=>{const q=+r.qte||0,s=+r.seuil||0;return q>0&&s>0&&q<=s;}).length;
+    const alertes=rupture+bas;
     return kpiRow([
       {label:'Total flacons 2 ml',value:eNum(sum(rows,r=>r.qte))},
       {label:'CP',value:eNum(byG('CP'))},
       {label:'ROYAL',value:eNum(byG('ROYAL'))},
       {label:'VIP',value:eNum(byG('VIP'))},
-      {label:'Réfs en rupture',value:eNum(rupture),cls:rupture>0?'danger':'success'}
+      {label:'Alertes (bas + rupture)',value:eNum(alertes),cls:alertes>0?'danger':'success'}
     ]);
   }
 });
@@ -2668,6 +2674,7 @@ document.querySelectorAll('main table').forEach(t=>{
       const p=py[f.pays]||(py[f.pays]={pays:f.pays,clients:0,_s:{},factures:0,btl:0,ca:0,cout:0,marge:0});
       p._s[f.client]=1; p.factures++; p.btl+=f.btl||0; p.ca+=Fca; p.cout+=Fcout; p.marge+=Fmarge;
       (f.lines||[]).forEach(l=>{
+        if(l.sample) return;
         testers+=l.testers||0; c.testers+=l.testers||0;
         if(l.collection==='REMISE') return;
         const Lca=(l.ca||0)*fx, Lcout=(l.cout||0), Lmarge=(l.ca||0)*fx-(l.cout||0);
@@ -2709,12 +2716,30 @@ document.querySelectorAll('main table').forEach(t=>{
   }
   window.__reloadVentes=function(){ docs=loadDocs(); SETT=loadSettings(); clientCompany=(typeof modLoad==='function')?modLoad('clientco',{}):{}; rebuild(); buildList(); if(typeof buildSettingsUI==='function') buildSettingsUI(); if(typeof renderAll==='function') renderAll(); };
 
+  // Décompte / réajout automatique des échantillons 2 ml dans le module de stock
+  const norm = s => String(s||'').trim().toLowerCase();
+  function adjustStock2ml(doc, sign){
+    const m = (typeof MODULES!=='undefined') ? MODULES.stock2ml : null; if(!m) return;
+    (doc.lines||[]).forEach(l=>{
+      if(!l.sample) return; const q=+l.qty||0; if(!q) return;
+      let row = m.rows.find(r=>norm(r.reference)===norm(l.reference) && (!l.gamme || norm(r.gamme)===norm(l.gamme)));
+      if(!row) row = m.rows.find(r=>norm(r.reference)===norm(l.reference));
+      if(row) row.qte = Math.max(0,(+row.qte||0) + sign*q);
+      else if(sign<0) m.rows.push({gamme:l.gamme||'VIP',reference:l.reference,qte:0,seuil:300});
+    });
+    if(typeof modSave==='function') modSave(m);
+    if(typeof renderModule==='function') renderModule('stock2ml');
+  }
+  function deductSamples(doc){ if(doc && !doc._stockDeducted){ adjustStock2ml(doc,-1); doc._stockDeducted=true; } }
+  function restoreSamples(doc){ if(doc && doc._stockDeducted){ adjustStock2ml(doc,+1); doc._stockDeducted=false; } }
+
   // ---------- Modèle de coût d'une ligne (+ référence libre) ----------
   const costOf = c => ALL.costs ? ALL.costs[c] : null;
   const refList = c => { const C=costOf(c); return (C&&C.refs)?C.refs:[]; };
   function avgCpb(coll){ const rl=refList(coll); if(rl.length) return Math.round(rl.reduce((a,r)=>a+(r.cost_per_bottle||0),0)/rl.length*100)/100; const C=costOf(coll); return C?(C.total_fixed||0):0; }
   function defPrix(l){ const C=costOf(l.collection); if(!C) return 0; return l.mode==='unite' ? (C.standard_price_bottle||0) : (C.standard_price_carton||0); }
   function computeLine(l){
+    if(l.sample){ l.collection='2 ML'; l.mode='offert'; l.cartons=0; l.btl=0; l.testers=0; l.qty=+l.qty||0; l.prix=0; l.ca=0; l.cout=0; l.marge=0; return l; }
     if(l.collection==='REMISE'){ l.mode='remise'; l.cartons=0; l.btl=0; l.testers=0; l.ca=-Math.abs(+l.prix||0); l.cout=0; l.marge=l.ca; return l; }
     const C=costOf(l.collection); const cs=C?(C.carton_size||10):10;
     let cpb,cpcs;
@@ -2757,7 +2782,22 @@ document.querySelectorAll('main table').forEach(t=>{
   function collOptions(sel){ return Object.keys(ALL.costs||{}).map(k=>`<option value="${k}"${k===sel?' selected':''}>${k}</option>`).join(''); }
   function refOptions(coll,sel){ return refList(coll).map(r=>`<option value="${esc(r.name).replace(/"/g,'&quot;')}"${r.name===sel?' selected':''}>${esc(r.name)}</option>`).join('') + '<option value="__custom__">✏️ Autre référence…</option>'; }
 
+  function newSample(){ return {sample:true,collection:'2 ML',gamme:'VIP',reference:'',qty:1,mode:'offert',cartons:0,btl:0,testers:0,prix:0,ca:0,cout:0,marge:0}; }
   function lineRow(l,i){
+    if(l.sample){
+      return `<tr data-i="${i}">
+        <td><select class="mod-in sa-f" data-f="sgamme" style="min-width:80px"><option value="CP"${l.gamme==='CP'?' selected':''}>CP</option><option value="ROYAL"${l.gamme==='ROYAL'?' selected':''}>ROYAL</option><option value="VIP"${l.gamme==='VIP'?' selected':''}>VIP</option></select></td>
+        <td><input class="mod-in sa-f" data-f="sref" list="sa-2ml-list" value="${esc(l.reference).replace(/"/g,'&quot;')}" placeholder="Référence 2 ml" style="width:100%"></td>
+        <td style="text-align:center"><span class="badge-doc" style="background:#e0f2fe;color:#075985">2 ML OFFERT</span></td>
+        <td><input class="mod-in sa-n" type="number" min="0" data-f="sqty" value="${l.qty||0}" style="text-align:right" title="Flacons 2 ml offerts"></td>
+        <td class="text-right" style="color:#9aa1b0">—</td>
+        <td class="text-right" style="color:#9aa1b0">—</td><td class="text-right" style="color:#9aa1b0">—</td>
+        <td class="text-right" style="color:#0369a1;font-weight:700">offert</td>
+        <td class="text-right" style="color:#9aa1b0">—</td>
+        <td class="text-right" style="color:#9aa1b0">—</td>
+        <td style="text-align:center"><span class="mod-del" data-i="${i}" style="cursor:pointer;color:#dc2626">🗑️</span></td>
+      </tr>`;
+    }
     if(l.collection==='REMISE'){
       return `<tr data-i="${i}">
         <td><span class="badge badge-remise">REMISE</span></td>
@@ -2830,6 +2870,8 @@ document.querySelectorAll('main table').forEach(t=>{
     $('sa-clientlist').innerHTML=Object.keys(cmap).sort().map(c=>`<option value="${esc(c).replace(/"/g,'&quot;')}">`).join('');
     const paysSet={}; (ALL.total.pays||[]).forEach(p=>paysSet[p.pays]=1);
     $('sa-payslist').innerHTML=Object.keys(paysSet).sort().map(p=>`<option value="${esc(p)}">`).join('');
+    const m=(typeof MODULES!=='undefined')?MODULES.stock2ml:null; const dl=$('sa-2ml-list');
+    if(m&&dl) dl.innerHTML=m.rows.map(r=>`<option value="${esc(r.reference).replace(/"/g,'&quot;')}">${esc(r.gamme)}`).join('');
   }
 
   // ---------- Document imprimable (PDF) ----------
@@ -2851,6 +2893,7 @@ document.querySelectorAll('main table').forEach(t=>{
     ].filter(Boolean).join('<br>');
     const legal=[SOC.nom, SOC.forme, (SOC.adresse&&SOC.cp_ville)?(SOC.adresse+', '+SOC.cp_ville):(SOC.cp_ville||SOC.adresse), SOC.pays, SOC.ident, SOC.rcs, SOC.tva?('TVA '+SOC.tva):'', SOC.ape?('APE '+SOC.ape):''].filter(Boolean).map(esc).join(' — ');
     const linesHtml=(d.lines||[]).map(l=>{
+      if(l.sample) return `<tr><td>Échantillon 2 ml</td><td>${esc(l.reference)}${l.gamme?(' ('+esc(l.gamme)+')'):''}</td><td class="r">${fmtNum(l.qty)} flacon(s)</td><td class="r">offert</td><td class="r">${money(0)}</td></tr>`;
       if(l.collection==='REMISE') return `<tr><td colspan="4">${esc(l.reference||'Remise')}</td><td class="r">${money(l.ca)}</td></tr>`;
       const qty = l.mode==='unite' ? (fmtNum(l.btl)+' btl') : (l.cartons+' cart. ('+fmtNum(l.btl)+' btl)');
       return `<tr><td>${esc(l.collection)}</td><td>${esc(l.reference)}</td><td class="r">${qty}</td><td class="r">${money(l.prix)}</td><td class="r">${money(l.ca)}</td></tr>`;
@@ -2932,6 +2975,7 @@ document.querySelectorAll('main table').forEach(t=>{
     d.numero=pre+year+String(mx+1).padStart(3,'0');
     d.facture=d.numero;
     d.createdAt=Date.now();
+    deductSamples(d);
     persist(); rebuild(); if(typeof renderAll==='function') renderAll(); buildList();
     showSectionMsg('✅ '+d.bcNumero+' transformé en facture '+d.numero+' — dashboard mis à jour.', true);
   }
@@ -2948,6 +2992,8 @@ document.querySelectorAll('main table').forEach(t=>{
     else if(f==='reference'){ l.reference=v; }
     else if(f==='customname'){ l.reference=v; }
     else if(f==='customcost'){ l.customCost=+v||0; }
+    else if(f==='sref'){ l.reference=v; }
+    else if(f==='sqty'){ l.qty=+v||0; }
     computeLine(l); updateRowCells(tr,l); renderTotals();
   });
   linesEl.addEventListener('change', e=>{
@@ -2957,6 +3003,7 @@ document.querySelectorAll('main table').forEach(t=>{
     if(f==='collection'){ l.collection=v; l.custom=false; const rl=refList(v); l.reference=rl[0]?rl[0].name:''; l.prix=defPrix(l); }
     else if(f==='reference'){ if(v==='__custom__'){ l.custom=true; l.customCost=avgCpb(l.collection); l.reference=''; } else l.reference=v; }
     else if(f==='mode'){ l.mode=v; l.prix=defPrix(l); }
+    else if(f==='sgamme'){ l.gamme=v; }
     computeLine(l); renderLines(); renderTotals();
   });
   linesEl.addEventListener('click', e=>{
@@ -2969,6 +3016,7 @@ document.querySelectorAll('main table').forEach(t=>{
   });
   $('sa-addline').addEventListener('click', ()=>{ draft.lines.push(newLine()); renderLines(); renderTotals(); });
   $('sa-addremise').addEventListener('click', ()=>{ draft.lines.push(computeLine({collection:'REMISE',reference:'Réduction exceptionnelle',mode:'remise',prix:0})); renderLines(); renderTotals(); });
+  $('sa-addsample').addEventListener('click', ()=>{ draft.lines.push(computeLine(newSample())); renderLines(); renderTotals(); });
 
   function applyDocType(){
     sec.querySelectorAll('.doc-type-btn').forEach(x=>x.classList.toggle('active', x.dataset.type===docType));
@@ -3011,7 +3059,7 @@ document.querySelectorAll('main table').forEach(t=>{
     if(!iso) return showSectionMsg('Choisis une date.');
     if(!client) return showSectionMsg('Indique le client.');
     if(!pays) return showSectionMsg('Indique le pays.');
-    const lines=draft.lines.map(l=>computeLine(Object.assign({},l))).filter(l=>l.ca||l.cout||l.btl);
+    const lines=draft.lines.map(l=>computeLine(Object.assign({},l))).filter(l=>l.ca||l.cout||l.btl||(l.sample&&l.qty));
     if(!lines.length) return showSectionMsg('Ajoute au moins une ligne avec un montant.');
     const year=iso.split('-')[0];
     if(year!=='2025' && year!=='2026') return showSectionMsg('La date doit être en 2025 ou 2026.');
@@ -3019,7 +3067,9 @@ document.querySelectorAll('main table').forEach(t=>{
     const t=lines.reduce((a,l)=>{a.btl+=l.btl||0;a.ca+=l.ca||0;a.cout+=l.cout||0;a.marge+=l.marge||0;return a;},{btl:0,ca:0,cout:0,marge:0});
     const doc={ type:docType, societe:draft.societe, devise:(draft.societe==='NB'?'USD':'EUR'), numero, date:iso2fr(iso), client, pays, tvaRegime:($('sa-tva')?$('sa-tva').value:'export'), btl:t.btl, ca:t.ca, cout:t.cout, marge:t.marge, lines, createdAt:Date.now(), _user:true };
     if(docType==='facture') doc.facture=numero;
-    docs.push(doc); persist();
+    docs.push(doc);
+    if(docType==='facture'){ deductSamples(doc); }
+    persist();
     if(docType==='facture'){ rebuild(); if(typeof renderAll==='function') renderAll(); }
     populateDatalists(); buildList(); resetDraft();
     showSectionMsg(docType==='facture' ? '✅ Facture enregistrée — dashboard mis à jour.' : '✅ Bon de commande enregistré. Tu peux l\'imprimer ou le transformer en facture ci-dessous.', true);
@@ -3032,7 +3082,7 @@ document.querySelectorAll('main table').forEach(t=>{
     else if(act==='convert'){ if(confirm(`Transformer la commande ${d.numero||''} en facture ?\nElle comptera alors dans ton chiffre d'affaires.`)) convertToFacture(i); }
     else if(act==='del'){
       if(!confirm('Supprimer le document '+(d.numero||d.facture||'')+' ('+d.client+') ?')) return;
-      const wasFac=isFacture(d); docs.splice(i,1); persist();
+      const wasFac=isFacture(d); restoreSamples(d); docs.splice(i,1); persist();
       if(wasFac){ rebuild(); if(typeof renderAll==='function') renderAll(); }
       populateDatalists(); buildList();
     }
