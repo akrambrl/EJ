@@ -571,6 +571,14 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 </table>
 </div>
 
+<div id="stock2ml" class="section">
+<h2>🧪 Stock échantillons 2 ml</h2>
+<div class="info-box">💡 Stock des <strong>flacons 2 ml</strong> (échantillons) par gamme, au 03/06/2026. Modifie les quantités directement, ajoute/supprime des lignes — tout est <strong>sauvegardé automatiquement</strong>.</div>
+<div id="stock2mlSummary"></div>
+<div class="controls"><button class="mod-add" data-m="stock2ml">+ Ajouter une référence</button><button class="mod-reset" data-m="stock2ml">↺ Réinitialiser</button></div>
+<div id="stock2mlContent" style="overflow-x:auto"></div>
+</div>
+
 <div id="catalogue" class="section">
 <h2>🏷️ Catalogue &amp; Tarifs multi-canal</h2>
 <div class="info-box">💡 <strong>Données d'exemple</strong> (à remplacer par les tiennes). Modifie les cellules directement, ajoute/supprime des lignes — tout est <strong>sauvegardé dans ton navigateur</strong>. Renseigne le prix de revient (PR), le prix de gros (B2B) et le prix public (B2C) : les marges se calculent automatiquement.</div>
@@ -2352,6 +2360,57 @@ defineModule({
   }
 });
 
+// 7) STOCK ÉCHANTILLONS 2 ml (flacons)
+defineModule({
+  base:'stock2ml', key:'stock_2ml',
+  cols:[
+    {id:'gamme',label:'Gamme',type:'select',options:['CP','ROYAL','VIP'],w:90},
+    {id:'reference',label:'Référence',type:'text',w:220},
+    {id:'qte',label:'Stock (flacons 2 ml)',type:'number',align:'right',w:130}
+  ],
+  blank:{gamme:'VIP',reference:'',qte:0},
+  defaults:[
+    {gamme:'CP',reference:'Bora Bora',qte:1256},
+    {gamme:'CP',reference:"Éloge d'Orient",qte:1957},
+    {gamme:'CP',reference:'Exotic Oud',qte:1958},
+    {gamme:'CP',reference:'Golden Caramel',qte:1261},
+    {gamme:'CP',reference:'Santal Wood',qte:1259},
+    {gamme:'CP',reference:'Cherry 2ml',qte:2000},
+    {gamme:'CP',reference:'Vetyver 2ml',qte:1084},
+    {gamme:'ROYAL',reference:'Milano M',qte:1054},
+    {gamme:'ROYAL',reference:'Milano Renaissance',qte:993},
+    {gamme:'ROYAL',reference:'Milano Ultra',qte:2026},
+    {gamme:'ROYAL',reference:'Milano W',qte:2143},
+    {gamme:'ROYAL',reference:'Uomo',qte:942},
+    {gamme:'ROYAL',reference:'Uomo Alternance',qte:944},
+    {gamme:'VIP',reference:'Caftan',qte:1917},
+    {gamme:'VIP',reference:'Dream Catcher',qte:761},
+    {gamme:'VIP',reference:'Éclat de Vanille',qte:1435},
+    {gamme:'VIP',reference:'Elixir',qte:1908},
+    {gamme:'VIP',reference:'Grey',qte:809},
+    {gamme:'VIP',reference:'Moon',qte:1925},
+    {gamme:'VIP',reference:'Oud Berry',qte:1919},
+    {gamme:'VIP',reference:'Oud Vanille',qte:799},
+    {gamme:'VIP',reference:'Piège',qte:785},
+    {gamme:'VIP',reference:'Pure',qte:0},
+    {gamme:'VIP',reference:'Red',qte:787},
+    {gamme:'VIP',reference:'Regatus',qte:1917},
+    {gamme:'VIP',reference:'Rivière Noire',qte:0},
+    {gamme:'VIP',reference:'Silver',qte:738}
+  ],
+  summary:rows=>{
+    const byG=g=>sum(rows.filter(r=>r.gamme===g),r=>r.qte);
+    const rupture=rows.filter(r=>(+r.qte||0)===0).length;
+    return kpiRow([
+      {label:'Total flacons 2 ml',value:eNum(sum(rows,r=>r.qte))},
+      {label:'CP',value:eNum(byG('CP'))},
+      {label:'ROYAL',value:eNum(byG('ROYAL'))},
+      {label:'VIP',value:eNum(byG('VIP'))},
+      {label:'Réfs en rupture',value:eNum(rupture),cls:rupture>0?'danger':'success'}
+    ]);
+  }
+});
+
 // Rendu initial de tous les modules
 Object.keys(MODULES).forEach(renderModule);
 
@@ -2360,7 +2419,7 @@ const NAV_GROUPS = [
   {id:'g_pilotage', label:'📊 Pilotage', tabs:[['overview',"Vue d'ensemble"],['objectifs','Objectifs & Projection'],['insights','Remarques intelligentes'],['compare','Comparatif 2025/2026']]},
   {id:'g_ventes', label:'💶 Ventes', tabs:[['saisie','🧾 Commandes & Factures'],['clients','Clients'],['pays','Pays'],['mois','Mois'],['refs','Références'],['factures','Factures'],['evolution','Évolution clients']]},
   {id:'g_finance', label:'🏷️ Catalogue & Finance', tabs:[['catalogue','Catalogue & Tarifs'],['costs','Prix de revient'],['treso','Trésorerie']]},
-  {id:'g_ops', label:'📦 Opérations', tabs:[['stock','Stock produits finis'],['achats','Matières & Achats'],['production','Production'],['simulation','Simulation commande'],['anticipation','Anticipation']]},
+  {id:'g_ops', label:'📦 Opérations', tabs:[['stock','Stock produits finis'],['stock2ml','Stock 2 ml (échantillons)'],['achats','Matières & Achats'],['production','Production'],['simulation','Simulation commande'],['anticipation','Anticipation']]},
   {id:'g_reseau', label:'🏬 Réseau B2B', tabs:[['b2b','Points de vente']]},
   {id:'g_reglages', label:'⚙️ Réglages', tabs:[['societes','Sociétés & devises']]}
 ];
