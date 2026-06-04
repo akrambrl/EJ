@@ -22,14 +22,14 @@
   // Coordonnées légales des sociétés (en-tête des documents). Modifiables dans Réglages.
   societes: {
     BSD: {
-      code:"BSD", label:"BSD (France)", devise:"EUR", symbole:"€", tvaDefault:"fr20", prefCmd:"BC", prefFac:"EJ",
+      code:"BSD", label:"BSD (France)", devise:"EUR", symbole:"€", tvaDefault:"fr20", prefDev:"DEV", prefCmd:"BC", prefFac:"EJ",
       nom:"PARFUMS EMMANUELLE JANE", forme:"SARL au capital de 100 000 €",
       adresse:"3 rue Robespierre", cp_ville:"94500 Champigny-sur-Marne", pays:"France",
       ident:"SIRET 532 707 684 00025", tva:"FR49532707684", rcs:"RCS Créteil 532 707 684", ape:"46.49Z",
       email:"", tel:""
     },
     NB: {
-      code:"NB", label:"NB Evolution (Émirats)", devise:"USD", symbole:"$", tvaDefault:"none", prefCmd:"NBC", prefFac:"NBF",
+      code:"NB", label:"NB Evolution (Émirats)", devise:"USD", symbole:"$", tvaDefault:"none", prefDev:"NBD", prefCmd:"NBC", prefFac:"NBF",
       nom:"NB EVOLUTION", forme:"", adresse:"Dubai Silicon Oasis — DDP Building, A1", cp_ville:"Dubaï", pays:"United Arab Emirates",
       ident:"License No. 30537", tva:"", rcs:"", ape:"", email:"", tel:""
     }
@@ -193,6 +193,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 .badge-doc{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:800;letter-spacing:.02em}
 .badge-cmd{background:#fef3c7;color:#92660e}
 .badge-fact{background:#d1fae5;color:#0f7a52}
+.badge-dev{background:#e0e7ff;color:#3730a3}
 .sa-act{cursor:pointer;font-weight:700;font-size:.82rem;padding:5px 10px;border-radius:8px;border:1px solid rgba(31,42,68,.14);background:#fff;color:#3d4759;margin:0 2px;white-space:nowrap}
 .sa-act:hover{border-color:#b8860b;color:#b8860b}
 .sa-act.conv{background:#1f2a44;color:#e6c200;border-color:#1f2a44}
@@ -322,7 +323,8 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
   <button type="button" class="doc-type-btn" data-co="NB">🇦🇪 NB Evolution · Émirats ($)</button>
 </div>
 <div class="doc-type" id="sa-doctype">
-  <button type="button" class="doc-type-btn active" data-type="commande">📝 Bon de commande</button>
+  <button type="button" class="doc-type-btn active" data-type="devis">📄 Devis</button>
+  <button type="button" class="doc-type-btn" data-type="commande">📝 Bon de commande</button>
   <button type="button" class="doc-type-btn" data-type="facture">🧾 Facture directe</button>
 </div>
 
@@ -2758,9 +2760,10 @@ document.querySelectorAll('main table').forEach(t=>{
   // ---------- Dates / numéros ----------
   function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
   function iso2fr(s){ if(!s) return ''; const p=s.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : s; }
+  function prefOf(s,type){ return type==='facture'?(s.prefFac||'EJ'):type==='commande'?(s.prefCmd||'BC'):(s.prefDev||'DEV'); }
   function nextNum(type,year){
     const s = (SETT.societes && SETT.societes[draft.societe]) || {};
-    const pre = type==='facture' ? (s.prefFac||'EJ') : (s.prefCmd||'BC');
+    const pre = prefOf(s,type);
     let mx=0; const re=new RegExp('^'+pre+year+'(\\d+)$');
     BASE_FACT['2025'].concat(BASE_FACT['2026'],docs).forEach(f=>{ const m=String(f.numero||f.facture||'').match(re); if(m) mx=Math.max(mx,+m[1]); });
     return pre+year+String(mx+1).padStart(3,'0');
@@ -2769,7 +2772,7 @@ document.querySelectorAll('main table').forEach(t=>{
   // ---------- État du brouillon ----------
   const sec=document.getElementById('saisie'); if(!sec) return;
   const $=id=>document.getElementById(id);
-  let docType='commande', lastAutoNum='';
+  let docType='devis', lastAutoNum='';
   function newLine(){ const coll=Object.keys(ALL.costs||{})[0]||'VIP'; const rl=refList(coll); const l={collection:coll,reference:rl[0]?rl[0].name:'',mode:'carton',cartons:1,prix:0}; l.prix=defPrix(l); return computeLine(l); }
   let draft={ societe:'BSD', lines:[ newLine() ] };
   function clientPaysMap(){ const m={}; (ALL.total.clients||[]).forEach(c=>{ if(!m[c.client]) m[c.client]=c.pays; }); return m; }
@@ -2854,15 +2857,17 @@ document.querySelectorAll('main table').forEach(t=>{
     if(!docs.length){ w.innerHTML=''; return; }
     const items=docs.map((d,i)=>({d,i})).sort((a,b)=>(b.d.createdAt||0)-(a.d.createdAt||0));
     const rows=items.map(({d,i})=>{
-      const badge = isFacture(d)?'<span class="badge-doc badge-fact">FACTURE</span>':'<span class="badge-doc badge-cmd">COMMANDE</span>';
+      const badge = d.type==='facture'?'<span class="badge-doc badge-fact">FACTURE</span>':d.type==='commande'?'<span class="badge-doc badge-cmd">COMMANDE</span>':'<span class="badge-doc badge-dev">DEVIS</span>';
       const co = companyOf(d)==='NB'?'🇦🇪 NB':'🇫🇷 BSD';
       const sym = (d.devise==='USD')?'$':'€';
-      const conv = isFacture(d)?'':`<span class="sa-act conv" data-act="convert" data-i="${i}">➡️ Facturer</span>`;
+      let conv='';
+      if(d.type==='devis') conv=`<span class="sa-act conv" data-act="tocmd" data-i="${i}">➡️ Commande</span><span class="sa-act conv" data-act="tofac" data-i="${i}">🧾 Facturer</span>`;
+      else if(d.type==='commande') conv=`<span class="sa-act conv" data-act="tofac" data-i="${i}">🧾 Facturer</span>`;
       const from = d.bcNumero?`<div style="font-size:.7rem;color:#9aa1b0">issu de ${esc(d.bcNumero)}</div>`:'';
       return `<tr><td><strong>${esc(d.numero||d.facture||'')}</strong>${from}</td><td>${badge}</td><td>${co}</td><td>${esc(d.date)}</td><td>${esc(d.client)}</td><td>${esc(d.pays)}</td><td class="text-right amount">${Math.round(d.ca).toLocaleString('fr-FR')} ${sym}</td><td style="text-align:right;white-space:nowrap"><span class="sa-act" data-act="print" data-i="${i}">🖨️ PDF</span>${conv}<span class="sa-act del" data-act="del" data-i="${i}">🗑️</span></td></tr>`;
     }).join('');
     w.innerHTML=`<h3>📋 Mes documents (${docs.length})</h3>
-      <div class="info-box" style="background:#eef6ff;border-left-color:#3b82f6;color:#1e3a5f">Les <strong>commandes</strong> n'entrent pas dans le CA. Clique <strong>« Facturer »</strong> pour transformer une commande en facture (elle compte alors dans le dashboard). <strong>« PDF »</strong> ouvre le document imprimable à envoyer au client.</div>
+      <div class="info-box" style="background:#eef6ff;border-left-color:#3b82f6;color:#1e3a5f">Seules les <strong>factures</strong> entrent dans le CA. Un <strong>devis</strong> se transforme en commande ou directement en facture ; une <strong>commande</strong> se transforme en facture. <strong>« PDF »</strong> ouvre le document imprimable à envoyer au client.</div>
       <div class="table-wrap"><table><thead><tr><th>N°</th><th>Type</th><th>Société</th><th>Date</th><th>Client</th><th>Pays</th><th class="text-right">Montant</th><th class="text-right">Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
   function populateDatalists(){
@@ -2881,7 +2886,7 @@ document.querySelectorAll('main table').forEach(t=>{
     const sym = (d.devise==='USD') ? '$' : '€';
     const money = n => (Math.round(n*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ' + sym;
     const isFac = isFacture(d);
-    const title = isFac ? 'FACTURE' : 'BON DE COMMANDE';
+    const title = d.type==='facture' ? 'FACTURE' : d.type==='commande' ? 'BON DE COMMANDE' : 'DEVIS';
     const num = d.numero||d.facture||'';
     const socLines=[
       SOC.nom?('<strong>'+esc(SOC.nom)+'</strong>'):'',
@@ -2919,7 +2924,9 @@ document.querySelectorAll('main table').forEach(t=>{
     const cur = d.devise==='USD' ? 'dollars (USD)' : 'euros (EUR)';
     const baseNote = isFac
       ? 'Montants exprimés en '+cur+'. Conditions de règlement : à réception, sauf accord particulier.'
-      : 'Bon de commande valable 30 jours à compter de la date ci-dessus. Livraison et règlement selon conditions convenues.';
+      : d.type==='devis'
+        ? 'Devis valable 30 jours à compter de la date ci-dessus. Pour confirmer votre commande, retournez ce devis daté et signé (bon pour accord). Montants en '+cur+'.'
+        : 'Bon de commande valable 30 jours à compter de la date ci-dessus. Livraison et règlement selon conditions convenues. Montants en '+cur+'.';
     const noteText = (tvaMention ? '<strong>'+tvaMention+'</strong> ' : '') + baseNote;
     const note = isFac
       ? `<div class="pd-note">${noteText}</div>`
@@ -2964,20 +2971,22 @@ document.querySelectorAll('main table').forEach(t=>{
     setTimeout(()=>window.print(), 60);
   }
 
-  function convertToFacture(i){
-    const d=docs[i]; if(!d || isFacture(d)) return;
+  function convertDoc(i, target){
+    const d=docs[i]; if(!d) return;
     const yr=String(d.date||'').split('/')[2]; const year=(yr==='2025'||yr==='2026')?yr:String(new Date().getFullYear());
-    const co=companyOf(d); const s=(SETT.societes&&SETT.societes[co])||{}; const pre=s.prefFac||'EJ';
+    const co=companyOf(d); const s=(SETT.societes&&SETT.societes[co])||{}; const pre=prefOf(s,target);
     let mx=0; const re=new RegExp('^'+pre+year+'(\\d+)$');
     BASE_FACT['2025'].concat(BASE_FACT['2026'],docs).forEach(f=>{ const m=String(f.numero||f.facture||'').match(re); if(m) mx=Math.max(mx,+m[1]); });
-    d.bcNumero=d.numero;
-    d.type='facture';
+    const old=d.numero;
+    d.bcNumero=old;
+    d.type=target;
     d.numero=pre+year+String(mx+1).padStart(3,'0');
-    d.facture=d.numero;
+    if(target==='facture'){ d.facture=d.numero; } else { delete d.facture; }
     d.createdAt=Date.now();
-    deductSamples(d);
-    persist(); rebuild(); if(typeof renderAll==='function') renderAll(); buildList();
-    showSectionMsg('✅ '+d.bcNumero+' transformé en facture '+d.numero+' — dashboard mis à jour.', true);
+    if(target==='facture') deductSamples(d);
+    persist(); if(target==='facture'){ rebuild(); if(typeof renderAll==='function') renderAll(); } buildList();
+    const lab = target==='facture'?'facture':target==='commande'?'bon de commande':'devis';
+    showSectionMsg('✅ '+old+' transformé en '+lab+' '+d.numero+(target==='facture'?' — dashboard mis à jour.':'.'), true);
   }
 
   // ---------- Interactions ----------
@@ -3018,10 +3027,11 @@ document.querySelectorAll('main table').forEach(t=>{
   $('sa-addremise').addEventListener('click', ()=>{ draft.lines.push(computeLine({collection:'REMISE',reference:'Réduction exceptionnelle',mode:'remise',prix:0})); renderLines(); renderTotals(); });
   $('sa-addsample').addEventListener('click', ()=>{ draft.lines.push(computeLine(newSample())); renderLines(); renderTotals(); });
 
+  const DOCLAB={devis:'devis',commande:'bon de commande',facture:'facture'};
   function applyDocType(){
-    sec.querySelectorAll('.doc-type-btn').forEach(x=>x.classList.toggle('active', x.dataset.type===docType));
-    $('sa-numlabel').firstChild.textContent = docType==='facture' ? 'N° facture' : 'N° bon de commande';
-    $('sa-savelabel').textContent = docType==='facture' ? 'Enregistrer la facture' : 'Enregistrer le bon de commande';
+    sec.querySelectorAll('#sa-doctype .doc-type-btn').forEach(x=>x.classList.toggle('active', x.dataset.type===docType));
+    $('sa-numlabel').firstChild.textContent = 'N° '+DOCLAB[docType];
+    $('sa-savelabel').textContent = docType==='facture' ? 'Enregistrer la facture' : 'Enregistrer le '+DOCLAB[docType];
     lastAutoNum=nextNum(docType, ($('sa-date').value||todayISO()).split('-')[0]);
     $('sa-fact').value=lastAutoNum;
   }
@@ -3072,14 +3082,15 @@ document.querySelectorAll('main table').forEach(t=>{
     persist();
     if(docType==='facture'){ rebuild(); if(typeof renderAll==='function') renderAll(); }
     populateDatalists(); buildList(); resetDraft();
-    showSectionMsg(docType==='facture' ? '✅ Facture enregistrée — dashboard mis à jour.' : '✅ Bon de commande enregistré. Tu peux l\'imprimer ou le transformer en facture ci-dessous.', true);
+    showSectionMsg(docType==='facture' ? '✅ Facture enregistrée — dashboard mis à jour.' : (docType==='devis'?'✅ Devis enregistré. Tu peux l\'imprimer (PDF) ou le transformer en commande/facture ci-dessous.':'✅ Bon de commande enregistré. Tu peux l\'imprimer ou le transformer en facture ci-dessous.'), true);
   });
 
   $('sa-listwrap').addEventListener('click', e=>{
     const a=e.target.closest('.sa-act'); if(!a) return;
     const i=+a.dataset.i, act=a.dataset.act, d=docs[i]; if(!d) return;
     if(act==='print') printDoc(d);
-    else if(act==='convert'){ if(confirm(`Transformer la commande ${d.numero||''} en facture ?\nElle comptera alors dans ton chiffre d'affaires.`)) convertToFacture(i); }
+    else if(act==='tocmd'){ if(confirm(`Transformer le devis ${d.numero||''} en bon de commande ?`)) convertDoc(i,'commande'); }
+    else if(act==='tofac'){ if(confirm(`Transformer ${d.numero||''} en facture ?\nElle comptera alors dans ton chiffre d'affaires.`)) convertDoc(i,'facture'); }
     else if(act==='del'){
       if(!confirm('Supprimer le document '+(d.numero||d.facture||'')+' ('+d.client+') ?')) return;
       const wasFac=isFacture(d); restoreSamples(d); docs.splice(i,1); persist();
