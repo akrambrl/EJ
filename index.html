@@ -622,6 +622,14 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 <div id="commandesContent" style="overflow-x:auto"></div>
 </div>
 
+<div id="arrivages" class="section">
+<h2>🚚 Arrivages matières premières</h2>
+<div class="info-box">💡 Suis les <strong>dates d'arrivage</strong> de tes matières et composants : date de commande, arrivage prévu, arrivage réel et statut. La colonne <strong>Suivi</strong> calcule automatiquement le délai restant et signale les <strong>retards</strong>. Sauvegarde automatique dans le navigateur.</div>
+<div id="arrivagesSummary"></div>
+<div class="controls"><button class="mod-add" data-m="arrivages">+ Ajouter un arrivage</button><button class="mod-reset" data-m="arrivages">↺ Réinitialiser l'exemple</button></div>
+<div id="arrivagesContent" style="overflow-x:auto"></div>
+</div>
+
 <div id="b2b" class="section">
 <h2>🏬 Réseau B2B — Points de vente</h2>
 <div class="info-box">💡 <strong>Données d'exemple.</strong> Gère tes points de vente revendeurs : CA cumulé, dernier réassort et statut. Les points « À relancer » sont à recontacter pour un réassort. Sauvegarde automatique dans le navigateur.</div>
@@ -2091,6 +2099,9 @@ renderAll();
 const MOD_PREFIX = 'ej_mod_';
 const eMoney = n => (Math.round(+n||0)).toLocaleString('fr-FR') + ' €';
 const eNum   = n => (+n||0).toLocaleString('fr-FR');
+const eToday = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const eFr2iso = s => { if(!s) return ''; const p=String(s).split('/'); return p.length===3 ? p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0') : ''; };
+const eDaysUntil = fr => { const iso=eFr2iso(fr); if(!iso) return null; const ms=new Date(iso+'T00:00:00')-new Date(eToday()+'T00:00:00'); return Math.round(ms/86400000); };
 const MODULES = {};
 
 function modLoad(key, defaults){
@@ -2309,6 +2320,48 @@ defineModule({
   }
 });
 
+// 3c) ARRIVAGES — Suivi des dates d'arrivage des matières premières
+defineModule({
+  base:'arrivages', key:'achats_arrivages',
+  cols:[
+    {id:'matiere',label:'Matière / composant',type:'text',w:170},
+    {id:'fournisseur',label:'Fournisseur',type:'text',w:140},
+    {id:'quantite',label:'Qté',type:'number',align:'right',w:75},
+    {id:'transport',label:'Transport',type:'select',options:['Maritime','Aérien','Routier','Express','Autre'],w:95},
+    {id:'commande',label:'Date commande',type:'text',w:110},
+    {id:'prevue',label:'Arrivage prévu',type:'text',w:110},
+    {id:'reelle',label:'Arrivage réel',type:'text',w:110},
+    {id:'statut',label:'Statut',type:'select',options:['En préparation','Expédié','En transit','Arrivé','Retardé'],w:120},
+    {id:'suivi',label:'Suivi',compute:r=>{
+        if(r.statut==='Arrivé') return r.reelle ? '✓ Arrivé le '+r.reelle : '✓ Arrivé';
+        const d=eDaysUntil(r.prevue);
+        if(d===null) return '—';
+        if(d<0) return '⚠️ En retard ('+(-d)+' j)';
+        if(d===0) return '🔔 Aujourd’hui';
+        if(d<=7) return '🔜 Dans '+d+' j';
+        return 'Dans '+d+' j';
+      }, fmt:v=> v.indexOf('⚠')>=0?`<span class="stat-alert">${v}</span>` : v.indexOf('✓')>=0?`<span class="stat-ok">${v}</span>` : v}
+  ],
+  blank:{matiere:'',fournisseur:'',quantite:0,transport:'Routier',commande:'',prevue:'',reelle:'',statut:'En préparation'},
+  defaults:[
+    {matiere:'Concentré Oud rare',fournisseur:'Grasse Aromatics',quantite:3000,transport:'Routier',commande:'10/05/2026',prevue:'12/06/2026',reelle:'',statut:'En transit'},
+    {matiere:'Flacon 50ml VIP',fournisseur:'Verrerie Lux',quantite:5000,transport:'Maritime',commande:'01/04/2026',prevue:'20/05/2026',reelle:'18/05/2026',statut:'Arrivé'},
+    {matiere:'Pompe spray dorée',fournisseur:'Verrerie Lux',quantite:4000,transport:'Routier',commande:'02/05/2026',prevue:'28/05/2026',reelle:'',statut:'Expédié'},
+    {matiere:'Étui VIP Black',fournisseur:'Cartonnage Paris',quantite:3000,transport:'Express',commande:'20/05/2026',prevue:'15/06/2026',reelle:'',statut:'En préparation'}
+  ],
+  summary:rows=>{
+    const enRoute = rows.filter(r=>r.statut==='Expédié'||r.statut==='En transit').length;
+    const bientot = rows.filter(r=>{ if(r.statut==='Arrivé') return false; const d=eDaysUntil(r.prevue); return d!==null && d>=0 && d<=7; }).length;
+    const retard = rows.filter(r=>{ if(r.statut==='Arrivé') return false; const d=eDaysUntil(r.prevue); return d!==null && d<0; }).length;
+    return kpiRow([
+      {label:'En route',value:eNum(enRoute)},
+      {label:'Arrivée sous 7 j',value:eNum(bientot)},
+      {label:'En retard',value:eNum(retard),cls:retard>0?'danger':'success'},
+      {label:'Total arrivages',value:eNum(rows.length)}
+    ]);
+  }
+});
+
 // 4) RÉSEAU B2B
 defineModule({
   base:'b2b', key:'b2b_points',
@@ -2406,7 +2459,7 @@ const NAV_GROUPS = [
   {id:'g_pilotage', label:'📊 Pilotage', tabs:[['overview',"Vue d'ensemble"],['objectifs','Objectifs & Projection'],['insights','Remarques intelligentes'],['compare','Comparatif 2025/2026']]},
   {id:'g_ventes', label:'💶 Ventes', tabs:[['saisie','🧾 Commandes & Factures'],['clients','Clients'],['pays','Pays'],['mois','Mois'],['refs','Références'],['factures','Factures'],['evolution','Évolution clients']]},
   {id:'g_finance', label:'🏷️ Catalogue & Finance', tabs:[['catalogue','Catalogue & Tarifs'],['costs','Prix de revient'],['treso','Trésorerie']]},
-  {id:'g_ops', label:'📦 Opérations', tabs:[['stock','Stock produits finis'],['stock2ml','Stock 2 ml (échantillons)'],['achats','Matières & Achats'],['production','Production'],['simulation','Simulation commande'],['anticipation','Anticipation']]},
+  {id:'g_ops', label:'📦 Opérations', tabs:[['stock','Stock produits finis'],['stock2ml','Stock 2 ml (échantillons)'],['achats','Matières & Achats'],['arrivages','Arrivages matières'],['production','Production'],['simulation','Simulation commande'],['anticipation','Anticipation']]},
   {id:'g_reseau', label:'🏬 Réseau B2B', tabs:[['b2b','Points de vente']]},
   {id:'g_reglages', label:'⚙️ Réglages', tabs:[['societes','Sociétés & devises']]}
 ];
