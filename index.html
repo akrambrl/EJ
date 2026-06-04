@@ -677,6 +677,8 @@ Chart.defaults.set('plugins.datalabels', {
   formatter: dlMoney
 });
 const PALETTE = ['#b8860b','#8B5CF6','#3B82F6','#10B981','#F59E0B','#EF4444','#EC4899','#06B6D4','#84CC16','#F97316','#A855F7','#14B8A6','#FB7185','#F43F5E','#22D3EE'];
+// Étiquettes verticales posées au-dessus des barres : lisibles sur mobile même avec beaucoup de barres
+const barTopLabels = { anchor:'end', align:'end', rotation:-90, offset:4, clamp:true, display:'auto', color:'#243049', textStrokeColor:'rgba(255,255,255,.92)', textStrokeWidth:4, font:{weight:'bold', size:9} };
 
 function renderKpis(){
   const d = getD();
@@ -708,7 +710,7 @@ function renderOverview(){
       {label:'CA (€)',data:d.mois.map(m=>m.ca),backgroundColor:'#b8860b',borderRadius:6},
       {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),backgroundColor:'#10B981',borderRadius:6}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA & Bénéfice mensuel',font:{size:14},color:'#b8860b'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA & Bénéfice mensuel',font:{size:14},color:'#b8860b'},datalabels:{...barTopLabels,formatter:dlMoney}},scales:{y:{grace:'15%',ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   // Podium
   const podium = document.getElementById('podium');
@@ -817,7 +819,7 @@ function renderMois(){
   charts.chartMoisMarge = new Chart(document.getElementById('chartMoisMarge'),{
     type:'bar',
     data:{labels:d.mois.map(m=>m.mois),datasets:[{label:'Bouteilles',data:d.mois.map(m=>m.btl),backgroundColor:'#3B82F6',borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Bouteilles vendues par mois',color:'#b8860b'},legend:{display:false},datalabels:{formatter:dlNum}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Bouteilles vendues par mois',color:'#b8860b'},legend:{display:false},datalabels:{...barTopLabels,formatter:dlNum}},scales:{y:{grace:'15%'}}}
   });
   const tb = document.getElementById('tbody-mois');
   tb.innerHTML = '';
