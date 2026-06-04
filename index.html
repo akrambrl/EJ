@@ -60,10 +60,17 @@ body{font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,Arial,sans-serif;b
 .brand-name{font-family:'Parisienne',cursive;font-size:3.3rem;color:#1a1a1a;line-height:.95;margin:2px 0}
 .brand-bottom{font-size:1.05rem;letter-spacing:.62em;margin-left:.62em;margin-top:2px}
 @media(max-width:600px){.brand-name{font-size:2.4rem}.brand-top,.brand-bottom{font-size:.85rem;letter-spacing:.45em;margin-left:.45em}}
-.year-switcher{display:flex;justify-content:flex-start;gap:10px;margin-bottom:26px;flex-wrap:wrap}
-.year-btn{padding:12px 26px;background:#fff;border:1px solid rgba(31,42,68,.1);color:#5b6577;cursor:pointer;border-radius:999px;font-size:.95rem;font-weight:700;transition:all .22s;box-shadow:0 2px 8px rgba(31,42,68,.04)}
-.year-btn:hover{border-color:#b8860b;color:#b8860b}
-.year-btn.active{background:#1f2a44;color:#e6c200;border-color:#1f2a44;box-shadow:0 8px 22px rgba(31,42,68,.18)}
+.year-picker{position:relative;margin-left:auto;flex-shrink:0}
+.year-trigger{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid rgba(31,42,68,.1);color:#5b6577;cursor:pointer;border-radius:999px;padding:9px 16px;font-size:.85rem;font-weight:700;transition:all .2s;box-shadow:0 2px 8px rgba(31,42,68,.05)}
+.year-trigger:hover{border-color:#b8860b;color:#b8860b}
+.year-caret{font-size:.65rem;opacity:.6;transition:transform .2s}
+.year-picker.open .year-caret{transform:rotate(180deg)}
+.year-menu{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid rgba(31,42,68,.08);border-radius:16px;box-shadow:0 16px 44px rgba(31,42,68,.18);padding:8px;display:none;flex-direction:column;gap:4px;z-index:60;min-width:210px}
+.year-picker.open .year-menu{display:flex;animation:yearMenuIn .16s ease}
+@keyframes yearMenuIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.year-btn{padding:10px 14px;background:transparent;border:1px solid transparent;color:#5b6577;cursor:pointer;border-radius:10px;font-size:.88rem;font-weight:700;text-align:left;width:100%;transition:all .15s}
+.year-btn:hover{background:#f4f6fb;color:#1f2a44}
+.year-btn.active{background:#1f2a44;color:#e6c200;border-color:#1f2a44}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;margin-bottom:30px}
 .kpis-hero{grid-template-columns:repeat(3,1fr);gap:22px}
 .kpi{background:#fff;border:1px solid rgba(31,42,68,.05);border-radius:22px;padding:22px 24px;text-align:left;transition:transform .22s,box-shadow .22s;box-shadow:0 10px 30px rgba(31,42,68,.05)}
@@ -176,8 +183,8 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
   .kpis-hero .kpi-value.big{font-size:1.45rem;margin-top:2px}
   .chart-container{height:320px;padding:14px;border-radius:16px}
   .chart-container.tall{height:400px}
-  .year-switcher{gap:8px;margin-bottom:20px}
-  .year-btn{padding:9px 16px;font-size:.82rem}
+  .year-trigger{padding:7px 12px;font-size:.78rem}
+  .year-menu{min-width:180px}
   .table-wrap table{min-width:580px}
   th{font-size:.7rem;padding:11px 10px}
   td{font-size:.85rem;padding:10px}
@@ -219,12 +226,16 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 <div class="topbar">
 <button class="menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 <div class="topbar-title" id="topbarTitle">Vue d'ensemble</div>
+<div class="year-picker" id="yearPicker">
+<button class="year-trigger" id="yearTrigger" aria-haspopup="true" aria-expanded="false" aria-label="Changer la période">
+<span id="yearTriggerLabel">🌍 Total</span><span class="year-caret">▾</span>
+</button>
+<div class="year-menu" id="yearMenu" role="menu">
+<button class="year-btn" data-year="2025" role="menuitem">📅 2025</button>
+<button class="year-btn" data-year="2026" role="menuitem">📅 2026</button>
+<button class="year-btn active" data-year="total" role="menuitem">🌍 Total (2025 + 2026)</button>
 </div>
-
-<div class="year-switcher">
-<button class="year-btn" data-year="2025">📅 2025</button>
-<button class="year-btn" data-year="2026">📅 2026</button>
-<button class="year-btn active" data-year="total">🌍 Total (2025 + 2026)</button>
+</div>
 </div>
 
 <div class="warning-box" id="royalWarning">
@@ -1885,14 +1896,34 @@ document.getElementById('simIncludeTester').addEventListener('change', (e) => {
   renderSimulation();
 });
 
-// Year switcher
+// Year switcher (discrete picker)
+const yearLabels = {'2025':'📅 2025','2026':'📅 2026','total':'🌍 Total'};
+const yearPicker = document.getElementById('yearPicker');
+const yearTrigger = document.getElementById('yearTrigger');
 document.querySelectorAll('.year-btn').forEach(b => {
   b.addEventListener('click', () => {
     document.querySelectorAll('.year-btn').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     currentYear = b.dataset.year;
+    document.getElementById('yearTriggerLabel').textContent = yearLabels[currentYear] || currentYear;
+    yearPicker.classList.remove('open');
+    yearTrigger.setAttribute('aria-expanded','false');
     renderAll();
   });
+});
+yearTrigger.addEventListener('click', e => {
+  e.stopPropagation();
+  const open = yearPicker.classList.toggle('open');
+  yearTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+document.addEventListener('click', e => {
+  if(!yearPicker.contains(e.target)){
+    yearPicker.classList.remove('open');
+    yearTrigger.setAttribute('aria-expanded','false');
+  }
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') { yearPicker.classList.remove('open'); yearTrigger.setAttribute('aria-expanded','false'); }
 });
 
 // Tab switcher
