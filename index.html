@@ -18,18 +18,21 @@
   SUPABASE_URL: "https://furirpuapaowduaqqpbo.supabase.co",
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmlycHVhcGFvd2R1YXFxcGJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzI2NTcsImV4cCI6MjA5NjE0ODY1N30.jtwOnsCSt9_V2hoUQS7ULEot1pQy7qpIMDG66MGwjkM",
   requireAuth: false, // PHASE DEV : accès libre sans compte. Mettre true pour sécuriser (connexion obligatoire).
-  // Coordonnées légales affichées sur les bons de commande et factures
-  societe: {
-    nom: "PARFUMS EMMANUELLE JANE",
-    forme: "SARL au capital de 100 000 €",
-    adresse: "3 rue Robespierre",
-    cp_ville: "94500 Champigny-sur-Marne",
-    siret: "532 707 684 00025",
-    tva: "FR49532707684",
-    rcs: "RCS Créteil 532 707 684",
-    ape: "46.49Z",
-    email: "",
-    tel: ""
+  fxUSDtoEUR: 0.92,   // taux de conversion par défaut : 1 $ = X € (modifiable dans Réglages)
+  // Coordonnées légales des sociétés (en-tête des documents). Modifiables dans Réglages.
+  societes: {
+    BSD: {
+      code:"BSD", label:"BSD (France)", devise:"EUR", symbole:"€", tvaDefault:"fr20", prefCmd:"BC", prefFac:"EJ",
+      nom:"PARFUMS EMMANUELLE JANE", forme:"SARL au capital de 100 000 €",
+      adresse:"3 rue Robespierre", cp_ville:"94500 Champigny-sur-Marne", pays:"France",
+      ident:"SIRET 532 707 684 00025", tva:"FR49532707684", rcs:"RCS Créteil 532 707 684", ape:"46.49Z",
+      email:"", tel:""
+    },
+    NB: {
+      code:"NB", label:"NB Evolution (Émirats)", devise:"USD", symbole:"$", tvaDefault:"none", prefCmd:"NBC", prefFac:"NBF",
+      nom:"NB EVOLUTION", forme:"", adresse:"", cp_ville:"", pays:"Émirats Arabes Unis",
+      ident:"", tva:"", rcs:"", ape:"", email:"", tel:""
+    }
   }
 };</script>
 <style>
@@ -73,7 +76,10 @@ body{font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,Arial,sans-serif;b
 .brand-name{font-family:'Parisienne',cursive;font-size:3.3rem;color:#1a1a1a;line-height:.95;margin:2px 0}
 .brand-bottom{font-size:1.05rem;letter-spacing:.62em;margin-left:.62em;margin-top:2px}
 @media(max-width:600px){.brand-name{font-size:2.4rem}.brand-top,.brand-bottom{font-size:.85rem;letter-spacing:.45em;margin-left:.45em}}
-.year-picker{position:relative;margin-left:auto;flex-shrink:0}
+.topbar-tools{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.co-filter{appearance:none;-webkit-appearance:none;background:#1f2a44;color:#e6c200;border:none;border-radius:999px;padding:9px 16px;font-size:.85rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(31,42,68,.12)}
+.co-filter:focus{outline:none}
+.year-picker{position:relative;flex-shrink:0}
 .year-trigger{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid rgba(31,42,68,.1);color:#5b6577;cursor:pointer;border-radius:999px;padding:9px 16px;font-size:.85rem;font-weight:700;transition:all .2s;box-shadow:0 2px 8px rgba(31,42,68,.05)}
 .year-trigger:hover{border-color:#b8860b;color:#b8860b}
 .year-caret{font-size:.65rem;opacity:.6;transition:transform .2s}
@@ -241,6 +247,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
   .kpi-value{font-size:1.35rem}
   .kpi-value.big{font-size:1.5rem}
   .kpis-hero .kpi-value.big{font-size:1.7rem}
+  .set-soc-grid{grid-template-columns:1fr !important}
 }
 </style>
 </head>
@@ -268,6 +275,12 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 <div class="topbar">
 <button class="menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 <div class="topbar-title" id="topbarTitle">Vue d'ensemble</div>
+<div class="topbar-tools">
+<select id="ejCoFilter" class="co-filter" aria-label="Filtrer par société">
+<option value="all">🏢 Toutes sociétés</option>
+<option value="BSD">🇫🇷 BSD</option>
+<option value="NB">🇦🇪 NB Evolution</option>
+</select>
 <div class="year-picker" id="yearPicker">
 <button class="year-trigger" id="yearTrigger" aria-haspopup="true" aria-expanded="false" aria-label="Changer la période">
 <span id="yearTriggerLabel">🌍 Total</span><span class="year-caret">▾</span>
@@ -276,6 +289,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 <button class="year-btn" data-year="2025" role="menuitem">📅 2025</button>
 <button class="year-btn" data-year="2026" role="menuitem">📅 2026</button>
 <button class="year-btn active" data-year="total" role="menuitem">🌍 Total (2025 + 2026)</button>
+</div>
 </div>
 </div>
 </div>
@@ -306,6 +320,10 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 <h2>🧾 Commandes &amp; Factures</h2>
 <div class="info-box">💡 Crée un <strong>bon de commande</strong> pour ton client, imprime-le en PDF, puis transforme-le en <strong>facture</strong> en un clic (ou crée directement une facture). <strong>Seules les factures</strong> alimentent le tableau de bord — une commande reste un engagement tant qu'elle n'est pas facturée.</div>
 
+<div class="doc-type" id="sa-company">
+  <button type="button" class="doc-type-btn active" data-co="BSD">🇫🇷 BSD · France (€)</button>
+  <button type="button" class="doc-type-btn" data-co="NB">🇦🇪 NB Evolution · Émirats ($)</button>
+</div>
 <div class="doc-type" id="sa-doctype">
   <button type="button" class="doc-type-btn active" data-type="commande">📝 Bon de commande</button>
   <button type="button" class="doc-type-btn" data-type="facture">🧾 Facture directe</button>
@@ -320,6 +338,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
     <option value="export">Exonérée — export hors UE</option>
     <option value="intracom">Exonérée — livraison intra-UE</option>
     <option value="fr20">TVA 20 % (France)</option>
+    <option value="none">Hors TVA (Émirats)</option>
   </select></label>
 </div>
 
@@ -346,6 +365,12 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 </div>
 
 <div id="sa-listwrap" style="margin-top:30px"></div>
+</div>
+
+<div id="societes" class="section">
+<h2>⚙️ Sociétés &amp; devises</h2>
+<div class="info-box">Gère tes deux sociétés, le taux de change €/$ et la répartition de tes clients entre BSD et NB Evolution. Ces réglages s'appliquent au tableau de bord (filtre société) et aux documents (en-tête légal, devise, TVA).</div>
+<div id="set-content"></div>
 </div>
 
 <div id="clients" class="section">
@@ -2339,7 +2364,8 @@ const NAV_GROUPS = [
   {id:'g_ventes', label:'💶 Ventes', tabs:[['saisie','🧾 Commandes & Factures'],['clients','Clients'],['pays','Pays'],['mois','Mois'],['refs','Références'],['factures','Factures'],['evolution','Évolution clients']]},
   {id:'g_finance', label:'🏷️ Catalogue & Finance', tabs:[['catalogue','Catalogue & Tarifs'],['costs','Prix de revient'],['treso','Trésorerie']]},
   {id:'g_ops', label:'📦 Opérations', tabs:[['stock','Stock produits finis'],['achats','Matières & Achats'],['production','Production'],['simulation','Simulation commande'],['anticipation','Anticipation']]},
-  {id:'g_reseau', label:'🏬 Réseau B2B', tabs:[['b2b','Points de vente']]}
+  {id:'g_reseau', label:'🏬 Réseau B2B', tabs:[['b2b','Points de vente']]},
+  {id:'g_reglages', label:'⚙️ Réglages', tabs:[['societes','Sociétés & devises']]}
 ];
 
 const sidebar = document.getElementById('sidebar');
@@ -2552,30 +2578,50 @@ document.querySelectorAll('main table').forEach(t=>{
   let docs = loadDocs();
   const isFacture = d => d.type==='facture';
 
-  // ---------- Recalcul des agrégats (factures uniquement) ----------
+  // ---------- Multi-sociétés + devises ----------
+  const SOC_DEF = (window.EJ_CONFIG && window.EJ_CONFIG.societes) || {};
+  function loadSettings(){
+    let s={}; try{ const r=localStorage.getItem('ej_mod_settings'); if(r) s=JSON.parse(r)||{}; }catch(e){}
+    const soc={}; ['BSD','NB'].forEach(k=>{ soc[k]=Object.assign({}, SOC_DEF[k]||{}, (s.societes&&s.societes[k])||{}); });
+    return { fx:(s.fx!=null?+s.fx:((window.EJ_CONFIG&&window.EJ_CONFIG.fxUSDtoEUR)||0.92)), societes:soc };
+  }
+  let SETT = loadSettings();
+  const FX = () => SETT.fx || 0.92;
+  let clientCompany = (typeof modLoad==='function') ? modLoad('clientco', {}) : {};
+  let companyFilter = 'all';
+  function companyOf(f){ return f.societe || clientCompany[f.client] || 'BSD'; }
+  function inFilter(f){ return companyFilter==='all' || companyOf(f)===companyFilter; }
+  function fxOf(f){ return f.devise==='USD' ? FX() : 1; }
+  function saveSettings(){ try{ localStorage.setItem('ej_mod_settings', JSON.stringify(SETT)); }catch(e){} if(typeof cloudPush==='function') cloudPush('settings', SETT); }
+  function saveClientCompany(){ try{ localStorage.setItem('ej_mod_clientco', JSON.stringify(clientCompany)); }catch(e){} if(typeof cloudPush==='function') cloudPush('clientco', clientCompany); }
+
+  // ---------- Recalcul des agrégats (factures uniquement, converties en €) ----------
   function aggregate(F){
     let ca=0,cout=0,marge=0,btl=0,testers=0;
     const cl={},py={},rf={},co={},ctp={};
     const mo={}; MN.forEach((m,i)=>mo[i+1]={mois:m,factures:0,btl:0,ca:0,cout:0,marge:0});
     F.forEach(f=>{
-      ca+=f.ca||0; cout+=f.cout||0; marge+=f.marge||0; btl+=f.btl||0;
+      const fx=fxOf(f);
+      const Fca=(f.ca||0)*fx, Fcout=(f.cout||0), Fmarge=(f.ca||0)*fx-(f.cout||0);
+      ca+=Fca; cout+=Fcout; marge+=Fmarge; btl+=f.btl||0;
       const mm=+String(f.date||'').split('/')[1];
-      if(mo[mm]){ mo[mm].factures++; mo[mm].btl+=f.btl||0; mo[mm].ca+=f.ca||0; mo[mm].cout+=f.cout||0; mo[mm].marge+=f.marge||0; }
+      if(mo[mm]){ mo[mm].factures++; mo[mm].btl+=f.btl||0; mo[mm].ca+=Fca; mo[mm].cout+=Fcout; mo[mm].marge+=Fmarge; }
       const ck=f.client+'|'+f.pays;
       const c=cl[ck]||(cl[ck]={client:f.client,pays:f.pays,factures:0,btl:0,testers:0,ca:0,cout:0,marge:0});
-      c.factures++; c.btl+=f.btl||0; c.ca+=f.ca||0; c.cout+=f.cout||0; c.marge+=f.marge||0;
+      c.factures++; c.btl+=f.btl||0; c.ca+=Fca; c.cout+=Fcout; c.marge+=Fmarge;
       const p=py[f.pays]||(py[f.pays]={pays:f.pays,clients:0,_s:{},factures:0,btl:0,ca:0,cout:0,marge:0});
-      p._s[f.client]=1; p.factures++; p.btl+=f.btl||0; p.ca+=f.ca||0; p.cout+=f.cout||0; p.marge+=f.marge||0;
+      p._s[f.client]=1; p.factures++; p.btl+=f.btl||0; p.ca+=Fca; p.cout+=Fcout; p.marge+=Fmarge;
       (f.lines||[]).forEach(l=>{
         testers+=l.testers||0; c.testers+=l.testers||0;
         if(l.collection==='REMISE') return;
+        const Lca=(l.ca||0)*fx, Lcout=(l.cout||0), Lmarge=(l.ca||0)*fx-(l.cout||0);
         const rk=l.collection+'|'+l.reference;
         const r=rf[rk]||(rf[rk]={collection:l.collection,reference:l.reference,cartons:0,btl:0,testers:0,ca:0,cout:0,marge:0,cost_known:true});
-        r.cartons+=l.cartons||0; r.btl+=l.btl||0; r.testers+=l.testers||0; r.ca+=l.ca||0; r.cout+=l.cout||0; r.marge+=l.marge||0;
+        r.cartons+=l.cartons||0; r.btl+=l.btl||0; r.testers+=l.testers||0; r.ca+=Lca; r.cout+=Lcout; r.marge+=Lmarge;
         const c1=co[l.collection]||(co[l.collection]={collection:l.collection,_r:{},refs:0,btl:0,ca:0,cout:0,marge:0,cost_known:true});
-        c1._r[l.reference]=1; c1.btl+=l.btl||0; c1.ca+=l.ca||0; c1.cout+=l.cout||0; c1.marge+=l.marge||0;
+        c1._r[l.reference]=1; c1.btl+=l.btl||0; c1.ca+=Lca; c1.cout+=Lcout; c1.marge+=Lmarge;
         const tp=ctp[ck]||(ctp[ck]={}); const e=tp[rk]||(tp[rk]={collection:l.collection,reference:l.reference,btl:0,ca:0});
-        e.btl+=l.btl||0; e.ca+=l.ca||0;
+        e.btl+=l.btl||0; e.ca+=Lca;
       });
     });
     const clients=Object.values(cl).sort((a,b)=>b.ca-a.ca);
@@ -2588,21 +2634,24 @@ document.querySelectorAll('main table').forEach(t=>{
       kpi_ca:ca,kpi_cout:cout,kpi_marge:marge,kpi_marge_pct_known:ca>0?(marge/ca*100):0,
       kpi_ca_known:ca,kpi_ca_unknown:0,kpi_btl:btl,kpi_testers:testers,
       kpi_factures:F.length,kpi_clients:clients.length,kpi_pays:pays.length,kpi_refs:refs.length,
-      clients,pays,mois:MN.map((m,i)=>mo[i+1]),refs,collections,client_top_products,factures:F.slice()
+      clients,pays,mois:MN.map((m,i)=>mo[i+1]),refs,collections,client_top_products,
+      factures: F.map(f=>{ const fx=fxOf(f); if(fx===1) return f; return Object.assign({},f,{ ca:(f.ca||0)*fx, cout:(f.cout||0), marge:(f.ca||0)*fx-(f.cout||0), lines:(f.lines||[]).map(l=>Object.assign({},l,{ca:(l.ca||0)*fx, prix:(l.prix||0)*fx, cout:(l.cout||0), marge:(l.ca||0)*fx-(l.cout||0)})) }); })
     };
   }
-  function facturesByYear(){ const v={'2025':[],'2026':[]}; docs.filter(isFacture).forEach(x=>{const y=String(x.date||'').split('/')[2]; if(v[y]) v[y].push(x);}); return v; }
+  const fyear = f => String(f.date||'').split('/')[2];
   function rebuild(){
-    const v=facturesByYear();
-    Object.assign(ALL['2025'], aggregate(BASE_FACT['2025'].concat(v['2025'])));
-    Object.assign(ALL['2026'], aggregate(BASE_FACT['2026'].concat(v['2026'])));
-    Object.assign(ALL['total'], aggregate(BASE_FACT['2025'].concat(BASE_FACT['2026'],v['2025'],v['2026'])));
+    const uf=docs.filter(isFacture);
+    const y25=BASE_FACT['2025'].concat(uf.filter(f=>fyear(f)==='2025')).filter(inFilter);
+    const y26=BASE_FACT['2026'].concat(uf.filter(f=>fyear(f)==='2026')).filter(inFilter);
+    Object.assign(ALL['2025'], aggregate(y25));
+    Object.assign(ALL['2026'], aggregate(y26));
+    Object.assign(ALL['total'], aggregate(y25.concat(y26)));
   }
   function persist(){
     try{ localStorage.setItem('ej_mod_ventes', JSON.stringify(docs)); }catch(e){}
     if(typeof cloudPush==='function') cloudPush('ventes', docs);
   }
-  window.__reloadVentes=function(){ docs=loadDocs(); rebuild(); buildList(); if(typeof renderAll==='function') renderAll(); };
+  window.__reloadVentes=function(){ docs=loadDocs(); SETT=loadSettings(); clientCompany=(typeof modLoad==='function')?modLoad('clientco',{}):{}; rebuild(); buildList(); if(typeof buildSettingsUI==='function') buildSettingsUI(); if(typeof renderAll==='function') renderAll(); };
 
   // ---------- Modèle de coût d'une ligne (+ référence libre) ----------
   const costOf = c => ALL.costs ? ALL.costs[c] : null;
@@ -2629,7 +2678,8 @@ document.querySelectorAll('main table').forEach(t=>{
   function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
   function iso2fr(s){ if(!s) return ''; const p=s.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : s; }
   function nextNum(type,year){
-    const pre = type==='facture' ? 'EJ' : 'BC';
+    const s = (SETT.societes && SETT.societes[draft.societe]) || {};
+    const pre = type==='facture' ? (s.prefFac||'EJ') : (s.prefCmd||'BC');
     let mx=0; const re=new RegExp('^'+pre+year+'(\\d+)$');
     BASE_FACT['2025'].concat(BASE_FACT['2026'],docs).forEach(f=>{ const m=String(f.numero||f.facture||'').match(re); if(m) mx=Math.max(mx,+m[1]); });
     return pre+year+String(mx+1).padStart(3,'0');
@@ -2640,8 +2690,13 @@ document.querySelectorAll('main table').forEach(t=>{
   const $=id=>document.getElementById(id);
   let docType='commande', lastAutoNum='';
   function newLine(){ const coll=Object.keys(ALL.costs||{})[0]||'VIP'; const rl=refList(coll); const l={collection:coll,reference:rl[0]?rl[0].name:'',mode:'carton',cartons:1,prix:0}; l.prix=defPrix(l); return computeLine(l); }
-  let draft={ lines:[ newLine() ] };
+  let draft={ societe:'BSD', lines:[ newLine() ] };
   function clientPaysMap(){ const m={}; (ALL.total.clients||[]).forEach(c=>{ if(!m[c.client]) m[c.client]=c.pays; }); return m; }
+  // Affichage dans la devise de la société du brouillon (coût toujours en €, converti pour l'affichage NB)
+  const curSym = () => draft.societe==='NB' ? '$' : '€';
+  const dm = n => Math.round(n||0).toLocaleString('fr-FR') + ' ' + curSym();
+  const coutDisp = l => draft.societe==='NB' ? (l.cout/(FX()||1)) : l.cout;
+  const margeDisp = l => (l.ca||0) - coutDisp(l);
 
   function collOptions(sel){ return Object.keys(ALL.costs||{}).map(k=>`<option value="${k}"${k===sel?' selected':''}>${k}</option>`).join(''); }
   function refOptions(coll,sel){ return refList(coll).map(r=>`<option value="${esc(r.name).replace(/"/g,'&quot;')}"${r.name===sel?' selected':''}>${esc(r.name)}</option>`).join('') + '<option value="__custom__">✏️ Autre référence…</option>'; }
@@ -2655,9 +2710,9 @@ document.querySelectorAll('main table').forEach(t=>{
         <td class="text-right" style="color:#9aa1b0">—</td>
         <td><input class="mod-in sa-n" type="number" step="0.01" data-f="remise" value="${Math.abs(l.prix||0)}" style="text-align:right" placeholder="montant"></td>
         <td class="text-right" style="color:#9aa1b0">—</td><td class="text-right" style="color:#9aa1b0">—</td>
-        <td class="text-right amount" data-c="ca">${fmtMoneyShort(l.ca)}</td>
+        <td class="text-right amount" data-c="ca">${dm(l.ca)}</td>
         <td class="text-right" style="color:#9aa1b0">—</td>
-        <td class="text-right amount-negative" data-c="marge">${fmtMoneyShort(l.marge)}</td>
+        <td class="text-right amount-negative" data-c="marge">${dm(l.ca)}</td>
         <td style="text-align:center"><span class="mod-del" data-i="${i}" style="cursor:pointer;color:#dc2626">🗑️</span></td>
       </tr>`;
     }
@@ -2674,25 +2729,28 @@ document.querySelectorAll('main table').forEach(t=>{
       <td><input class="mod-in sa-n" type="number" min="0" step="0.01" data-f="prix" value="${l.prix}" style="text-align:right"></td>
       <td class="text-right" data-c="btl">${fmtNum(l.btl)}</td>
       <td class="text-right" data-c="testers">${l.testers}</td>
-      <td class="text-right amount" data-c="ca">${fmtMoneyShort(l.ca)}</td>
-      <td class="text-right amount-negative" data-c="cout">${fmtMoneyShort(l.cout)}</td>
-      <td class="text-right amount-positive" data-c="marge">${fmtMoneyShort(l.marge)}</td>
+      <td class="text-right amount" data-c="ca">${dm(l.ca)}</td>
+      <td class="text-right amount-negative" data-c="cout">${dm(coutDisp(l))}</td>
+      <td class="text-right amount-positive" data-c="marge">${dm(margeDisp(l))}</td>
       <td style="text-align:center"><span class="mod-del" data-i="${i}" style="cursor:pointer;color:#dc2626">🗑️</span></td>
     </tr>`;
   }
   function renderLines(){ $('sa-lines').innerHTML = draft.lines.map((l,i)=>lineRow(l,i)).join(''); }
   function updateRowCells(tr,l){
     const set=(c,v)=>{ const td=tr.querySelector('[data-c="'+c+'"]'); if(td) td.textContent=v; };
-    if(l.collection==='REMISE'){ set('ca',fmtMoneyShort(l.ca)); set('marge',fmtMoneyShort(l.marge)); return; }
-    set('btl',fmtNum(l.btl)); set('testers',l.testers); set('ca',fmtMoneyShort(l.ca)); set('cout',fmtMoneyShort(l.cout)); set('marge',fmtMoneyShort(l.marge));
+    if(l.collection==='REMISE'){ set('ca',dm(l.ca)); set('marge',dm(l.ca)); return; }
+    set('btl',fmtNum(l.btl)); set('testers',l.testers); set('ca',dm(l.ca)); set('cout',dm(coutDisp(l))); set('marge',dm(margeDisp(l)));
   }
   function totals(){ return draft.lines.reduce((a,l)=>{a.ca+=l.ca||0;a.cout+=l.cout||0;a.marge+=l.marge||0;a.btl+=l.btl||0;return a;},{ca:0,cout:0,marge:0,btl:0}); }
   function renderTotals(){
-    const t=totals(); const pct=t.ca>0?(t.marge/t.ca*100):0;
+    const t=totals();
+    const coutT = draft.societe==='NB' ? (t.cout/(FX()||1)) : t.cout;
+    const margeT = t.ca - coutT;
+    const pct = t.ca>0 ? (margeT/t.ca*100) : 0;
     $('sa-totals').innerHTML=`
-      <div class="st"><div class="st-label">Chiffre d'affaires</div><div class="st-val gold">${fmtMoneyShort(t.ca)}</div></div>
-      <div class="st"><div class="st-label">Coût</div><div class="st-val">${fmtMoneyShort(t.cout)}</div></div>
-      <div class="st"><div class="st-label">Bénéfice</div><div class="st-val green">${fmtMoneyShort(t.marge)} <span style="font-size:.9rem;opacity:.8">(${pct.toFixed(1)}%)</span></div></div>
+      <div class="st"><div class="st-label">Chiffre d'affaires</div><div class="st-val gold">${dm(t.ca)}</div></div>
+      <div class="st"><div class="st-label">Coût</div><div class="st-val">${dm(coutT)}</div></div>
+      <div class="st"><div class="st-label">Bénéfice</div><div class="st-val green">${dm(margeT)} <span style="font-size:.9rem;opacity:.8">(${pct.toFixed(1)}%)</span></div></div>
       <div class="st"><div class="st-label">Bouteilles</div><div class="st-val">${fmtNum(t.btl)}</div></div>`;
   }
   function buildList(){
@@ -2701,13 +2759,15 @@ document.querySelectorAll('main table').forEach(t=>{
     const items=docs.map((d,i)=>({d,i})).sort((a,b)=>(b.d.createdAt||0)-(a.d.createdAt||0));
     const rows=items.map(({d,i})=>{
       const badge = isFacture(d)?'<span class="badge-doc badge-fact">FACTURE</span>':'<span class="badge-doc badge-cmd">COMMANDE</span>';
+      const co = companyOf(d)==='NB'?'🇦🇪 NB':'🇫🇷 BSD';
+      const sym = (d.devise==='USD')?'$':'€';
       const conv = isFacture(d)?'':`<span class="sa-act conv" data-act="convert" data-i="${i}">➡️ Facturer</span>`;
       const from = d.bcNumero?`<div style="font-size:.7rem;color:#9aa1b0">issu de ${esc(d.bcNumero)}</div>`:'';
-      return `<tr><td><strong>${esc(d.numero||d.facture||'')}</strong>${from}</td><td>${badge}</td><td>${esc(d.date)}</td><td>${esc(d.client)}</td><td>${esc(d.pays)}</td><td class="text-right amount">${fmtMoneyShort(d.ca)}</td><td style="text-align:right;white-space:nowrap"><span class="sa-act" data-act="print" data-i="${i}">🖨️ PDF</span>${conv}<span class="sa-act del" data-act="del" data-i="${i}">🗑️</span></td></tr>`;
+      return `<tr><td><strong>${esc(d.numero||d.facture||'')}</strong>${from}</td><td>${badge}</td><td>${co}</td><td>${esc(d.date)}</td><td>${esc(d.client)}</td><td>${esc(d.pays)}</td><td class="text-right amount">${Math.round(d.ca).toLocaleString('fr-FR')} ${sym}</td><td style="text-align:right;white-space:nowrap"><span class="sa-act" data-act="print" data-i="${i}">🖨️ PDF</span>${conv}<span class="sa-act del" data-act="del" data-i="${i}">🗑️</span></td></tr>`;
     }).join('');
     w.innerHTML=`<h3>📋 Mes documents (${docs.length})</h3>
       <div class="info-box" style="background:#eef6ff;border-left-color:#3b82f6;color:#1e3a5f">Les <strong>commandes</strong> n'entrent pas dans le CA. Clique <strong>« Facturer »</strong> pour transformer une commande en facture (elle compte alors dans le dashboard). <strong>« PDF »</strong> ouvre le document imprimable à envoyer au client.</div>
-      <div class="table-wrap"><table><thead><tr><th>N°</th><th>Type</th><th>Date</th><th>Client</th><th>Pays</th><th class="text-right">CA</th><th class="text-right">Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      <div class="table-wrap"><table><thead><tr><th>N°</th><th>Type</th><th>Société</th><th>Date</th><th>Client</th><th>Pays</th><th class="text-right">Montant</th><th class="text-right">Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
   function populateDatalists(){
     const cmap=clientPaysMap();
@@ -2718,7 +2778,10 @@ document.querySelectorAll('main table').forEach(t=>{
 
   // ---------- Document imprimable (PDF) ----------
   function printDoc(d){
-    const SOC = (window.EJ_CONFIG&&window.EJ_CONFIG.societe) || {};
+    const code = d.societe || companyOf(d) || 'BSD';
+    const SOC = (SETT.societes && SETT.societes[code]) || (SETT.societes && SETT.societes.BSD) || {};
+    const sym = (d.devise==='USD') ? '$' : '€';
+    const money = n => (Math.round(n*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ' + sym;
     const isFac = isFacture(d);
     const title = isFac ? 'FACTURE' : 'BON DE COMMANDE';
     const num = d.numero||d.facture||'';
@@ -2726,38 +2789,43 @@ document.querySelectorAll('main table').forEach(t=>{
       SOC.nom?('<strong>'+esc(SOC.nom)+'</strong>'):'',
       SOC.adresse?esc(SOC.adresse):'',
       SOC.cp_ville?esc(SOC.cp_ville):'',
-      [SOC.siret?('SIRET '+esc(SOC.siret)):'', SOC.tva?('TVA '+esc(SOC.tva)):''].filter(Boolean).join(' · '),
+      SOC.pays?esc(SOC.pays):'',
+      [SOC.ident?esc(SOC.ident):'', SOC.tva?('TVA '+esc(SOC.tva)):''].filter(Boolean).join(' · '),
       SOC.email?esc(SOC.email):'', SOC.tel?esc(SOC.tel):''
     ].filter(Boolean).join('<br>');
-    const legal=[SOC.nom, SOC.forme, (SOC.adresse&&SOC.cp_ville)?(SOC.adresse+', '+SOC.cp_ville):'', SOC.siret?('SIRET '+SOC.siret):'', SOC.rcs, SOC.tva?('TVA '+SOC.tva):'', SOC.ape?('APE '+SOC.ape):''].filter(Boolean).map(esc).join(' — ');
+    const legal=[SOC.nom, SOC.forme, (SOC.adresse&&SOC.cp_ville)?(SOC.adresse+', '+SOC.cp_ville):(SOC.cp_ville||SOC.adresse), SOC.pays, SOC.ident, SOC.rcs, SOC.tva?('TVA '+SOC.tva):'', SOC.ape?('APE '+SOC.ape):''].filter(Boolean).map(esc).join(' — ');
     const linesHtml=(d.lines||[]).map(l=>{
-      if(l.collection==='REMISE') return `<tr><td colspan="4">${esc(l.reference||'Remise')}</td><td class="r">${fmtMoney(l.ca)}</td></tr>`;
+      if(l.collection==='REMISE') return `<tr><td colspan="4">${esc(l.reference||'Remise')}</td><td class="r">${money(l.ca)}</td></tr>`;
       const qty = l.mode==='unite' ? (fmtNum(l.btl)+' btl') : (l.cartons+' cart. ('+fmtNum(l.btl)+' btl)');
-      return `<tr><td>${esc(l.collection)}</td><td>${esc(l.reference)}</td><td class="r">${qty}</td><td class="r">${fmtMoney(l.prix)}</td><td class="r">${fmtMoney(l.ca)}</td></tr>`;
+      return `<tr><td>${esc(l.collection)}</td><td>${esc(l.reference)}</td><td class="r">${qty}</td><td class="r">${money(l.prix)}</td><td class="r">${money(l.ca)}</td></tr>`;
     }).join('');
     const regime = d.tvaRegime || 'export';
     const rate = regime==='fr20' ? 20 : 0;
     const tvaMention = regime==='export' ? 'Exonération de TVA — art. 262 I du CGI (exportation hors Union européenne).'
       : regime==='intracom' ? 'Exonération de TVA — art. 262 ter I du CGI (livraison intracommunautaire) — autoliquidation par le preneur.'
+      : regime==='none' ? 'TVA non applicable.'
       : '';
     let totRows;
     if(rate>0){ const ht=d.ca, tva=ht*rate/100, ttc=ht+tva;
       totRows = `<tr><td>Total bouteilles</td><td class="r">${fmtNum(d.btl)}</td></tr>
-        <tr><td>Total HT</td><td class="r">${fmtMoney(ht)}</td></tr>
-        <tr><td>TVA ${rate} %</td><td class="r">${fmtMoney(tva)}</td></tr>
-        <tr class="pd-grand"><td>Total TTC</td><td class="r">${fmtMoney(ttc)}</td></tr>`;
+        <tr><td>Total HT</td><td class="r">${money(ht)}</td></tr>
+        <tr><td>TVA ${rate} %</td><td class="r">${money(tva)}</td></tr>
+        <tr class="pd-grand"><td>Total TTC</td><td class="r">${money(ttc)}</td></tr>`;
     } else {
       totRows = `<tr><td>Total bouteilles</td><td class="r">${fmtNum(d.btl)}</td></tr>
-        <tr class="pd-grand"><td>Total à payer</td><td class="r">${fmtMoney(d.ca)}</td></tr>`;
+        <tr class="pd-grand"><td>Total à payer</td><td class="r">${money(d.ca)}</td></tr>`;
     }
+    const brandName = code==='NB' ? 'NB Evolution' : 'Emmanuelle Jane';
+    const brandSub  = code==='NB' ? 'ÉMIRATS' : 'PARIS';
+    const cur = d.devise==='USD' ? 'dollars (USD)' : 'euros (EUR)';
     const baseNote = isFac
-      ? 'Montants exprimés en euros. Conditions de règlement : à réception, sauf accord particulier.'
+      ? 'Montants exprimés en '+cur+'. Conditions de règlement : à réception, sauf accord particulier.'
       : 'Bon de commande valable 30 jours à compter de la date ci-dessus. Livraison et règlement selon conditions convenues.';
     const noteText = (tvaMention ? '<strong>'+tvaMention+'</strong> ' : '') + baseNote;
     const note = isFac
       ? `<div class="pd-note">${noteText}</div>`
       : `<div class="pd-note">${noteText}</div>
-         <div class="pd-sign"><div>Cachet &amp; signature du client<br><span style="color:#9aa1b0">(bon pour accord)</span></div><div>Emmanuelle Jane Paris</div></div>`;
+         <div class="pd-sign"><div>Cachet &amp; signature du client<br><span style="color:#9aa1b0">(bon pour accord)</span></div><div>${esc(SOC.nom||brandName)}</div></div>`;
     const p=$('ej-print');
     p.innerHTML=`<style>
       #ej-print{font-family:Georgia,'Times New Roman',serif;color:#1f2a44;background:#fff;padding:46px 52px;font-size:13px;line-height:1.5}
@@ -2786,7 +2854,7 @@ document.querySelectorAll('main table').forEach(t=>{
       #ej-print .pd-foot{margin-top:42px;border-top:1px solid #e7e1d4;padding-top:12px;text-align:center;font-size:10px;color:#9aa1b0}
     </style>
     <div class="pd-top">
-      <div><div class="pd-brand">Emmanuelle Jane</div><div class="pd-sub">PARIS</div>${socLines?`<div class="pd-soc">${socLines}</div>`:''}</div>
+      <div><div class="pd-brand">${esc(brandName)}</div><div class="pd-sub">${esc(brandSub)}</div>${socLines?`<div class="pd-soc">${socLines}</div>`:''}</div>
       <div class="pd-doc"><h1>${title}</h1><div class="pd-num">N° ${esc(num)}</div><div class="pd-d">Date : ${esc(d.date)}</div></div>
     </div>
     <div class="pd-client"><div class="pd-lab">${isFac?'Facturé à':'Client'}</div><div class="pd-cli">${esc(d.client)}</div><div>${esc(d.pays)}</div></div>
@@ -2800,9 +2868,12 @@ document.querySelectorAll('main table').forEach(t=>{
   function convertToFacture(i){
     const d=docs[i]; if(!d || isFacture(d)) return;
     const yr=String(d.date||'').split('/')[2]; const year=(yr==='2025'||yr==='2026')?yr:String(new Date().getFullYear());
+    const co=companyOf(d); const s=(SETT.societes&&SETT.societes[co])||{}; const pre=s.prefFac||'EJ';
+    let mx=0; const re=new RegExp('^'+pre+year+'(\\d+)$');
+    BASE_FACT['2025'].concat(BASE_FACT['2026'],docs).forEach(f=>{ const m=String(f.numero||f.facture||'').match(re); if(m) mx=Math.max(mx,+m[1]); });
     d.bcNumero=d.numero;
     d.type='facture';
-    d.numero=nextNum('facture',year);
+    d.numero=pre+year+String(mx+1).padStart(3,'0');
     d.facture=d.numero;
     d.createdAt=Date.now();
     persist(); rebuild(); if(typeof renderAll==='function') renderAll(); buildList();
@@ -2852,6 +2923,19 @@ document.querySelectorAll('main table').forEach(t=>{
   }
   $('sa-doctype').addEventListener('click', e=>{ const b=e.target.closest('.doc-type-btn'); if(!b) return; docType=b.dataset.type; applyDocType(); });
 
+  function applyCompany(){
+    sec.querySelectorAll('#sa-company .doc-type-btn').forEach(x=>x.classList.toggle('active', x.dataset.co===draft.societe));
+    const tva=$('sa-tva');
+    if(tva){ if(draft.societe==='NB'){ tva.value='none'; tva.disabled=true; } else { tva.disabled=false; if(tva.value==='none') tva.value=(SETT.societes.BSD&&SETT.societes.BSD.tvaDefault)||'export'; } }
+    applyDocType();      // recalcule le numéro avec le préfixe de la société
+    renderLines(); renderTotals();
+  }
+  $('sa-company').addEventListener('click', e=>{ const b=e.target.closest('.doc-type-btn'); if(!b) return; draft.societe=b.dataset.co; applyCompany(); });
+
+  // Filtre société (topbar)
+  const coSel=$('ejCoFilter');
+  if(coSel) coSel.addEventListener('change', ()=>{ companyFilter=coSel.value; rebuild(); if(typeof renderAll==='function') renderAll(); });
+
   $('sa-date').addEventListener('change', ()=>{
     const y=($('sa-date').value||'').split('-')[0];
     if(y && (!$('sa-fact').value.trim() || $('sa-fact').value===lastAutoNum)){ lastAutoNum=nextNum(docType,y); $('sa-fact').value=lastAutoNum; }
@@ -2862,7 +2946,7 @@ document.querySelectorAll('main table').forEach(t=>{
   });
 
   function showSectionMsg(txt,ok){ const m=$('sa-msg'); m.textContent=txt; m.style.color=ok?'#0f9d6f':'#dc2626'; if(txt) setTimeout(()=>{ if(m.textContent===txt) m.textContent=''; }, 6000); }
-  function resetDraft(){ draft={lines:[newLine()]}; $('sa-client').value=''; $('sa-pays').value=''; if($('sa-tva')) $('sa-tva').value='export'; $('sa-date').value=todayISO(); lastAutoNum=nextNum(docType,$('sa-date').value.split('-')[0]); $('sa-fact').value=lastAutoNum; renderLines(); renderTotals(); }
+  function resetDraft(){ const co=draft.societe||'BSD'; draft={societe:co,lines:[newLine()]}; $('sa-client').value=''; $('sa-pays').value=''; $('sa-date').value=todayISO(); applyCompany(); }
 
   $('sa-reset').addEventListener('click', ()=>{ resetDraft(); showSectionMsg('',true); });
   $('sa-save').addEventListener('click', ()=>{
@@ -2877,7 +2961,7 @@ document.querySelectorAll('main table').forEach(t=>{
     if(year!=='2025' && year!=='2026') return showSectionMsg('La date doit être en 2025 ou 2026.');
     if(BASE_FACT['2025'].concat(BASE_FACT['2026'],docs).some(f=>(f.numero||f.facture)===numero)) return showSectionMsg('Ce numéro existe déjà.');
     const t=lines.reduce((a,l)=>{a.btl+=l.btl||0;a.ca+=l.ca||0;a.cout+=l.cout||0;a.marge+=l.marge||0;return a;},{btl:0,ca:0,cout:0,marge:0});
-    const doc={ type:docType, numero, date:iso2fr(iso), client, pays, tvaRegime:($('sa-tva')?$('sa-tva').value:'export'), btl:t.btl, ca:t.ca, cout:t.cout, marge:t.marge, lines, createdAt:Date.now(), _user:true };
+    const doc={ type:docType, societe:draft.societe, devise:(draft.societe==='NB'?'USD':'EUR'), numero, date:iso2fr(iso), client, pays, tvaRegime:($('sa-tva')?$('sa-tva').value:'export'), btl:t.btl, ca:t.ca, cout:t.cout, marge:t.marge, lines, createdAt:Date.now(), _user:true };
     if(docType==='facture') doc.facture=numero;
     docs.push(doc); persist();
     if(docType==='facture'){ rebuild(); if(typeof renderAll==='function') renderAll(); }
@@ -2898,10 +2982,65 @@ document.querySelectorAll('main table').forEach(t=>{
     }
   });
 
+  // ---------- Réglages : sociétés, devise, répartition clients ----------
+  function allClients(){
+    const set={};
+    BASE_FACT['2025'].concat(BASE_FACT['2026']).forEach(f=>{ if(f.client) set[f.client]=1; });
+    docs.forEach(d=>{ if(d.client) set[d.client]=1; });
+    return Object.keys(set).sort((a,b)=>a.localeCompare(b,'fr'));
+  }
+  function socField(code,k,label,ph){
+    const v=esc((SETT.societes[code]&&SETT.societes[code][k])||'').replace(/"/g,'&quot;');
+    return `<label style="display:flex;flex-direction:column;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#9aa1b0;font-weight:700;gap:4px">${label}<input class="set-soc" data-soc="${code}" data-k="${k}" value="${v}" placeholder="${ph||''}" style="padding:9px 12px;border:1px solid rgba(31,42,68,.14);border-radius:10px;font-size:.9rem;color:#1f2a44;font-weight:600;text-transform:none;letter-spacing:0"></label>`;
+  }
+  function socCard(code){
+    const s=SETT.societes[code]||{}; const flag=code==='NB'?'🇦🇪':'🇫🇷';
+    return `<div style="background:#fff;border:1px solid rgba(31,42,68,.08);border-radius:16px;padding:18px 20px;box-shadow:0 6px 18px rgba(31,42,68,.05)">
+      <h3 style="margin-bottom:2px">${flag} ${esc(s.label||code)}</h3>
+      <div style="font-size:.8rem;color:#9aa1b0;margin-bottom:14px">Devise ${code==='NB'?'$ (USD) · sans TVA':'€ (EUR) · TVA française'}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        ${socField(code,'nom','Dénomination')}${socField(code,'forme','Forme / capital')}
+        ${socField(code,'adresse','Adresse')}${socField(code,'cp_ville','Code postal & ville')}
+        ${socField(code,'pays','Pays')}${socField(code,'ident',code==='NB'?'N° licence / registration':'SIRET')}
+        ${socField(code,'tva',code==='NB'?'TRN / TVA (option.)':'N° TVA')}${socField(code,'rcs','RCS')}
+        ${socField(code,'ape','APE / activité')}${socField(code,'email','Email')}
+        ${socField(code,'tel','Téléphone')}
+      </div></div>`;
+  }
+  function buildSettingsUI(){
+    const el=$('set-content'); if(!el) return;
+    const rows=allClients().map(c=>{ const cur=clientCompany[c]||'BSD';
+      return `<tr><td>${esc(c)}</td><td style="text-align:right"><select class="set-cc" data-client="${esc(c).replace(/"/g,'&quot;')}"><option value="BSD"${cur==='BSD'?' selected':''}>🇫🇷 BSD</option><option value="NB"${cur==='NB'?' selected':''}>🇦🇪 NB Evolution</option></select></td></tr>`;
+    }).join('');
+    el.innerHTML=`
+      <div style="background:#fff;border:1px solid rgba(31,42,68,.08);border-radius:16px;padding:16px 20px;margin-bottom:18px;box-shadow:0 6px 18px rgba(31,42,68,.05);display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div><div style="font-weight:800;color:#1f2a44">💱 Taux de change</div><div style="font-size:.8rem;color:#9aa1b0">Conversion des ventes NB ($) vers € dans le tableau de bord</div></div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:700;color:#1f2a44">1 $ = <input id="set-fx" type="number" step="0.001" min="0" value="${SETT.fx}" style="width:90px;padding:9px 12px;border:1px solid rgba(31,42,68,.14);border-radius:10px;text-align:right;font-weight:700"> €</div>
+      </div>
+      <div class="set-soc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px">${socCard('BSD')}${socCard('NB')}</div>
+      <h3 style="margin-bottom:8px">👥 Répartition des clients (${allClients().length})</h3>
+      <div class="info-box" style="background:#eef6ff;border-left-color:#3b82f6;color:#1e3a5f">Attribue chaque client à une société : toutes ses factures (passées et futures) seront comptées pour elle. Par défaut : BSD. Modifie ici, le tableau de bord se met à jour aussitôt.</div>
+      <div class="table-wrap"><table><thead><tr><th>Client</th><th style="text-align:right">Société</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  const setEl=$('set-content');
+  if(setEl){
+    setEl.addEventListener('input', e=>{
+      const fx=e.target.closest('#set-fx');
+      if(fx){ SETT.fx=+fx.value||0; saveSettings(); rebuild(); if(typeof renderAll==='function') renderAll(); return; }
+      const sf=e.target.closest('.set-soc');
+      if(sf){ (SETT.societes[sf.dataset.soc]=SETT.societes[sf.dataset.soc]||{})[sf.dataset.k]=sf.value; saveSettings(); }
+    });
+    setEl.addEventListener('change', e=>{
+      const cc=e.target.closest('.set-cc');
+      if(cc){ clientCompany[cc.dataset.client]=cc.value; saveClientCompany(); rebuild(); if(typeof renderAll==='function') renderAll(); }
+    });
+  }
+
   // ---------- Démarrage ----------
   $('sa-date').value=todayISO();
-  applyDocType();
-  renderLines(); renderTotals(); populateDatalists(); buildList();
+  applyCompany();
+  populateDatalists(); buildList(); buildSettingsUI();
+  if(coSel) coSel.value=companyFilter;
   rebuild();
   if(docs.some(isFacture) && typeof renderAll==='function') renderAll();
 })();
