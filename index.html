@@ -168,6 +168,23 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 .saisie-totals .st-val{font-size:1.5rem;font-weight:800;color:#fff;line-height:1.1}
 .saisie-totals .st-val.gold{color:#e6c200}
 .saisie-totals .st-val.green{color:#34d399}
+.doc-type{display:inline-flex;background:#eee7d8;border-radius:999px;padding:5px;gap:4px;margin-bottom:18px}
+.doc-type-btn{border:none;background:transparent;padding:10px 22px;border-radius:999px;cursor:pointer;font-weight:700;font-size:.9rem;color:#7a8190;transition:all .18s}
+.doc-type-btn.active{background:#1f2a44;color:#e6c200;box-shadow:0 4px 14px rgba(31,42,68,.18)}
+.badge-doc{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:800;letter-spacing:.02em}
+.badge-cmd{background:#fef3c7;color:#92660e}
+.badge-fact{background:#d1fae5;color:#0f7a52}
+.sa-act{cursor:pointer;font-weight:700;font-size:.82rem;padding:5px 10px;border-radius:8px;border:1px solid rgba(31,42,68,.14);background:#fff;color:#3d4759;margin:0 2px;white-space:nowrap}
+.sa-act:hover{border-color:#b8860b;color:#b8860b}
+.sa-act.conv{background:#1f2a44;color:#e6c200;border-color:#1f2a44}
+.sa-act.del{color:#dc2626;border-color:rgba(220,38,38,.25)}
+/* Document imprimable (bon de commande / facture) */
+#ej-print{display:none}
+@media print{
+  body{background:#fff!important}
+  .sidebar,.sidebar-backdrop,.main,.modal-overlay,#ejAuth,.year-picker{display:none!important}
+  #ej-print{display:block!important;position:absolute;inset:0;margin:0}
+}
 .stat-alert{color:#dc2626;font-weight:700}
 .stat-ok{color:#0f9d6f;font-weight:600}
 .stat-warn{color:#d97706;font-weight:700}
@@ -273,17 +290,22 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 </div>
 
 <div id="saisie" class="section">
-<h2>➕ Saisir une vente</h2>
-<div class="info-box">💡 Crée une facture comme dans ta liste : un client, une date, puis une ou plusieurs lignes produit. Les bouteilles, coûts et marges se calculent automatiquement. À l'enregistrement, <strong>tout le tableau de bord se met à jour</strong> (CA, podium, graphiques, pays…).</div>
+<h2>🧾 Commandes &amp; Factures</h2>
+<div class="info-box">💡 Crée un <strong>bon de commande</strong> pour ton client, imprime-le en PDF, puis transforme-le en <strong>facture</strong> en un clic (ou crée directement une facture). <strong>Seules les factures</strong> alimentent le tableau de bord — une commande reste un engagement tant qu'elle n'est pas facturée.</div>
+
+<div class="doc-type" id="sa-doctype">
+  <button type="button" class="doc-type-btn active" data-type="commande">📝 Bon de commande</button>
+  <button type="button" class="doc-type-btn" data-type="facture">🧾 Facture directe</button>
+</div>
 
 <div class="saisie-head">
-  <label>N° facture<input type="text" id="sa-fact" autocomplete="off"></label>
+  <label id="sa-numlabel">N° bon de commande<input type="text" id="sa-fact" autocomplete="off"></label>
   <label>Date<input type="date" id="sa-date"></label>
   <label>Client<input type="text" id="sa-client" list="sa-clientlist" autocomplete="off" placeholder="Nom du client"><datalist id="sa-clientlist"></datalist></label>
   <label>Pays<input type="text" id="sa-pays" list="sa-payslist" autocomplete="off" placeholder="Pays"><datalist id="sa-payslist"></datalist></label>
 </div>
 
-<h3 style="margin:18px 0 8px">Lignes de la facture</h3>
+<h3 style="margin:18px 0 8px">Lignes</h3>
 <div class="table-wrap">
 <table id="sa-table">
 <thead><tr>
@@ -300,7 +322,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 <div class="saisie-totals" id="sa-totals"></div>
 
 <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px">
-  <button class="mod-add" id="sa-save" style="padding:13px 28px;font-size:.95rem">💾 Enregistrer la vente</button>
+  <button class="mod-add" id="sa-save" style="padding:13px 28px;font-size:.95rem">💾 <span id="sa-savelabel">Enregistrer le bon de commande</span></button>
   <button class="mod-reset" id="sa-reset" style="background:#fff;color:#5b6577;border:1px solid rgba(31,42,68,.18)">Réinitialiser</button>
   <span id="sa-msg" style="font-weight:700;font-size:.9rem"></span>
 </div>
@@ -2296,7 +2318,7 @@ Object.keys(MODULES).forEach(renderModule);
 /* ===================== NAVIGATION À DEUX NIVEAUX ===================== */
 const NAV_GROUPS = [
   {id:'g_pilotage', label:'📊 Pilotage', tabs:[['overview',"Vue d'ensemble"],['objectifs','Objectifs & Projection'],['insights','Remarques intelligentes'],['compare','Comparatif 2025/2026']]},
-  {id:'g_ventes', label:'💶 Ventes', tabs:[['saisie','➕ Saisir une vente'],['clients','Clients'],['pays','Pays'],['mois','Mois'],['refs','Références'],['factures','Factures'],['evolution','Évolution clients']]},
+  {id:'g_ventes', label:'💶 Ventes', tabs:[['saisie','🧾 Commandes & Factures'],['clients','Clients'],['pays','Pays'],['mois','Mois'],['refs','Références'],['factures','Factures'],['evolution','Évolution clients']]},
   {id:'g_finance', label:'🏷️ Catalogue & Finance', tabs:[['catalogue','Catalogue & Tarifs'],['costs','Prix de revient'],['treso','Trésorerie']]},
   {id:'g_ops', label:'📦 Opérations', tabs:[['stock','Stock produits finis'],['achats','Matières & Achats'],['production','Production'],['simulation','Simulation commande'],['anticipation','Anticipation']]},
   {id:'g_reseau', label:'🏬 Réseau B2B', tabs:[['b2b','Points de vente']]}
@@ -2493,22 +2515,26 @@ document.querySelectorAll('main table').forEach(t=>{
 </script>
 
 <script>
-/* ===================== SAISIE DES VENTES =====================
-   Crée des factures multi-lignes, recalcule TOUT le dashboard de façon
-   additive (les données d'origine sont préservées, les ventes saisies
-   s'ajoutent par-dessus) et sauvegarde en local + cloud (si connecté). */
+/* ===================== COMMANDES & FACTURES =====================
+   Bons de commande + factures multi-lignes (avec référence libre).
+   Seules les FACTURES alimentent le dashboard (recalcul additif, données
+   d'origine préservées). Documents imprimables (PDF via le navigateur).
+   Persistance localStorage + cloud (clé 'ventes', compatible). */
 (function(){
   if(typeof ALL==='undefined') return;
   const MN=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
   const clone = o => JSON.parse(JSON.stringify(o));
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // --- Base figée : on capture les factures d'origine une seule fois ---
+  // Factures d'origine figées (capturées une seule fois)
   const BASE_FACT = { '2025': clone(ALL['2025'].factures||[]), '2026': clone(ALL['2026'].factures||[]) };
 
-  // --- Ventes saisies par l'utilisateur (persistées) ---
-  let ventes = (typeof modLoad==='function') ? modLoad('ventes', []) : [];
+  // Documents = commandes + factures (persistés sous 'ventes' pour compat)
+  function loadDocs(){ let d=(typeof modLoad==='function')?modLoad('ventes',[]):[]; if(!Array.isArray(d)) d=[]; return d.map(x=>{ if(!x.type) x.type='facture'; if(!x.numero) x.numero=x.facture||''; return x; }); }
+  let docs = loadDocs();
+  const isFacture = d => d.type==='facture';
 
-  // ---------- Recalcul des agrégats à partir des factures ----------
+  // ---------- Recalcul des agrégats (factures uniquement) ----------
   function aggregate(F){
     let ca=0,cout=0,marge=0,btl=0,testers=0;
     const cl={},py={},rf={},co={},ctp={};
@@ -2524,7 +2550,7 @@ document.querySelectorAll('main table').forEach(t=>{
       p._s[f.client]=1; p.factures++; p.btl+=f.btl||0; p.ca+=f.ca||0; p.cout+=f.cout||0; p.marge+=f.marge||0;
       (f.lines||[]).forEach(l=>{
         testers+=l.testers||0; c.testers+=l.testers||0;
-        if(l.collection==='REMISE') return; // remises exclues du détail collections/références
+        if(l.collection==='REMISE') return;
         const rk=l.collection+'|'+l.reference;
         const r=rf[rk]||(rf[rk]={collection:l.collection,reference:l.reference,cartons:0,btl:0,testers:0,ca:0,cout:0,marge:0,cost_known:true});
         r.cartons+=l.cartons||0; r.btl+=l.btl||0; r.testers+=l.testers||0; r.ca+=l.ca||0; r.cout+=l.cout||0; r.marge+=l.marge||0;
@@ -2547,30 +2573,30 @@ document.querySelectorAll('main table').forEach(t=>{
       clients,pays,mois:MN.map((m,i)=>mo[i+1]),refs,collections,client_top_products,factures:F.slice()
     };
   }
-  function ventesByYear(){ const v={'2025':[],'2026':[]}; ventes.forEach(x=>{const y=String(x.date||'').split('/')[2]; if(v[y]) v[y].push(x);}); return v; }
+  function facturesByYear(){ const v={'2025':[],'2026':[]}; docs.filter(isFacture).forEach(x=>{const y=String(x.date||'').split('/')[2]; if(v[y]) v[y].push(x);}); return v; }
   function rebuild(){
-    const v=ventesByYear();
+    const v=facturesByYear();
     Object.assign(ALL['2025'], aggregate(BASE_FACT['2025'].concat(v['2025'])));
     Object.assign(ALL['2026'], aggregate(BASE_FACT['2026'].concat(v['2026'])));
     Object.assign(ALL['total'], aggregate(BASE_FACT['2025'].concat(BASE_FACT['2026'],v['2025'],v['2026'])));
   }
   function persist(){
-    try{ localStorage.setItem('ej_mod_ventes', JSON.stringify(ventes)); }catch(e){}
-    if(typeof cloudPush==='function') cloudPush('ventes', ventes);
+    try{ localStorage.setItem('ej_mod_ventes', JSON.stringify(docs)); }catch(e){}
+    if(typeof cloudPush==='function') cloudPush('ventes', docs);
   }
-  // Réintègre les ventes après une synchro cloud (login)
-  window.__reloadVentes=function(){ ventes=(typeof modLoad==='function')?modLoad('ventes',[]):[]; rebuild(); buildList(); if(typeof renderAll==='function') renderAll(); };
+  window.__reloadVentes=function(){ docs=loadDocs(); rebuild(); buildList(); if(typeof renderAll==='function') renderAll(); };
 
-  // ---------- Modèle de coût d'une ligne ----------
+  // ---------- Modèle de coût d'une ligne (+ référence libre) ----------
   const costOf = c => ALL.costs ? ALL.costs[c] : null;
   const refList = c => { const C=costOf(c); return (C&&C.refs)?C.refs:[]; };
+  function avgCpb(coll){ const rl=refList(coll); if(rl.length) return Math.round(rl.reduce((a,r)=>a+(r.cost_per_bottle||0),0)/rl.length*100)/100; const C=costOf(coll); return C?(C.total_fixed||0):0; }
   function defPrix(l){ const C=costOf(l.collection); if(!C) return 0; return l.mode==='unite' ? (C.standard_price_bottle||0) : (C.standard_price_carton||0); }
   function computeLine(l){
     if(l.collection==='REMISE'){ l.mode='remise'; l.cartons=0; l.btl=0; l.testers=0; l.ca=-Math.abs(+l.prix||0); l.cout=0; l.marge=l.ca; return l; }
     const C=costOf(l.collection); const cs=C?(C.carton_size||10):10;
-    const ref=(C&&C.refs||[]).find(r=>r.name===l.reference);
-    const cpb=ref?ref.cost_per_bottle:(C?(C.total_fixed||0):0);
-    const cpcs=ref?ref.cost_per_carton_sold:(cpb*(cs+1));
+    let cpb,cpcs;
+    if(l.custom){ cpb=+l.customCost||0; cpcs=cpb*(cs+1); }
+    else { const ref=(C&&C.refs||[]).find(r=>r.name===l.reference); cpb=ref?ref.cost_per_bottle:(C?(C.total_fixed||0):0); cpcs=ref?ref.cost_per_carton_sold:(cpb*(cs+1)); }
     if(l.mode==='unite'){
       l.cartons=0; l.btl=+l.btl||0; l.testers=+l.testers||0;
       l.ca=l.btl*(+l.prix||0); l.cout=(l.btl+l.testers)*cpb; l.marge=l.ca-l.cout;
@@ -2581,33 +2607,32 @@ document.querySelectorAll('main table').forEach(t=>{
     return l;
   }
 
-  // ---------- Helpers date / n° facture ----------
+  // ---------- Dates / numéros ----------
   function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
   function iso2fr(s){ if(!s) return ''; const p=s.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : s; }
-  function nextFactNo(year){
-    let mx=0; const re=new RegExp('^EJ'+year+'(\\d+)$');
-    BASE_FACT['2025'].concat(BASE_FACT['2026'],ventes).forEach(f=>{ const m=String(f.facture||'').match(re); if(m) mx=Math.max(mx,+m[1]); });
-    return 'EJ'+year+String(mx+1).padStart(3,'0');
+  function nextNum(type,year){
+    const pre = type==='facture' ? 'EJ' : 'BC';
+    let mx=0; const re=new RegExp('^'+pre+year+'(\\d+)$');
+    BASE_FACT['2025'].concat(BASE_FACT['2026'],docs).forEach(f=>{ const m=String(f.numero||f.facture||'').match(re); if(m) mx=Math.max(mx,+m[1]); });
+    return pre+year+String(mx+1).padStart(3,'0');
   }
 
   // ---------- État du brouillon ----------
   const sec=document.getElementById('saisie'); if(!sec) return;
   const $=id=>document.getElementById(id);
-  let lastAutoFact='';
+  let docType='commande', lastAutoNum='';
   function newLine(){ const coll=Object.keys(ALL.costs||{})[0]||'VIP'; const rl=refList(coll); const l={collection:coll,reference:rl[0]?rl[0].name:'',mode:'carton',cartons:1,prix:0}; l.prix=defPrix(l); return computeLine(l); }
   let draft={ lines:[ newLine() ] };
-
-  // Carte nom client -> pays (pour auto-remplissage)
   function clientPaysMap(){ const m={}; (ALL.total.clients||[]).forEach(c=>{ if(!m[c.client]) m[c.client]=c.pays; }); return m; }
 
   function collOptions(sel){ return Object.keys(ALL.costs||{}).map(k=>`<option value="${k}"${k===sel?' selected':''}>${k}</option>`).join(''); }
-  function refOptions(coll,sel){ return refList(coll).map(r=>`<option value="${r.name.replace(/"/g,'&quot;')}"${r.name===sel?' selected':''}>${r.name}</option>`).join(''); }
+  function refOptions(coll,sel){ return refList(coll).map(r=>`<option value="${esc(r.name).replace(/"/g,'&quot;')}"${r.name===sel?' selected':''}>${esc(r.name)}</option>`).join('') + '<option value="__custom__">✏️ Autre référence…</option>'; }
 
   function lineRow(l,i){
     if(l.collection==='REMISE'){
       return `<tr data-i="${i}">
         <td><span class="badge badge-remise">REMISE</span></td>
-        <td><input class="mod-in sa-f" data-f="reference" value="${String(l.reference||'').replace(/"/g,'&quot;')}" style="width:100%"></td>
+        <td><input class="mod-in sa-f" data-f="reference" value="${esc(l.reference).replace(/"/g,'&quot;')}" style="width:100%"></td>
         <td style="text-align:center;color:#9aa1b0">—</td>
         <td class="text-right" style="color:#9aa1b0">—</td>
         <td><input class="mod-in sa-n" type="number" step="0.01" data-f="remise" value="${Math.abs(l.prix||0)}" style="text-align:right" placeholder="montant"></td>
@@ -2618,10 +2643,14 @@ document.querySelectorAll('main table').forEach(t=>{
         <td style="text-align:center"><span class="mod-del" data-i="${i}" style="cursor:pointer;color:#dc2626">🗑️</span></td>
       </tr>`;
     }
+    const refCell = l.custom
+      ? `<input class="mod-in sa-f" data-f="customname" value="${esc(l.reference).replace(/"/g,'&quot;')}" placeholder="Nom de la référence" style="width:100%;margin-bottom:4px">
+         <div style="display:flex;align-items:center;gap:4px"><input class="mod-in sa-n" type="number" step="0.01" min="0" data-f="customcost" value="${l.customCost||0}" title="Coût par bouteille (€)" style="width:74px;text-align:right"><span style="font-size:.7rem;color:#9aa1b0">€/btl</span><span class="sa-uncustom" data-i="${i}" title="Choisir dans la liste" style="cursor:pointer;color:#b8860b;font-weight:700">↩</span></div>`
+      : `<select class="mod-in sa-f" data-f="reference">${refOptions(l.collection,l.reference)}</select>`;
     const qty = l.mode==='unite' ? l.btl : l.cartons;
     return `<tr data-i="${i}">
       <td><select class="mod-in sa-f" data-f="collection">${collOptions(l.collection)}</select></td>
-      <td><select class="mod-in sa-f" data-f="reference">${refOptions(l.collection,l.reference)}</select></td>
+      <td style="min-width:160px">${refCell}</td>
       <td><select class="mod-in sa-f" data-f="mode"><option value="carton"${l.mode!=='unite'?' selected':''}>Carton</option><option value="unite"${l.mode==='unite'?' selected':''}>Unité</option></select></td>
       <td><input class="mod-in sa-n" type="number" min="0" data-f="qty" value="${qty}" style="text-align:right"></td>
       <td><input class="mod-in sa-n" type="number" min="0" step="0.01" data-f="prix" value="${l.prix}" style="text-align:right"></td>
@@ -2650,17 +2679,93 @@ document.querySelectorAll('main table').forEach(t=>{
   }
   function buildList(){
     const w=$('sa-listwrap'); if(!w) return;
-    if(!ventes.length){ w.innerHTML=''; return; }
-    const rows=ventes.map((v,i)=>`<tr><td><strong>${v.facture}</strong></td><td>${v.date}</td><td>${v.client}</td><td>${v.pays}</td><td class="text-right">${fmtNum(v.btl)}</td><td class="text-right amount">${fmtMoneyShort(v.ca)}</td><td class="text-right amount-positive">${fmtMoneyShort(v.marge)}</td><td style="text-align:center"><span class="sa-vdel" data-i="${i}" style="cursor:pointer;color:#dc2626;font-weight:700">🗑️ Supprimer</span></td></tr>`).join('');
-    w.innerHTML=`<h3>📋 Mes ventes saisies (${ventes.length})</h3>
-      <div class="info-box" style="background:#eef6ff;border-left-color:#3b82f6;color:#1e3a5f">Ces ventes s'ajoutent à tes données d'origine et alimentent tout le dashboard. Tu peux les supprimer ici (les factures d'origine ne sont pas modifiables).</div>
-      <div class="table-wrap"><table><thead><tr><th>Facture</th><th>Date</th><th>Client</th><th>Pays</th><th class="text-right">Btl</th><th class="text-right">CA</th><th class="text-right">Bénéfice</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    if(!docs.length){ w.innerHTML=''; return; }
+    const items=docs.map((d,i)=>({d,i})).sort((a,b)=>(b.d.createdAt||0)-(a.d.createdAt||0));
+    const rows=items.map(({d,i})=>{
+      const badge = isFacture(d)?'<span class="badge-doc badge-fact">FACTURE</span>':'<span class="badge-doc badge-cmd">COMMANDE</span>';
+      const conv = isFacture(d)?'':`<span class="sa-act conv" data-act="convert" data-i="${i}">➡️ Facturer</span>`;
+      const from = d.bcNumero?`<div style="font-size:.7rem;color:#9aa1b0">issu de ${esc(d.bcNumero)}</div>`:'';
+      return `<tr><td><strong>${esc(d.numero||d.facture||'')}</strong>${from}</td><td>${badge}</td><td>${esc(d.date)}</td><td>${esc(d.client)}</td><td>${esc(d.pays)}</td><td class="text-right amount">${fmtMoneyShort(d.ca)}</td><td style="text-align:right;white-space:nowrap"><span class="sa-act" data-act="print" data-i="${i}">🖨️ PDF</span>${conv}<span class="sa-act del" data-act="del" data-i="${i}">🗑️</span></td></tr>`;
+    }).join('');
+    w.innerHTML=`<h3>📋 Mes documents (${docs.length})</h3>
+      <div class="info-box" style="background:#eef6ff;border-left-color:#3b82f6;color:#1e3a5f">Les <strong>commandes</strong> n'entrent pas dans le CA. Clique <strong>« Facturer »</strong> pour transformer une commande en facture (elle compte alors dans le dashboard). <strong>« PDF »</strong> ouvre le document imprimable à envoyer au client.</div>
+      <div class="table-wrap"><table><thead><tr><th>N°</th><th>Type</th><th>Date</th><th>Client</th><th>Pays</th><th class="text-right">CA</th><th class="text-right">Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
   function populateDatalists(){
     const cmap=clientPaysMap();
-    $('sa-clientlist').innerHTML=Object.keys(cmap).sort().map(c=>`<option value="${c.replace(/"/g,'&quot;')}">`).join('');
+    $('sa-clientlist').innerHTML=Object.keys(cmap).sort().map(c=>`<option value="${esc(c).replace(/"/g,'&quot;')}">`).join('');
     const paysSet={}; (ALL.total.pays||[]).forEach(p=>paysSet[p.pays]=1);
-    $('sa-payslist').innerHTML=Object.keys(paysSet).sort().map(p=>`<option value="${p}">`).join('');
+    $('sa-payslist').innerHTML=Object.keys(paysSet).sort().map(p=>`<option value="${esc(p)}">`).join('');
+  }
+
+  // ---------- Document imprimable (PDF) ----------
+  function printDoc(d){
+    const SOC = (window.EJ_CONFIG&&window.EJ_CONFIG.societe) || {};
+    const isFac = isFacture(d);
+    const title = isFac ? 'FACTURE' : 'BON DE COMMANDE';
+    const num = d.numero||d.facture||'';
+    const socLines=[SOC.adresse,SOC.cp_ville,SOC.email,SOC.tel,SOC.siret?('SIRET '+SOC.siret):'',SOC.tva?('TVA '+SOC.tva):''].filter(Boolean).map(esc).join('<br>');
+    const linesHtml=(d.lines||[]).map(l=>{
+      if(l.collection==='REMISE') return `<tr><td colspan="4">${esc(l.reference||'Remise')}</td><td class="r">${fmtMoney(l.ca)}</td></tr>`;
+      const qty = l.mode==='unite' ? (fmtNum(l.btl)+' btl') : (l.cartons+' cart. ('+fmtNum(l.btl)+' btl)');
+      return `<tr><td>${esc(l.collection)}</td><td>${esc(l.reference)}</td><td class="r">${qty}</td><td class="r">${fmtMoney(l.prix)}</td><td class="r">${fmtMoney(l.ca)}</td></tr>`;
+    }).join('');
+    const note = isFac
+      ? `<div class="pd-note">Montants exprimés en euros. Conditions de règlement : à réception, sauf accord particulier. Merci de votre confiance.</div>`
+      : `<div class="pd-note">Bon de commande valable 30 jours à compter de la date ci-dessus. Livraison et règlement selon conditions convenues.</div>
+         <div class="pd-sign"><div>Cachet &amp; signature du client<br><span style="color:#9aa1b0">(bon pour accord)</span></div><div>Emmanuelle Jane Paris</div></div>`;
+    const p=$('ej-print');
+    p.innerHTML=`<style>
+      #ej-print{font-family:Georgia,'Times New Roman',serif;color:#1f2a44;background:#fff;padding:46px 52px;font-size:13px;line-height:1.5}
+      #ej-print .pd-top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1f2a44;padding-bottom:18px}
+      #ej-print .pd-brand{font-family:'Parisienne',cursive;font-size:42px;line-height:1;color:#1f2a44}
+      #ej-print .pd-sub{letter-spacing:.45em;font-size:11px;color:#b8860b;font-weight:bold;margin-top:2px}
+      #ej-print .pd-soc{font-size:10.5px;color:#5b6577;margin-top:10px;line-height:1.6}
+      #ej-print .pd-doc{text-align:right}
+      #ej-print .pd-doc h1{font-size:24px;letter-spacing:.1em;margin:0 0 6px;color:#1f2a44}
+      #ej-print .pd-num{font-size:15px;font-weight:bold;color:#b8860b}
+      #ej-print .pd-doc .pd-d{font-size:12px;color:#5b6577;margin-top:2px}
+      #ej-print .pd-client{margin:24px 0 6px;padding:14px 18px;background:#f7f3ec;border-radius:8px;display:inline-block;min-width:240px}
+      #ej-print .pd-lab{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#b8860b;font-weight:bold;margin-bottom:4px}
+      #ej-print .pd-cli{font-size:16px;font-weight:bold}
+      #ej-print table.pd-t{width:100%;border-collapse:collapse;margin:18px 0 6px}
+      #ej-print table.pd-t th{background:#1f2a44;color:#fff;text-align:left;padding:9px 10px;font-size:11px;letter-spacing:.03em}
+      #ej-print table.pd-t th.r,#ej-print table.pd-t td.r{text-align:right}
+      #ej-print table.pd-t td{padding:8px 10px;border-bottom:1px solid #e7e1d4;font-size:12px}
+      #ej-print .pd-tot{display:flex;justify-content:flex-end;margin-top:8px}
+      #ej-print .pd-tot table{border-collapse:collapse;min-width:260px}
+      #ej-print .pd-tot td{padding:6px 10px}
+      #ej-print .pd-tot .pd-grand td{font-size:17px;font-weight:bold;border-top:2px solid #1f2a44}
+      #ej-print .pd-note{margin-top:28px;font-size:11px;color:#5b6577}
+      #ej-print .pd-sign{margin-top:40px;display:flex;justify-content:space-between}
+      #ej-print .pd-sign div{width:44%;border-top:1px solid #9aa1b0;padding-top:6px;font-size:11px;color:#5b6577}
+      #ej-print .pd-foot{margin-top:42px;border-top:1px solid #e7e1d4;padding-top:12px;text-align:center;font-size:10px;color:#9aa1b0}
+    </style>
+    <div class="pd-top">
+      <div><div class="pd-brand">Emmanuelle Jane</div><div class="pd-sub">PARIS</div>${socLines?`<div class="pd-soc">${socLines}</div>`:''}</div>
+      <div class="pd-doc"><h1>${title}</h1><div class="pd-num">N° ${esc(num)}</div><div class="pd-d">Date : ${esc(d.date)}</div></div>
+    </div>
+    <div class="pd-client"><div class="pd-lab">${isFac?'Facturé à':'Client'}</div><div class="pd-cli">${esc(d.client)}</div><div>${esc(d.pays)}</div></div>
+    <table class="pd-t"><thead><tr><th>Collection</th><th>Référence</th><th class="r">Quantité</th><th class="r">Prix unit.</th><th class="r">Montant</th></tr></thead><tbody>${linesHtml}</tbody></table>
+    <div class="pd-tot"><table>
+      <tr><td>Total bouteilles</td><td class="r">${fmtNum(d.btl)}</td></tr>
+      <tr class="pd-grand"><td>Total</td><td class="r">${fmtMoney(d.ca)}</td></tr>
+    </table></div>
+    ${note}
+    <div class="pd-foot">Emmanuelle Jane Paris · Document généré le ${iso2fr(todayISO())}</div>`;
+    setTimeout(()=>window.print(), 60);
+  }
+
+  function convertToFacture(i){
+    const d=docs[i]; if(!d || isFacture(d)) return;
+    const yr=String(d.date||'').split('/')[2]; const year=(yr==='2025'||yr==='2026')?yr:String(new Date().getFullYear());
+    d.bcNumero=d.numero;
+    d.type='facture';
+    d.numero=nextNum('facture',year);
+    d.facture=d.numero;
+    d.createdAt=Date.now();
+    persist(); rebuild(); if(typeof renderAll==='function') renderAll(); buildList();
+    showSectionMsg('✅ '+d.bcNumero+' transformé en facture '+d.numero+' — dashboard mis à jour.', true);
   }
 
   // ---------- Interactions ----------
@@ -2673,18 +2778,22 @@ document.querySelectorAll('main table').forEach(t=>{
     else if(f==='prix'){ l.prix=+v||0; }
     else if(f==='remise'){ l.prix=-Math.abs(+v||0); }
     else if(f==='reference'){ l.reference=v; }
+    else if(f==='customname'){ l.reference=v; }
+    else if(f==='customcost'){ l.customCost=+v||0; }
     computeLine(l); updateRowCells(tr,l); renderTotals();
   });
   linesEl.addEventListener('change', e=>{
-    const selOrTxt=e.target.closest('select.sa-f'); if(!selOrTxt) return;
+    const sel=e.target.closest('select.sa-f'); if(!sel) return;
     const tr=e.target.closest('tr'); const l=draft.lines[+tr.dataset.i]; if(!l) return;
-    const f=selOrTxt.dataset.f, v=selOrTxt.value;
-    if(f==='collection'){ l.collection=v; const rl=refList(v); l.reference=rl[0]?rl[0].name:''; l.prix=defPrix(l); }
-    else if(f==='reference'){ l.reference=v; }
+    const f=sel.dataset.f, v=sel.value;
+    if(f==='collection'){ l.collection=v; l.custom=false; const rl=refList(v); l.reference=rl[0]?rl[0].name:''; l.prix=defPrix(l); }
+    else if(f==='reference'){ if(v==='__custom__'){ l.custom=true; l.customCost=avgCpb(l.collection); l.reference=''; } else l.reference=v; }
     else if(f==='mode'){ l.mode=v; l.prix=defPrix(l); }
     computeLine(l); renderLines(); renderTotals();
   });
   linesEl.addEventListener('click', e=>{
+    const un=e.target.closest('.sa-uncustom');
+    if(un){ const l=draft.lines[+un.dataset.i]; if(l){ l.custom=false; const rl=refList(l.collection); l.reference=rl[0]?rl[0].name:''; computeLine(l); renderLines(); renderTotals(); } return; }
     const del=e.target.closest('.mod-del'); if(!del) return;
     draft.lines.splice(+del.dataset.i,1);
     if(!draft.lines.length) draft.lines.push(newLine());
@@ -2693,57 +2802,70 @@ document.querySelectorAll('main table').forEach(t=>{
   $('sa-addline').addEventListener('click', ()=>{ draft.lines.push(newLine()); renderLines(); renderTotals(); });
   $('sa-addremise').addEventListener('click', ()=>{ draft.lines.push(computeLine({collection:'REMISE',reference:'Réduction exceptionnelle',mode:'remise',prix:0})); renderLines(); renderTotals(); });
 
+  function applyDocType(){
+    sec.querySelectorAll('.doc-type-btn').forEach(x=>x.classList.toggle('active', x.dataset.type===docType));
+    $('sa-numlabel').firstChild.textContent = docType==='facture' ? 'N° facture' : 'N° bon de commande';
+    $('sa-savelabel').textContent = docType==='facture' ? 'Enregistrer la facture' : 'Enregistrer le bon de commande';
+    lastAutoNum=nextNum(docType, ($('sa-date').value||todayISO()).split('-')[0]);
+    $('sa-fact').value=lastAutoNum;
+  }
+  $('sa-doctype').addEventListener('click', e=>{ const b=e.target.closest('.doc-type-btn'); if(!b) return; docType=b.dataset.type; applyDocType(); });
+
   $('sa-date').addEventListener('change', ()=>{
     const y=($('sa-date').value||'').split('-')[0];
-    if(y && (!$('sa-fact').value.trim() || $('sa-fact').value===lastAutoFact)){ lastAutoFact=nextFactNo(y); $('sa-fact').value=lastAutoFact; }
+    if(y && (!$('sa-fact').value.trim() || $('sa-fact').value===lastAutoNum)){ lastAutoNum=nextNum(docType,y); $('sa-fact').value=lastAutoNum; }
   });
   $('sa-client').addEventListener('change', ()=>{
     const cmap=clientPaysMap(); const c=$('sa-client').value.trim();
     if(cmap[c] && !$('sa-pays').value.trim()) $('sa-pays').value=cmap[c];
   });
 
-  function msg(txt,ok){ const m=$('sa-msg'); m.textContent=txt; m.style.color=ok?'#0f9d6f':'#dc2626'; if(txt) setTimeout(()=>{ if(m.textContent===txt) m.textContent=''; }, 5000); }
-  function resetDraft(){ draft={lines:[newLine()]}; $('sa-client').value=''; $('sa-pays').value=''; $('sa-date').value=todayISO(); lastAutoFact=nextFactNo($('sa-date').value.split('-')[0]); $('sa-fact').value=lastAutoFact; renderLines(); renderTotals(); }
+  function showSectionMsg(txt,ok){ const m=$('sa-msg'); m.textContent=txt; m.style.color=ok?'#0f9d6f':'#dc2626'; if(txt) setTimeout(()=>{ if(m.textContent===txt) m.textContent=''; }, 6000); }
+  function resetDraft(){ draft={lines:[newLine()]}; $('sa-client').value=''; $('sa-pays').value=''; $('sa-date').value=todayISO(); lastAutoNum=nextNum(docType,$('sa-date').value.split('-')[0]); $('sa-fact').value=lastAutoNum; renderLines(); renderTotals(); }
 
-  $('sa-reset').addEventListener('click', ()=>{ resetDraft(); msg('',true); });
+  $('sa-reset').addEventListener('click', ()=>{ resetDraft(); showSectionMsg('',true); });
   $('sa-save').addEventListener('click', ()=>{
-    const facture=$('sa-fact').value.trim(), iso=$('sa-date').value, client=$('sa-client').value.trim(), pays=$('sa-pays').value.trim();
-    if(!facture){ return msg('Indique un n° de facture.'); }
-    if(!iso){ return msg('Choisis une date.'); }
-    if(!client){ return msg('Indique le client.'); }
-    if(!pays){ return msg('Indique le pays.'); }
+    const numero=$('sa-fact').value.trim(), iso=$('sa-date').value, client=$('sa-client').value.trim(), pays=$('sa-pays').value.trim();
+    if(!numero) return showSectionMsg('Indique un numéro de document.');
+    if(!iso) return showSectionMsg('Choisis une date.');
+    if(!client) return showSectionMsg('Indique le client.');
+    if(!pays) return showSectionMsg('Indique le pays.');
     const lines=draft.lines.map(l=>computeLine(Object.assign({},l))).filter(l=>l.ca||l.cout||l.btl);
-    if(!lines.length){ return msg('Ajoute au moins une ligne avec un montant.'); }
+    if(!lines.length) return showSectionMsg('Ajoute au moins une ligne avec un montant.');
     const year=iso.split('-')[0];
-    if(year!=='2025' && year!=='2026'){ return msg('La date doit être en 2025 ou 2026.'); }
-    const all=BASE_FACT['2025'].concat(BASE_FACT['2026'],ventes);
-    if(all.some(f=>f.facture===facture)){ return msg('Ce n° de facture existe déjà.'); }
+    if(year!=='2025' && year!=='2026') return showSectionMsg('La date doit être en 2025 ou 2026.');
+    if(BASE_FACT['2025'].concat(BASE_FACT['2026'],docs).some(f=>(f.numero||f.facture)===numero)) return showSectionMsg('Ce numéro existe déjà.');
     const t=lines.reduce((a,l)=>{a.btl+=l.btl||0;a.ca+=l.ca||0;a.cout+=l.cout||0;a.marge+=l.marge||0;return a;},{btl:0,ca:0,cout:0,marge:0});
-    ventes.push({ facture, date:iso2fr(iso), client, pays, btl:t.btl, ca:t.ca, cout:t.cout, marge:t.marge, lines, _user:true });
-    persist(); rebuild();
-    if(typeof renderAll==='function') renderAll();
+    const doc={ type:docType, numero, date:iso2fr(iso), client, pays, btl:t.btl, ca:t.ca, cout:t.cout, marge:t.marge, lines, createdAt:Date.now(), _user:true };
+    if(docType==='facture') doc.facture=numero;
+    docs.push(doc); persist();
+    if(docType==='facture'){ rebuild(); if(typeof renderAll==='function') renderAll(); }
     populateDatalists(); buildList(); resetDraft();
-    msg('✅ Vente enregistrée — dashboard mis à jour.', true);
+    showSectionMsg(docType==='facture' ? '✅ Facture enregistrée — dashboard mis à jour.' : '✅ Bon de commande enregistré. Tu peux l\'imprimer ou le transformer en facture ci-dessous.', true);
   });
 
   $('sa-listwrap').addEventListener('click', e=>{
-    const del=e.target.closest('.sa-vdel'); if(!del) return;
-    const i=+del.dataset.i; const v=ventes[i]; if(!v) return;
-    if(!confirm('Supprimer la vente '+v.facture+' ('+v.client+') ?')) return;
-    ventes.splice(i,1);
-    persist(); rebuild();
-    if(typeof renderAll==='function') renderAll();
-    populateDatalists(); buildList();
+    const a=e.target.closest('.sa-act'); if(!a) return;
+    const i=+a.dataset.i, act=a.dataset.act, d=docs[i]; if(!d) return;
+    if(act==='print') printDoc(d);
+    else if(act==='convert'){ if(confirm(`Transformer la commande ${d.numero||''} en facture ?\nElle comptera alors dans ton chiffre d'affaires.`)) convertToFacture(i); }
+    else if(act==='del'){
+      if(!confirm('Supprimer le document '+(d.numero||d.facture||'')+' ('+d.client+') ?')) return;
+      const wasFac=isFacture(d); docs.splice(i,1); persist();
+      if(wasFac){ rebuild(); if(typeof renderAll==='function') renderAll(); }
+      populateDatalists(); buildList();
+    }
   });
 
   // ---------- Démarrage ----------
   $('sa-date').value=todayISO();
-  lastAutoFact=nextFactNo($('sa-date').value.split('-')[0]);
-  $('sa-fact').value=lastAutoFact;
+  applyDocType();
   renderLines(); renderTotals(); populateDatalists(); buildList();
   rebuild();
-  if(ventes.length && typeof renderAll==='function') renderAll();
+  if(docs.some(isFacture) && typeof renderAll==='function') renderAll();
 })();
 </script>
+
+<div id="ej-print"></div>
 </body>
 </html>
