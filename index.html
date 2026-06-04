@@ -65,11 +65,14 @@ body{font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,Arial,sans-serif;b
 .year-btn:hover{border-color:#b8860b;color:#b8860b}
 .year-btn.active{background:#1f2a44;color:#e6c200;border-color:#1f2a44;box-shadow:0 8px 22px rgba(31,42,68,.18)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;margin-bottom:30px}
+.kpis-hero{grid-template-columns:repeat(3,1fr);gap:22px}
 .kpi{background:#fff;border:1px solid rgba(31,42,68,.05);border-radius:22px;padding:22px 24px;text-align:left;transition:transform .22s,box-shadow .22s;box-shadow:0 10px 30px rgba(31,42,68,.05)}
+.kpis-hero .kpi{padding:30px 32px}
 .kpi:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(31,42,68,.1)}
 .kpi-label{font-size:.74rem;color:#9aa1b0;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;font-weight:700}
-.kpi-value{font-size:1.85rem;font-weight:800;color:#1f2a44;letter-spacing:-.02em;line-height:1.1}
+.kpi-value{font-size:1.85rem;font-weight:800;color:#1f2a44;letter-spacing:-.02em;line-height:1.1;white-space:nowrap}
 .kpi-value.big{font-size:2.1rem}
+.kpis-hero .kpi-value.big{font-size:2.6rem;margin-top:4px}
 .kpi.success .kpi-value{color:#0f9d6f}
 .kpi.danger .kpi-value{color:#e0533d}
 /* Navigation à deux niveaux (catégories -> sous-onglets) */
@@ -164,10 +167,13 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
   .section h2{font-size:1.2rem;margin-bottom:14px}
   .section h3{font-size:1rem}
   .kpis{grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+  .kpis-hero{grid-template-columns:repeat(3,1fr);gap:10px}
   .kpi{padding:15px 16px;border-radius:18px}
+  .kpis-hero .kpi{padding:16px 14px}
   .kpi-label{font-size:.66rem;margin-bottom:6px}
   .kpi-value{font-size:1.18rem}
   .kpi-value.big{font-size:1.3rem}
+  .kpis-hero .kpi-value.big{font-size:1.45rem;margin-top:2px}
   .chart-container{height:320px;padding:14px;border-radius:16px}
   .chart-container.tall{height:400px}
   .year-switcher{gap:8px;margin-bottom:20px}
@@ -182,8 +188,10 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 }
 @media(max-width:430px){
   .kpis{grid-template-columns:1fr}
+  .kpis-hero{grid-template-columns:1fr}
   .kpi-value{font-size:1.35rem}
   .kpi-value.big{font-size:1.5rem}
+  .kpis-hero .kpi-value.big{font-size:1.7rem}
 }
 </style>
 </head>
@@ -223,15 +231,10 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 ℹ️ <strong>Note</strong> : Le prix de revient de la collection <strong>ROYAL</strong> est provisoirement fixé à <strong>4,50 €/bouteille</strong> (à affiner). Les bénéfices ROYAL affichés sont donc indicatifs.
 </div>
 
-<div class="kpis">
+<div class="kpis kpis-hero">
 <div class="kpi"><div class="kpi-label">Chiffre d'Affaires</div><div class="kpi-value big" id="kpi-ca"></div></div>
-<div class="kpi danger"><div class="kpi-label">Coût total (prod.)</div><div class="kpi-value" id="kpi-cout"></div></div>
 <div class="kpi success"><div class="kpi-label">Bénéfice net*</div><div class="kpi-value big" id="kpi-marge"></div></div>
-<div class="kpi success"><div class="kpi-label">% Marge*</div><div class="kpi-value" id="kpi-marge-pct"></div></div>
-<div class="kpi"><div class="kpi-label">Bouteilles vendues</div><div class="kpi-value" id="kpi-btl"></div></div>
-<div class="kpi"><div class="kpi-label">Testers offerts</div><div class="kpi-value" id="kpi-testers"></div></div>
-<div class="kpi"><div class="kpi-label">Factures</div><div class="kpi-value" id="kpi-factures"></div></div>
-<div class="kpi"><div class="kpi-label">Clients</div><div class="kpi-value" id="kpi-clients"></div></div>
+<div class="kpi success"><div class="kpi-label">% Marge*</div><div class="kpi-value big" id="kpi-marge-pct"></div></div>
 </div>
 
 
@@ -544,14 +547,9 @@ const PALETTE = ['#b8860b','#8B5CF6','#3B82F6','#10B981','#F59E0B','#EF4444','#E
 
 function renderKpis(){
   const d = getD();
-  document.getElementById('kpi-ca').textContent = fmtMoney(d.kpi_ca);
-  document.getElementById('kpi-cout').textContent = fmtMoneyShort(d.kpi_cout);
+  document.getElementById('kpi-ca').textContent = fmtMoneyShort(d.kpi_ca);
   document.getElementById('kpi-marge').textContent = fmtMoneyShort(d.kpi_marge);
   document.getElementById('kpi-marge-pct').textContent = fmtPct(d.kpi_marge_pct_known);
-  document.getElementById('kpi-btl').textContent = fmtNum(d.kpi_btl);
-  document.getElementById('kpi-testers').textContent = fmtNum(d.kpi_testers);
-  document.getElementById('kpi-factures').textContent = d.kpi_factures;
-  document.getElementById('kpi-clients').textContent = d.kpi_clients;
   const royalCAEl = document.getElementById('royalCA');
   if(royalCAEl) royalCAEl.textContent = fmtMoney(d.kpi_ca_unknown);
 }
