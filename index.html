@@ -2101,6 +2101,7 @@ const eMoney = n => (Math.round(+n||0)).toLocaleString('fr-FR') + ' €';
 const eNum   = n => (+n||0).toLocaleString('fr-FR');
 const eToday = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 const eFr2iso = s => { if(!s) return ''; const p=String(s).split('/'); return p.length===3 ? p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0') : ''; };
+const eIso2fr = s => { if(!s) return ''; const p=String(s).split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : ''; };
 const eDaysUntil = fr => { const iso=eFr2iso(fr); if(!iso) return null; const ms=new Date(iso+'T00:00:00')-new Date(eToday()+'T00:00:00'); return Math.round(ms/86400000); };
 const MODULES = {};
 
@@ -2121,6 +2122,9 @@ function modCell(m, col, row, ri){
   if(col.type==='select'){
     const opts = col.options.map(o=>`<option${String(row[col.id])===String(o)?' selected':''}>${o}</option>`).join('');
     return `<td><select class="mod-in" data-m="${m.name}" data-ri="${ri}" data-c="${col.id}" style="min-width:${col.w||110}px">${opts}</select></td>`;
+  }
+  if(col.type==='date'){
+    return `<td><input class="mod-in" type="date" value="${escAttr(eFr2iso(row[col.id]))}" data-m="${m.name}" data-ri="${ri}" data-c="${col.id}" style="width:${col.w||130}px"></td>`;
   }
   const inType = (col.type==='number'||col.type==='money') ? 'number' : 'text';
   const step = col.type==='money' ? ' step="0.01"' : (col.type==='number'?' step="1"':'');
@@ -2165,12 +2169,15 @@ document.addEventListener('input', e=>{
   const col = m.cols.find(c=>c.id===el.dataset.c);
   let v = el.value;
   if(col && (col.type==='number'||col.type==='money')) v = el.value==='' ? '' : parseFloat(el.value);
+  else if(col && col.type==='date') v = eIso2fr(el.value);
   m.rows[+el.dataset.ri][el.dataset.c] = v; modSave(m); updateModComputed(m.name);
 });
 document.addEventListener('change', e=>{
-  const el = e.target.closest('select.mod-in'); if(!el) return;
+  const el = e.target.closest('select.mod-in, input.mod-in[type="date"]'); if(!el) return;
   const m = MODULES[el.dataset.m]; if(!m) return;
-  m.rows[+el.dataset.ri][el.dataset.c] = el.value; modSave(m); updateModComputed(m.name);
+  const col = m.cols.find(c=>c.id===el.dataset.c);
+  const v = (col && col.type==='date') ? eIso2fr(el.value) : el.value;
+  m.rows[+el.dataset.ri][el.dataset.c] = v; modSave(m); updateModComputed(m.name);
 });
 document.addEventListener('click', e=>{
   const add = e.target.closest('.mod-add');
@@ -2328,9 +2335,9 @@ defineModule({
     {id:'fournisseur',label:'Fournisseur',type:'text',w:140},
     {id:'quantite',label:'Qté',type:'number',align:'right',w:75},
     {id:'transport',label:'Transport',type:'select',options:['Maritime','Aérien','Routier','Express','Autre'],w:95},
-    {id:'commande',label:'Date commande',type:'text',w:110},
-    {id:'prevue',label:'Arrivage prévu',type:'text',w:110},
-    {id:'reelle',label:'Arrivage réel',type:'text',w:110},
+    {id:'commande',label:'Date commande',type:'date',w:140},
+    {id:'prevue',label:'Arrivage prévu',type:'date',w:140},
+    {id:'reelle',label:'Arrivage réel',type:'date',w:140},
     {id:'statut',label:'Statut',type:'select',options:['En préparation','Expédié','En transit','Arrivé','Retardé'],w:120},
     {id:'suivi',label:'Suivi',compute:r=>{
         if(r.statut==='Arrivé') return r.reelle ? '✓ Arrivé le '+r.reelle : '✓ Arrivé';
