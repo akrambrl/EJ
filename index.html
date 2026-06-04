@@ -296,7 +296,7 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 </div>
 
 
-<div class="kpis kpis-hero">
+<div class="kpis kpis-hero" id="kpiHero">
 <div class="kpi"><div class="kpi-label">Chiffre d'Affaires</div><div class="kpi-value big" id="kpi-ca"></div></div>
 <div class="kpi success"><div class="kpi-label">Bénéfice net*</div><div class="kpi-value big" id="kpi-marge"></div></div>
 <div class="kpi success"><div class="kpi-label">% Marge*</div><div class="kpi-value big" id="kpi-marge-pct"></div></div>
@@ -2441,6 +2441,8 @@ function showSection(id, label){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   const sec = document.getElementById(id);
   if(sec){ sec.classList.add('active'); window.dispatchEvent(new Event('resize')); }
+  const kpiHero = document.getElementById('kpiHero');
+  if(kpiHero) kpiHero.style.display = (id==='overview') ? '' : 'none';
   if(label){ const tt=document.getElementById('topbarTitle'); if(tt) tt.textContent = label; }
   if(id==='pays' && typeof renderWorldMap==='function') setTimeout(renderWorldMap,60);
 }
