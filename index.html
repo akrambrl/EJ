@@ -140,6 +140,9 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 .stat-alert{color:#dc2626;font-weight:700}
 .stat-ok{color:#0f9d6f;font-weight:600}
 .stat-warn{color:#d97706;font-weight:700}
+.map-mode{padding:8px 18px;background:#fff;border:1px solid rgba(31,42,68,.12);color:#5b6577;border-radius:999px;cursor:pointer;font-weight:700;font-size:.85rem;transition:all .2s}
+.map-mode:hover{border-color:#b8860b;color:#b8860b}
+.map-mode.active{background:#1f2a44;color:#e6c200;border-color:#1f2a44}
 /* Conteneur de scroll horizontal pour les tableaux (mobile) */
 .table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:16px}
 /* ============ ADAPTATION MOBILE ============ */
@@ -248,7 +251,11 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 
 <div id="pays" class="section">
 <h2>🌍 Carte des clients dans le monde</h2>
-<div class="info-box">💡 Chaque bulle représente un pays où tu as des clients — sa taille est proportionnelle au <strong>chiffre d'affaires</strong>. Survole une bulle pour le détail.</div>
+<div class="info-box">💡 Chaque bulle représente un pays. Bascule entre <strong>chiffre d'affaires</strong> (tes ventes réelles) et <strong>points de vente</strong> (ton réseau B2B). Survole une bulle pour le détail.</div>
+<div class="controls" style="margin-bottom:14px">
+<button class="map-mode active" data-mode="ca">💰 Chiffre d'affaires</button>
+<button class="map-mode" data-mode="pdv">🏬 Points de vente (B2B)</button>
+</div>
 <div class="chart-container tall"><canvas id="chartWorldMap"></canvas></div>
 <h2>Analyse par Pays (avec séparation des clients)</h2>
 <div class="info-box">💡 Le tableau ci-dessous affiche chaque <strong>couple Pays — Client</strong> séparément (les 2 clients irakiens apparaissent distinctement).</div>
@@ -2217,6 +2224,7 @@ function showSection(id, label){
   const sec = document.getElementById(id);
   if(sec){ sec.classList.add('active'); window.dispatchEvent(new Event('resize')); }
   if(label){ const tt=document.getElementById('topbarTitle'); if(tt) tt.textContent = label; }
+  if(id==='pays' && typeof renderWorldMap==='function') setTimeout(renderWorldMap,60);
 }
 function buildNav(){
   const nav = document.getElementById('sideNav');
@@ -2246,7 +2254,15 @@ const COORD={
  'Qatar':[51.2,25.3],'Nigéria':[8.1,9.1],'Sénégal':[-14.5,14.5],'USA':[-98.5,39.8],
  'Émirats Arabes Unis':[54,24],'EAU':[54,24],'Liban':[35.8,33.9],'Maroc':[-6.8,31.8],'Koweït':[47.9,29.3],
  'Turquie':[35,39],'Allemagne':[10.4,51.1],'Belgique':[4.5,50.6],'Suisse':[8.2,46.8],'Canada':[-106,56]};
-let _worldAtlas=null, _worldChart=null;
+let _worldAtlas=null, _worldChart=null, mapMode='ca';
+// Compte les points de vente B2B par pays (depuis le module Réseau B2B)
+function b2bByCountry(){
+  const m = MODULES['b2b']; const idx={};
+  (m?m.rows:[]).forEach(r=>{ const c=(r.pays||'').trim(); if(!c) return;
+    if(!idx[c]) idx[c]={count:0,ca:0,names:[]};
+    idx[c].count++; idx[c].ca+=(+r.ca||0); if(r.nom) idx[c].names.push(r.nom); });
+  return idx;
+}
 async function renderWorldMap(){
   const cv=document.getElementById('chartWorldMap');
   if(!cv || typeof ChartGeo==='undefined' || typeof getD!=='function') return;
@@ -2255,21 +2271,39 @@ async function renderWorldMap(){
       _worldAtlas=ChartGeo.topojson.feature(t,t.objects.countries).features; }
     catch(e){ cv.parentElement.innerHTML='<div style="text-align:center;color:#9aa1b0;padding-top:140px">Carte indisponible (hors-ligne)</div>'; return; }
   }
-  const d=getD();
-  const pts=(d.pays||[]).filter(p=>COORD[p.pays]).map(p=>({x:COORD[p.pays][0],y:COORD[p.pays][1],value:p.ca,name:p.pays,clients:p.clients,ca:p.ca}));
+  const d=getD(); const b2b=b2bByCountry();
+  const caByPays={}; (d.pays||[]).forEach(p=>caByPays[p.pays]=p);
+  let pts, fill, stroke;
+  if(mapMode==='pdv'){
+    fill='rgba(31,42,68,.55)'; stroke='#1f2a44';
+    pts=Object.keys(b2b).filter(c=>COORD[c]).map(c=>({x:COORD[c][0],y:COORD[c][1],value:b2b[c].count,
+      name:c,pdv:b2b[c].count,names:b2b[c].names,ca:(caByPays[c]?caByPays[c].ca:0)}));
+  } else {
+    fill='rgba(184,134,11,.55)'; stroke='#b8860b';
+    pts=(d.pays||[]).filter(p=>COORD[p.pays]).map(p=>({x:COORD[p.pays][0],y:COORD[p.pays][1],value:p.ca,
+      name:p.pays,clients:p.clients,ca:p.ca,pdv:(b2b[p.pays]?b2b[p.pays].count:0)}));
+  }
   if(_worldChart) _worldChart.destroy();
   _worldChart=new Chart(cv,{
     type:'bubbleMap',
     data:{labels:pts.map(p=>p.name),datasets:[{outline:_worldAtlas,showOutline:true,
       outlineBackgroundColor:'#ece5d6',outlineBorderColor:'#d8cfbd',outlineBorderWidth:.5,
-      backgroundColor:'rgba(184,134,11,.55)',borderColor:'#b8860b',borderWidth:1,data:pts}]},
+      backgroundColor:fill,borderColor:stroke,borderWidth:1,data:pts}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},datalabels:{display:false},
-        tooltip:{callbacks:{title:()=>'',label:c=>{const p=c.raw;return ` ${p.name} — ${eMoney(p.ca)} · ${p.clients} client(s)`;}}}},
+        tooltip:{callbacks:{title:()=>'',label:c=>{const p=c.raw;
+          return mapMode==='pdv'
+            ? ` ${p.name} — ${p.pdv} point(s) de vente${p.ca?' · CA '+eMoney(p.ca):''}`
+            : ` ${p.name} — ${eMoney(p.ca)} · ${p.clients} client(s) · ${p.pdv} pt(s) de vente`;}}}},
       scales:{projection:{axis:'x',projection:'equalEarth'},size:{axis:'x',size:[6,30],legend:{display:false}}}}
   });
 }
 renderWorldMap();
+// Bascule CA / points de vente
+document.querySelectorAll('.map-mode').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.map-mode').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); mapMode=b.dataset.mode; renderWorldMap();
+}));
 // Rafraîchit la carte au changement d'année
 document.querySelectorAll('.year-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(renderWorldMap,60)));
 
