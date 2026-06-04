@@ -176,9 +176,14 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 .mod-reset:hover{border-color:#b8860b;color:#b8860b}
 .mod-del:hover{transform:scale(1.2)}
 .saisie-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:8px}
-.saisie-head label{display:flex;flex-direction:column;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#9aa1b0;font-weight:700;gap:5px}
+.saisie-head label{display:flex;flex-direction:column;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#9aa1b0;font-weight:700;gap:5px;position:relative}
 .saisie-head input,.saisie-head select{padding:11px 14px;border:1px solid rgba(31,42,68,.14);border-radius:12px;font-size:.95rem;color:#1f2a44;font-weight:600;background:#fff}
 .saisie-head input:focus,.saisie-head select:focus{outline:none;border-color:#b8860b}
+.ac-list{position:absolute;top:100%;left:0;right:0;z-index:60;background:#fff;border:1px solid rgba(31,42,68,.18);border-radius:12px;box-shadow:0 10px 28px rgba(31,42,68,.18);max-height:240px;overflow-y:auto;margin-top:4px}
+.ac-item{padding:10px 14px;font-size:.9rem;font-weight:600;color:#1f2a44;text-transform:none;letter-spacing:0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ac-item:hover,.ac-item.active{background:#f6f0e1;color:#b8860b}
+.ac-sub{font-size:.74rem;color:#9aa1b0;font-weight:600;text-transform:none}
+.ac-empty{padding:10px 14px;font-size:.82rem;color:#9aa1b0;text-transform:none;letter-spacing:0;font-weight:600}
 #sa-table .mod-in,#sa-table select.mod-in{width:100%;min-width:70px}
 #sa-table td{padding:8px 8px}
 .saisie-totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:20px 0;background:#1f2a44;border-radius:18px;padding:18px 22px}
@@ -331,8 +336,8 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 <div class="saisie-head">
   <label id="sa-numlabel">N° bon de commande<input type="text" id="sa-fact" autocomplete="off"></label>
   <label>Date<input type="date" id="sa-date"></label>
-  <label>Client<input type="text" id="sa-client" list="sa-clientlist" autocomplete="off" placeholder="Nom du client"><datalist id="sa-clientlist"></datalist></label>
-  <label>Pays<input type="text" id="sa-pays" list="sa-payslist" autocomplete="off" placeholder="Pays"><datalist id="sa-payslist"></datalist></label>
+  <label>Client<input type="text" id="sa-client" autocomplete="off" placeholder="Nom du client"></label>
+  <label>Pays<input type="text" id="sa-pays" autocomplete="off" placeholder="Pays"></label>
   <label>Régime TVA<select id="sa-tva">
     <option value="export">Exonérée — export hors UE</option>
     <option value="intracom">Exonérée — livraison intra-UE</option>
@@ -2781,7 +2786,7 @@ document.querySelectorAll('main table').forEach(t=>{
   let docType='devis', lastAutoNum='';
   function newLine(){ const coll=Object.keys(ALL.costs||{})[0]||'VIP'; const rl=refList(coll); const l={collection:coll,reference:rl[0]?rl[0].name:'',mode:'carton',cartons:1,prix:0}; l.prix=defPrix(l); return computeLine(l); }
   let draft={ societe:'BSD', lines:[ newLine() ] };
-  function clientPaysMap(){ const m={}; (ALL.total.clients||[]).forEach(c=>{ if(!m[c.client]) m[c.client]=c.pays; }); return m; }
+  function clientPaysMap(){ const m={}; (ALL.total.clients||[]).forEach(c=>{ if(c.client && !m[c.client]) m[c.client]=c.pays; }); docs.forEach(d=>{ if(d.client && !m[d.client]) m[d.client]=d.pays||''; }); return m; }
   // Affichage dans la devise de la société du brouillon (coût toujours en €, converti pour l'affichage NB)
   const curSym = () => draft.societe==='NB' ? '$' : '€';
   const dm = n => Math.round(n||0).toLocaleString('fr-FR') + ' ' + curSym();
@@ -2877,12 +2882,37 @@ document.querySelectorAll('main table').forEach(t=>{
       <div class="table-wrap"><table><thead><tr><th>N°</th><th>Type</th><th>Société</th><th>Date</th><th>Client</th><th>Pays</th><th class="text-right">Montant</th><th class="text-right">Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
   function populateDatalists(){
-    const cmap=clientPaysMap();
-    $('sa-clientlist').innerHTML=Object.keys(cmap).sort().map(c=>`<option value="${esc(c).replace(/"/g,'&quot;')}">`).join('');
-    const paysSet={}; (ALL.total.pays||[]).forEach(p=>paysSet[p.pays]=1);
-    $('sa-payslist').innerHTML=Object.keys(paysSet).sort().map(p=>`<option value="${esc(p)}">`).join('');
     const m=(typeof MODULES!=='undefined')?MODULES.stock2ml:null; const dl=$('sa-2ml-list');
     if(m&&dl) dl.innerHTML=m.rows.map(r=>`<option value="${esc(r.reference).replace(/"/g,'&quot;')}">${esc(r.gamme)}`).join('');
+  }
+  // Liste déroulante custom (le <datalist> natif ne fonctionne pas sur iOS Safari)
+  function attachAutocomplete(input, getItems, onPick){
+    if(!input) return;
+    const box=document.createElement('div'); box.className='ac-list'; box.style.display='none';
+    input.parentNode.appendChild(box);
+    let active=-1, current=[];
+    function render(){
+      const q=input.value.trim().toLowerCase();
+      const items=getItems();
+      current=(q?items.filter(it=>it.label.toLowerCase().includes(q)):items.slice()).slice(0,60);
+      if(!items.length){ box.style.display='none'; return; }
+      if(!current.length){ box.innerHTML='<div class="ac-empty">Aucun client correspondant</div>'; box.style.display='block'; return; }
+      box.innerHTML=current.map((it,idx)=>`<div class="ac-item${idx===active?' active':''}" data-idx="${idx}"><span>${esc(it.label)}</span>${it.sub?`<span class="ac-sub">${esc(it.sub)}</span>`:''}</div>`).join('');
+      box.style.display='block';
+    }
+    function hide(){ box.style.display='none'; active=-1; }
+    function pick(idx){ const it=current[idx]; if(!it) return; input.value=it.label; hide(); if(onPick) onPick(it); input.dispatchEvent(new Event('change',{bubbles:true})); }
+    input.addEventListener('input', ()=>{ active=-1; render(); });
+    input.addEventListener('focus', render);
+    input.addEventListener('keydown', e=>{
+      if(box.style.display==='none') return;
+      if(e.key==='ArrowDown'){ e.preventDefault(); active=Math.min(active+1,current.length-1); render(); }
+      else if(e.key==='ArrowUp'){ e.preventDefault(); active=Math.max(active-1,0); render(); }
+      else if(e.key==='Enter'){ if(active>=0){ e.preventDefault(); pick(active); } }
+      else if(e.key==='Escape'){ hide(); }
+    });
+    box.addEventListener('mousedown', e=>{ const it=e.target.closest('.ac-item'); if(it){ e.preventDefault(); pick(+it.dataset.idx); } });
+    document.addEventListener('click', e=>{ if(!input.parentNode.contains(e.target)) hide(); });
   }
 
   // ---------- Document imprimable (PDF) ----------
@@ -3163,6 +3193,12 @@ document.querySelectorAll('main table').forEach(t=>{
   $('sa-date').value=todayISO();
   applyCompany();
   populateDatalists(); buildList(); buildSettingsUI();
+  attachAutocomplete($('sa-client'),
+    ()=>{ const m=clientPaysMap(); return Object.keys(m).sort((a,b)=>a.localeCompare(b,'fr')).map(name=>({label:name, sub:m[name]||''})); },
+    null);
+  attachAutocomplete($('sa-pays'),
+    ()=>{ const set={}; (ALL.total.pays||[]).forEach(p=>{ if(p.pays) set[p.pays]=1; }); docs.forEach(d=>{ if(d.pays) set[d.pays]=1; }); return Object.keys(set).sort((a,b)=>a.localeCompare(b,'fr')).map(p=>({label:p})); },
+    null);
   if(coSel) coSel.value=companyFilter;
   rebuild();
   if(docs.some(isFacture) && typeof renderAll==='function') renderAll();
