@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Parisienne&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-geo@4"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,Arial,sans-serif;background:linear-gradient(160deg,#f7f3ec 0%,#f1ece2 100%);color:#2d3142;min-height:100vh;padding:0;-webkit-font-smoothing:antialiased}
@@ -246,6 +247,9 @@ select{padding:10px 16px;background:#f5f1ea;border:1px solid transparent;border-
 </div>
 
 <div id="pays" class="section">
+<h2>🌍 Carte des clients dans le monde</h2>
+<div class="info-box">💡 Chaque bulle représente un pays où tu as des clients — sa taille est proportionnelle au <strong>chiffre d'affaires</strong>. Survole une bulle pour le détail.</div>
+<div class="chart-container tall"><canvas id="chartWorldMap"></canvas></div>
 <h2>Analyse par Pays (avec séparation des clients)</h2>
 <div class="info-box">💡 Le tableau ci-dessous affiche chaque <strong>couple Pays — Client</strong> séparément (les 2 clients irakiens apparaissent distinctement).</div>
 <div class="grid-2">
@@ -2233,6 +2237,41 @@ function buildNav(){
 document.getElementById('menuToggle').addEventListener('click', ()=>{ sidebar.classList.toggle('open'); backdrop.classList.toggle('open'); });
 backdrop.addEventListener('click', closeSidebar);
 buildNav();
+
+/* ===================== CARTE DU MONDE DES CLIENTS ===================== */
+const COORD={
+ 'France':[2.2,46.2],'Angleterre':[-1.5,52.5],'Royaume-Uni':[-1.5,52.5],'Espagne':[-3.7,40.4],'Italie':[12.5,42.8],
+ 'Pays-Bas':[5.3,52.1],'Chypre':[33.4,35.1],'Malte':[14.4,35.9],'Lituanie':[23.9,55.2],
+ 'Russie':[37.6,55.7],'Azerbaïdjan':[47.6,40.4],'Irak':[43.7,33.2],'Arabie Saoudite':[45,23.9],
+ 'Qatar':[51.2,25.3],'Nigéria':[8.1,9.1],'Sénégal':[-14.5,14.5],'USA':[-98.5,39.8],
+ 'Émirats Arabes Unis':[54,24],'EAU':[54,24],'Liban':[35.8,33.9],'Maroc':[-6.8,31.8],'Koweït':[47.9,29.3],
+ 'Turquie':[35,39],'Allemagne':[10.4,51.1],'Belgique':[4.5,50.6],'Suisse':[8.2,46.8],'Canada':[-106,56]};
+let _worldAtlas=null, _worldChart=null;
+async function renderWorldMap(){
+  const cv=document.getElementById('chartWorldMap');
+  if(!cv || typeof ChartGeo==='undefined' || typeof getD!=='function') return;
+  if(!_worldAtlas){
+    try{ const t=await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r=>r.json());
+      _worldAtlas=ChartGeo.topojson.feature(t,t.objects.countries).features; }
+    catch(e){ cv.parentElement.innerHTML='<div style="text-align:center;color:#9aa1b0;padding-top:140px">Carte indisponible (hors-ligne)</div>'; return; }
+  }
+  const d=getD();
+  const pts=(d.pays||[]).filter(p=>COORD[p.pays]).map(p=>({x:COORD[p.pays][0],y:COORD[p.pays][1],value:p.ca,name:p.pays,clients:p.clients,ca:p.ca}));
+  if(_worldChart) _worldChart.destroy();
+  _worldChart=new Chart(cv,{
+    type:'bubbleMap',
+    data:{labels:pts.map(p=>p.name),datasets:[{outline:_worldAtlas,showOutline:true,
+      outlineBackgroundColor:'#ece5d6',outlineBorderColor:'#d8cfbd',outlineBorderWidth:.5,
+      backgroundColor:'rgba(184,134,11,.55)',borderColor:'#b8860b',borderWidth:1,data:pts}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},datalabels:{display:false},
+        tooltip:{callbacks:{title:()=>'',label:c=>{const p=c.raw;return ` ${p.name} — ${eMoney(p.ca)} · ${p.clients} client(s)`;}}}},
+      scales:{projection:{axis:'x',projection:'equalEarth'},size:{axis:'x',size:[6,30],legend:{display:false}}}}
+  });
+}
+renderWorldMap();
+// Rafraîchit la carte au changement d'année
+document.querySelectorAll('.year-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(renderWorldMap,60)));
 
 // Rend les tableaux scrollables horizontalement sur petit écran (sans casser la page)
 document.querySelectorAll('main table').forEach(t=>{
