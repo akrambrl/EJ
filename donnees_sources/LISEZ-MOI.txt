@@ -1,0 +1,7 @@
+Dashboard Emmanuelle Jane Paris — copie de travail
+
+- Double-clique sur dashboard_parfums_emmanuelle_jane.html pour l'ouvrir dans ton navigateur.
+- Pour le modifier avec Claude : ouvre CE DOSSIER ENTIER dans Claude (dossier de projet / Claude Code / Cowork)
+  et dis-lui de lire CLAUDE.md en premier. Tout y est expliqué : où sont les données, comment ajouter
+  une facture, et les règles à respecter pour ne pas fausser les totaux.
+- Les données d'origine (factures, tarifs, catalogue, relevés de charges) sont dans donnees_sources/.
