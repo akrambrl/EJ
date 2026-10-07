@@ -1,6 +1,9 @@
 # Emmanuelle Jane Paris — Outil de gestion
 
 Dashboard de gestion (ventes, clients, catalogue, trésorerie, stocks, commandes & factures…).
+> Le dossier [`dashboard-netlify/`](dashboard-netlify/) contient séparément la version de base
+> publiée sur Netlify (données plus récentes, thème sombre d'origine).
+
 Site 100 % statique : aucun build, il suffit d'ouvrir `index.html` via un petit serveur.
 
 ## Lancer en local
