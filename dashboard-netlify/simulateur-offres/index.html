@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulateur d'offres · Emmanuelle Jane Paris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="hero">
+  <img class="logo" src="img/logo.png" alt="Parfums Emmanuelle Jane Paris">
+  <h1>Simulateur d'offres</h1>
+  <p>Composez la commande, la remise et les cadeaux suivent le palier atteint.</p>
+</div>
+
+<div class="wrap">
+  <div class="layout">
+      <div class="panel">
+        <div class="title"><h2>La commande</h2></div>
+        <p class="sub">Nombre de cartons par collection et prix de vente HT à la pièce</p>
+        <div class="products" id="products"></div>
+      </div>
+
+    <aside class="result" id="result">
+      <div class="title"><h2>Résultat</h2></div>
+      <p class="sub" id="tierSub">&nbsp;</p>
+      <div id="tierBadge"></div>
+      <div id="out"></div>
+      <div class="offer" id="offer"></div>
+      <button class="btn" id="copy">Copier l'offre client</button>
+    </aside>
+      <div class="panel">
+        <div class="title"><h2>Grille dégressive</h2></div>
+        <p class="sub">Palier selon le total de cartons. Testeurs, sacs et échantillons par carton ; catalogues et paquets de mouillettes par commande.</p>
+        <div class="scroll"><table id="tiers"></table></div>
+        <p class="tiernote" id="tierNote"></p>
+        <div class="actions"><button class="btn" id="addTier">Ajouter un palier</button><button class="btn" id="removeTier">Retirer le dernier palier</button></div>
+      </div>
+
+      <div class="panel">
+        <details>
+          <summary>Coûts de revient et formats</summary>
+          <p class="sub" style="margin-top:12px">Coût HT par unité, unités par carton et coût du testeur offert.</p>
+          <div class="scroll"><table id="costs"></table></div>
+          <div class="scroll" style="margin-top:18px"><table id="goodies"></table></div>
+          <div class="actions"><button class="btn" id="reset">Revenir aux valeurs de départ</button></div>
+        </details>
+      </div>
+
+  </div>
+  <p class="foot">EMMANUELLE JANE PARIS</p>
+</div>
+<div class="bar"><div><div class="v" id="barV">0,00 €</div><div class="l" id="barL">Ajoutez des cartons</div></div><button type="button" id="barBtn">Voir le détail</button></div>
+
+<script src="simulateur.js"></script>
+</body>
+</html>

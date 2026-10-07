@@ -12,6 +12,10 @@
 >
 > Recalcul : `python3 outils/rebuild_dashboard.py dashboard-netlify/data/ventes.js [--write]`
 > (avec `--write`, `ALL` est réécrit sur une seule ligne ; le dashboard fonctionne pareil).
+>
+> Ajouts depuis la récupération : charte du catalogue (`css/style.css`, `img/`), onglet « Devis & Factures »
+> (`js/documents.js`, qui recalcule les agrégats avec un portage JS exact de `rebuild_dashboard.py` — à garder
+> synchronisé si le script change) et onglet « Simulateur d'offres » (`simulateur-offres/`). Voir `README.md`.
 
 # Dashboard Emmanuelle Jane Paris — guide pour Claude
 

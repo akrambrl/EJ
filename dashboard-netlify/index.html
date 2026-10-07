@@ -2,15 +2,22 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CA — Tableau de bord</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau de bord · Emmanuelle Jane Paris</title>
+<link rel="icon" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="header">
-<h1>🎯 Tableau de bord — CA Emmanuelle Jane</h1>
-<p>Analyse complète des ventes avec calcul des bénéfices nets</p>
-</div>
+<header class="header">
+<img class="logo" src="img/logo.png" alt="Parfums Emmanuelle Jane Paris">
+<h1>Tableau de bord</h1>
+<p>Ventes, marges, stock et trésorerie</p>
+</header>
+<div class="page">
 
 <div class="year-switcher">
 <button class="year-btn" data-year="2025">📅 2025</button>
@@ -31,7 +38,7 @@
 <div class="kpi"><div class="kpi-label">Factures</div><div class="kpi-value" id="kpi-factures"></div></div>
 <div class="kpi"><div class="kpi-label">Clients</div><div class="kpi-value" id="kpi-clients"></div></div>
 </div>
-<div style="font-size:.78rem;color:#b8c5e0;margin:-8px 0 14px 4px">* Bénéfice produit = CA − prix de revient (coût de fabrication, testeurs offerts inclus) − coût des cadeaux offerts (sacs, mouillettes, catalogues, échantillons). ** Estimation des charges fixes + salaires par mois (hors rémunération du gérant), voir l'onglet "Charges fixes mensuelles" pour le détail.</div>
+<div style="font-size:.78rem;color:#76695C;margin:-8px 0 14px 4px">* Bénéfice produit = CA − prix de revient (coût de fabrication, testeurs offerts inclus) − coût des cadeaux offerts (sacs, mouillettes, catalogues, échantillons). ** Estimation des charges fixes + salaires par mois (hors rémunération du gérant), voir l'onglet "Charges fixes mensuelles" pour le détail.</div>
 
 <div class="tabs">
 <button class="tab active" data-tab="overview">📊 Vue d'ensemble</button>
@@ -51,6 +58,8 @@
 <button class="tab" data-tab="virements">💸 Virements en attente</button>
 <button class="tab" data-tab="chargesfixes">📌 Charges fixes mensuelles</button>
 <button class="tab" data-tab="inventaire">🧰 Inventaire</button>
+<button class="tab" data-tab="documents">🧾 Devis &amp; Factures</button>
+<button class="tab" data-tab="simulateur">🎯 Simulateur d'offres</button>
 </div>
 
 <div id="overview" class="section active">
@@ -151,13 +160,13 @@
 <h2 style="margin-top:26px">👥 Cadeaux cumulés par client</h2>
 <div class="info-box">💡 Clique sur un client pour voir le détail de tous les cadeaux (sacs, mouillettes, catalogues, 2ml, testeurs) reçus sur l'ensemble de ses factures.</div>
 <div style="display:grid;grid-template-columns:280px 1fr;gap:18px" id="cadeauxClientGrid">
-<div style="background:rgba(255,255,255,.03);border-radius:8px;padding:14px;max-height:600px;overflow-y:auto">
+<div style="background:rgba(28,24,20,.03);border-radius:8px;padding:14px;max-height:600px;overflow-y:auto">
 <input type="text" class="search-box" id="search-cadeaux-client" placeholder="🔍 Rechercher un client..." style="width:100%;margin-bottom:10px">
 <div id="cadeauxClientList"></div>
 </div>
 <div>
-<div id="cadeauxClientHeader" style="background:rgba(255,217,102,.08);border-left:4px solid #ffd966;padding:14px;border-radius:6px;margin-bottom:14px;min-height:80px">
-<div style="color:#b8c5e0;font-size:.9rem">Sélectionne un client à gauche pour voir le détail de ses cadeaux</div>
+<div id="cadeauxClientHeader" style="background:rgba(129,98,15,.08);border-left:4px solid #81620F;padding:14px;border-radius:6px;margin-bottom:14px;min-height:80px">
+<div style="color:#76695C;font-size:.9rem">Sélectionne un client à gauche pour voir le détail de ses cadeaux</div>
 </div>
 <table id="tableCadeauxClient">
 <thead><tr><th>Type de cadeau</th><th class="text-right">Quantité</th><th class="text-right">Coût (≈)</th></tr></thead>
@@ -171,16 +180,16 @@
 <h2>📈 Évolution du CA par Client (dans le temps)</h2>
 <div class="info-box">💡 Clique sur un client à gauche pour voir comment ses commandes ont évolué dans le temps. Tu verras tout de suite s'il est en croissance 📈 ou en baisse 📉.</div>
 <div style="display:grid;grid-template-columns:280px 1fr;gap:18px;@media(max-width:900px){grid-template-columns:1fr}" id="evolutionGrid">
-<div style="background:rgba(255,255,255,.03);border-radius:8px;padding:14px;max-height:600px;overflow-y:auto">
+<div style="background:rgba(28,24,20,.03);border-radius:8px;padding:14px;max-height:600px;overflow-y:auto">
 <input type="text" class="search-box" id="search-evo-client" placeholder="🔍 Rechercher un client..." style="width:100%;margin-bottom:10px">
 <div id="evoClientList"></div>
 </div>
 <div>
-<div id="evoSelectedHeader" style="background:rgba(255,217,102,.08);border-left:4px solid #ffd966;padding:14px;border-radius:6px;margin-bottom:14px;min-height:80px">
-<div style="color:#b8c5e0;font-size:.9rem">Sélectionne un client à gauche pour voir son évolution</div>
+<div id="evoSelectedHeader" style="background:rgba(129,98,15,.08);border-left:4px solid #81620F;padding:14px;border-radius:6px;margin-bottom:14px;min-height:80px">
+<div style="color:#76695C;font-size:.9rem">Sélectionne un client à gauche pour voir son évolution</div>
 </div>
 <div class="chart-container tall"><canvas id="chartEvoClient"></canvas></div>
-<h3 style="color:#ffd966;margin-bottom:10px">Détail des commandes</h3>
+<h3 style="color:#81620F;margin-bottom:10px">Détail des commandes</h3>
 <table id="tableEvoClient">
 <thead><tr><th>Date</th><th>Facture</th><th class="text-right">Btl</th><th class="text-right">CA</th><th class="text-right">Bénéfice</th><th class="text-right">Variation</th></tr></thead>
 <tbody></tbody>
@@ -193,7 +202,7 @@
 <h2>💰 Détail des prix de revient par collection</h2>
 <div class="info-box">💡 Tu trouveras ici le détail complet : composants physiques, main-d'œuvre, concentrés, coût total par bouteille et par carton vendu, ainsi que la marge réalisée au tarif standard.</div>
 <div class="controls">
-<label style="color:#b8c5e0;font-size:.9rem">Collection :</label>
+<label style="color:#76695C;font-size:.9rem">Collection :</label>
 <select id="costCollSelect">
 <option value="VIP">VIP</option>
 <option value="VIP BLACK">VIP BLACK</option>
@@ -217,12 +226,12 @@
 <h2>🛒 Simulation de commande</h2>
 <div class="info-box">💡 Saisis les quantités souhaitées (en <strong>bouteilles</strong>) pour chaque référence. Le système compare avec le stock actuel et te dit si la commande est <strong>faisable</strong> ou si tu dois <strong>produire</strong> avant. Tu peux aussi basculer en mode "cartons" pour saisir en cartons.</div>
 <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-  <button id="simReset" style="padding:9px 16px;background:#ef4444;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">🗑️ Tout effacer</button>
-  <label style="color:#b8c5e0;font-size:.9rem;display:flex;align-items:center;gap:6px;cursor:pointer">
+  <button id="simReset" style="padding:9px 16px;background:#B8433F;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">🗑️ Tout effacer</button>
+  <label style="color:#76695C;font-size:.9rem;display:flex;align-items:center;gap:6px;cursor:pointer">
     <input type="checkbox" id="simCartonMode" style="width:18px;height:18px;cursor:pointer">
     <span>Saisir en <strong>cartons</strong> (au lieu de bouteilles)</span>
   </label>
-  <label style="color:#b8c5e0;font-size:.9rem;display:flex;align-items:center;gap:6px;cursor:pointer">
+  <label style="color:#76695C;font-size:.9rem;display:flex;align-items:center;gap:6px;cursor:pointer">
     <input type="checkbox" id="simIncludeTester" checked style="width:18px;height:18px;cursor:pointer">
     <span>Inclure les <strong>testers</strong> dans la déduction stock</span>
   </label>
@@ -235,11 +244,11 @@
 <h2>🏭 Planification de production</h2>
 <div class="info-box">💡 Entre les quantités que tu veux produire pour chaque référence. Le système calcule automatiquement <strong>tout ce qu'il te faut commander</strong> : composants, concentrés, coûts et CA potentiel.</div>
 <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-<button id="prodFillStock" style="padding:9px 16px;background:#3b82f6;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">📦 Remplir pour atteindre 1000 btl/réf</button>
-<button id="prodClear" style="padding:9px 16px;background:rgba(239,68,68,.8);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">🗑️ Tout effacer</button>
-<button id="prodSave" style="padding:9px 16px;background:#10b981;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">💾 Sauver dans navigateur</button>
+<button id="prodFillStock" style="padding:9px 16px;background:#2F6FA8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">📦 Remplir pour atteindre 1000 btl/réf</button>
+<button id="prodClear" style="padding:9px 16px;background:rgba(184,67,63,.8);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">🗑️ Tout effacer</button>
+<button id="prodSave" style="padding:9px 16px;background:#2E7D4F;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">💾 Sauver dans navigateur</button>
 </div>
-<div id="prodSummary" style="background:rgba(255,217,102,.08);border-left:4px solid #ffd966;padding:16px;border-radius:8px;margin-bottom:18px;display:none"></div>
+<div id="prodSummary" style="background:rgba(129,98,15,.08);border-left:4px solid #81620F;padding:16px;border-radius:8px;margin-bottom:18px;display:none"></div>
 <div id="prodInputs"></div>
 <div id="prodNeeds"></div>
 </div>
@@ -251,7 +260,7 @@
 
 
 <!-- Tooltip flottant pour top 3 produits -->
-<div id="floatingTooltip" style="display:none;position:fixed;z-index:999;background:#1a2747;border:2px solid #ffd966;border-radius:8px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:300px;font-size:.85rem;pointer-events:none"></div>
+<div id="floatingTooltip" style="display:none;position:fixed;z-index:999;background:#FCF6EE;border:2px solid #81620F;border-radius:8px;padding:12px;box-shadow:0 8px 24px rgba(28,24,20,.18);max-width:300px;font-size:.85rem;pointer-events:none"></div>
 
 <div id="compare" class="section">
 <h2>⚖️ Comparaison 2025 vs 2026</h2>
@@ -309,7 +318,7 @@
 
 <div id="chargesfixes" class="section">
 <h2>📌 Charges fixes mensuelles (estimation)</h2>
-<div class="info-box">💡 Suivi manuel — ce que tu payes à peu près chaque mois. Dernière mise à jour : <strong id="chargesfixesUpdated"></strong>. <span style="color:#fca5a5">🟠 La rémunération du gérant (Boudjada Said) n'est volontairement PAS incluse : ses prélèvements sont irréguliers et il ne va plus en prendre pendant un moment.</span> L'Électricité/Gaz est basée sur la moyenne 2025 (mois par mois très variable, mais le pattern annuel se répète). Certains montants sont des moyennes récentes (Orange, Google Workspace, URSSAF, AG2R, salaires de Natali/Sabrina/Mounir) plutôt que des montants fixes exacts.</div>
+<div class="info-box">💡 Suivi manuel — ce que tu payes à peu près chaque mois. Dernière mise à jour : <strong id="chargesfixesUpdated"></strong>. <span style="color:#A33A35">🟠 La rémunération du gérant (Boudjada Said) n'est volontairement PAS incluse : ses prélèvements sont irréguliers et il ne va plus en prendre pendant un moment.</span> L'Électricité/Gaz est basée sur la moyenne 2025 (mois par mois très variable, mais le pattern annuel se répète). Certains montants sont des moyennes récentes (Orange, Google Workspace, URSSAF, AG2R, salaires de Natali/Sabrina/Mounir) plutôt que des montants fixes exacts.</div>
 <div class="kpis" id="chargesfixesKpis"></div>
 <h2>Charges fixes (hors salaires)</h2>
 <table>
@@ -331,6 +340,37 @@
 <div id="inventaireContent"></div>
 </div>
 
+
+<div id="documents" class="section">
+<h2>Devis, proformas &amp; factures</h2>
+<div class="info-box">Crée un devis, convertis-le en proforma puis en facture, et imprime-les en PDF. <strong>Seules les factures entrent dans les chiffres du dashboard</strong> (tous les totaux sont recalculés). Les documents sont enregistrés dans ce navigateur : utilise « Sauvegarder » régulièrement, et « Exporter data/ventes.js » pour rendre les nouvelles factures permanentes.</div>
+<div class="controls">
+<button class="doc-btn primary" data-act="new" data-type="devis">+ Nouveau devis</button>
+<button class="doc-btn primary" data-act="new" data-type="proforma">+ Nouvelle proforma</button>
+<button class="doc-btn primary" data-act="new" data-type="facture">+ Nouvelle facture</button>
+<select id="docFilter"><option value="all">Tous les documents</option><option value="devis">Devis</option><option value="proforma">Proformas</option><option value="facture">Factures</option></select>
+<input type="text" class="search-box" id="docSearch" placeholder="🔍 N°, client, pays…">
+</div>
+<div class="controls doc-tools">
+<button class="doc-btn" data-act="settings">Coordonnées de la société</button>
+<button class="doc-btn" data-act="backup">Sauvegarder (fichier)</button>
+<button class="doc-btn" data-act="restore">Restaurer une sauvegarde</button>
+<button class="doc-btn" data-act="export">Exporter data/ventes.js</button>
+<input type="file" id="docRestoreFile" accept=".json,application/json" hidden>
+</div>
+<p class="doc-sub" id="docStatus" style="margin-bottom:10px"></p>
+<div class="doc-table-wrap"><table>
+<thead><tr><th>Type</th><th>N°</th><th>Date</th><th>Client</th><th class="text-right">Total HT</th><th>Statut</th><th>Actions</th></tr></thead>
+<tbody id="docList"></tbody>
+</table></div>
+</div>
+
+<div id="simulateur" class="section">
+<h2>Simulateur d'offres</h2>
+<div class="info-box">Grille de remises et de cadeaux par palier de cartons. Les paliers réglés ici peuvent être appliqués à un devis avec le bouton « Appliquer la grille du simulateur d'offres ». <a href="simulateur-offres/index.html" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet</a></div>
+<iframe class="sim-frame" src="simulateur-offres/index.html" loading="lazy" title="Simulateur d'offres"></iframe>
+</div>
+
 <!-- Modal pour les détails de facture -->
 <div class="modal-overlay" id="modalOverlay">
 <div class="modal">
@@ -338,13 +378,13 @@
 <h2 id="modalTitle"></h2>
 <div class="modal-meta" id="modalMeta"></div>
 <div class="modal-summary" id="modalSummary"></div>
-<h3 style="color:#ffd966;margin-bottom:10px;margin-top:10px">Détail des lignes</h3>
+<h3 style="color:#81620F;margin-bottom:10px;margin-top:10px">Détail des lignes</h3>
 <table>
 <thead><tr><th>Collec.</th><th>Référence</th><th>Mode</th><th class="text-right">Cartons</th><th class="text-right">Btl</th><th class="text-right">Test.</th><th class="text-right">Prix u.</th><th class="text-right">CA</th><th class="text-right">Coût</th><th class="text-right">Bénéfice</th></tr></thead>
 <tbody id="modalLines"></tbody>
 </table>
 <div id="modalCadeauxWrap" style="display:none">
-<h3 style="color:#ffd966;margin-bottom:10px;margin-top:18px">🎁 Cadeaux offerts (hors CA)</h3>
+<h3 style="color:#81620F;margin-bottom:10px;margin-top:18px">🎁 Cadeaux offerts (hors CA)</h3>
 <table>
 <thead><tr><th>Article</th><th class="text-right">Quantité</th><th class="text-right">Coût (≈)</th></tr></thead>
 <tbody id="modalCadeaux"></tbody>
@@ -353,7 +393,36 @@
 </div>
 </div>
 
-<div class="footer">Tableau de bord généré pour Mounir — *ROYAL : prix de revient provisoire 4,50 €/btl, à affiner</div>
+
+<!-- Devis & factures : éditeur, aperçu, réglages -->
+<div class="modal-overlay" id="docEditor">
+<div class="modal doc-modal">
+<button class="modal-close" data-act="close">×</button>
+<h2 id="docEdTitle"></h2>
+<div id="docEdBody"></div>
+<div class="doc-row-actions doc-ed-foot"><button class="doc-btn" data-act="close">Annuler</button><button class="doc-btn" data-act="save">Enregistrer</button><button class="doc-btn primary" data-act="saveview">Enregistrer et voir le document</button></div>
+</div>
+</div>
+<div class="modal-overlay" id="docViewer">
+<div class="modal doc-modal">
+<button class="modal-close" data-act="vclose">×</button>
+<h2 id="docViewTitle"></h2>
+<div class="doc-row-actions"><button class="doc-btn primary" data-act="print">Imprimer / enregistrer en PDF</button></div>
+<div class="doc-paper" id="docPaper"></div>
+</div>
+</div>
+<div class="modal-overlay" id="docSettings">
+<div class="modal doc-modal">
+<button class="modal-close" data-act="sclose">×</button>
+<h2>Coordonnées de la société</h2>
+<p class="doc-sub" style="margin-bottom:14px">Elles apparaissent en en-tête et en pied de chaque document. Pense à renseigner l'IBAN.</p>
+<div id="docSetBody"></div>
+<div class="doc-row-actions doc-ed-foot"><button class="doc-btn" data-act="sclose">Annuler</button><button class="doc-btn primary" data-act="ssave">Enregistrer</button></div>
+</div>
+</div>
+
+<div class="footer">EMMANUELLE JANE PARIS<br>Tableau de bord généré pour Mounir — *ROYAL : prix de revient provisoire 4,50 €/btl, à affiner</div>
+</div><!-- /.page -->
 
 <script src="data/ventes.js"></script>
 <script src="data/charges.js"></script>
@@ -363,5 +432,7 @@
 <script src="data/charges-fixes.js"></script>
 <script src="data/inventaire.js"></script>
 <script src="js/app.js"></script>
+<script src="js/documents.js"></script>
+<div id="docPrint"></div>
 </body>
 </html>

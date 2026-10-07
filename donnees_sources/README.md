@@ -14,6 +14,7 @@ Le guide d'origine est dans [`dashboard-netlify/CLAUDE.md`](../dashboard-netlify
 | `FACTURES_DUBAI.md` | Contrepartie Dubaï (NB…) des factures NB Evolution, au prix plein, avec correspondance vers les n° EJ | voir écart n° 1 |
 | `CATALOGUE_REFERENCES.md` | Orthographe officielle des références par collection | noms des `lines[].reference` |
 | `Recap_Charges_2026.xlsx` | Relevé BRED 2026 (02/01 → 10/07/2026) classé par catégorie | `dashboard-netlify/data/charges.js` 2026 |
+| `Catalogue_EJ.pdf` | Catalogue commercial (40 pages, Gotham / Proxima Nova, crème / or / noir) | Références : voir « Catalogue vs dashboard » ; charte reprise par le dashboard |
 | `LISEZ-MOI.txt` | Mode d'emploi du dossier d'origine | — |
 
 ## Écarts constatés (07/10/2026) — non corrigés
@@ -34,3 +35,21 @@ Le guide d'origine est dans [`dashboard-netlify/CLAUDE.md`](../dashboard-netlify
 5. **Charges 2026** : 3 catégories diffèrent légèrement entre `Recap_Charges_2026.xlsx` et le
    dashboard (Voyages −10 275,06 € / −11 235,15 € ; Téléphone −7 501,73 € / −7 509,72 € ;
    Fournitures −3 670,72 € / −3 677,71 €), probablement des opérations reclassées.
+
+## Catalogue vs dashboard (07/10/2026)
+
+Les **54 références** du catalogue (VIP 14, VIP Black 90 ml 11, VIP Black 50 ml 8, Brumes 15, Royal 6)
+sont toutes présentes dans le dashboard. Seules l'orthographe diffère (le dashboard suit `CATALOGUE_REFERENCES.md`,
+qu'il ne faut pas changer sans tout renommer, sinon doublons) :
+
+| Collection | Catalogue PDF | Dashboard / CATALOGUE_REFERENCES.md |
+|---|---|---|
+| BRUMES | Butterfly **Garden** | Butterfly **Bloom** |
+| BRUMES | Rose **Petals** | Rose **Pétale** |
+| VIP BLACK | Cœur de **Sablé** | Cœur de **Sable** |
+| VIP | Élixir | Elixir |
+| VIP BLACK | Eclat Vert | Éclat Vert |
+| 50ML | Vetiver | Vétiver |
+
+Le catalogue appelle la collection 50ML « VIP Black 50 ml ». La seule « référence » en plus dans le dashboard
+est « Lot de brumes (vente en lot) » (facture EJ2026030), qui n'est pas un produit.
