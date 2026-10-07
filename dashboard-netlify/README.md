@@ -59,3 +59,11 @@ Vérifié : dans chaque vue, la somme des clients, pays, mois, références, col
 - **Enregistrement** : dans le navigateur (`localStorage`, clés `ej_documents_v1` et `ej_documents_settings_v2`).
   « Sauvegarder » télécharge une copie ; « Exporter les données » produit `ventes.js` (et `intragroupe.js` s'il y a de nouvelles
   ventes BSD → NB) à remettre dans `data/` pour rendre les nouvelles factures permanentes (puis vérifier avec le script).
+
+## Mettre en ligne sur Netlify
+
+```bash
+python3 outils/construire_netlify.py        # crée netlify-deploy/index.html (un seul fichier, tout intégré)
+```
+Glisser le dossier `netlify-deploy/` (ou un ZIP de `index.html`) sur https://app.netlify.com/drop.
+Le fichier contient toutes les données confidentielles : activer une protection par mot de passe sur le site.
