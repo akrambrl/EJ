@@ -16,6 +16,11 @@
 > Ajouts depuis la récupération : charte du catalogue (`css/style.css`, `img/`), onglet « Devis & Factures »
 > (`js/documents.js`, qui recalcule les agrégats avec un portage JS exact de `rebuild_dashboard.py` — à garder
 > synchronisé si le script change) et onglet « Simulateur d'offres » (`simulateur-offres/`). Voir `README.md`.
+>
+> **Deux sociétés** : BSD (France, factures EJ…) et NB Evolution (Dubaï, factures NB…). `ALL` = vue **Groupe**
+> (consolidée, sans les ventes internes BSD → NB). Les factures BSD → NB sont dans `data/intragroupe.js`
+> (régénérable : `python3 outils/construire_intragroupe.py`). Les vues BSD et NB sont calculées par `js/societes.js`.
+> Les testeurs à 1 € sur les factures sont une valeur douane annulée par la remise : ne pas les compter en CA.
 
 # Dashboard Emmanuelle Jane Paris — guide pour Claude
 

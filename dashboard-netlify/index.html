@@ -19,6 +19,12 @@
 </header>
 <div class="page">
 
+<div class="soc-switcher" role="group" aria-label="Société">
+<button class="soc-btn active" data-soc="groupe">Groupe</button>
+<button class="soc-btn" data-soc="BSD">BSD · France</button>
+<button class="soc-btn" data-soc="NB">NB Evolution · Dubaï</button>
+</div>
+<p class="soc-note" id="socNote"></p>
 <div class="year-switcher">
 <button class="year-btn" data-year="2025">📅 2025</button>
 <button class="year-btn" data-year="2026">📅 2026</button>
@@ -343,24 +349,26 @@
 
 <div id="documents" class="section">
 <h2>Devis, proformas &amp; factures</h2>
-<div class="info-box">Crée un devis, convertis-le en proforma puis en facture, et imprime-les en PDF. <strong>Seules les factures entrent dans les chiffres du dashboard</strong> (tous les totaux sont recalculés). Les documents sont enregistrés dans ce navigateur : utilise « Sauvegarder » régulièrement, et « Exporter data/ventes.js » pour rendre les nouvelles factures permanentes.</div>
+<div class="info-box">Crée un devis, convertis-le en proforma puis en facture, et imprime-les en PDF. <strong>Seules les factures entrent dans les chiffres du dashboard</strong> (tous les totaux sont recalculés). Factures BSD et NB Evolution ; les ventes de BSD à NB Evolution sont comptées dans la vue BSD mais pas dans la vue Groupe. Les testeurs sont valorisés pour la douane puis déduits automatiquement. Les documents sont enregistrés dans ce navigateur : utilise « Sauvegarder » régulièrement, et « Exporter les données » pour rendre les nouvelles factures permanentes.</div>
 <div class="controls">
+<label class="doc-inline">Société <select id="docNewSoc"><option value="BSD">BSD · France</option><option value="NB">NB Evolution · Dubaï</option></select></label>
 <button class="doc-btn primary" data-act="new" data-type="devis">+ Nouveau devis</button>
 <button class="doc-btn primary" data-act="new" data-type="proforma">+ Nouvelle proforma</button>
 <button class="doc-btn primary" data-act="new" data-type="facture">+ Nouvelle facture</button>
+<select id="docFilterSoc"><option value="all">Les 2 sociétés</option><option value="BSD">BSD</option><option value="NB">NB Evolution</option></select>
 <select id="docFilter"><option value="all">Tous les documents</option><option value="devis">Devis</option><option value="proforma">Proformas</option><option value="facture">Factures</option></select>
 <input type="text" class="search-box" id="docSearch" placeholder="🔍 N°, client, pays…">
 </div>
 <div class="controls doc-tools">
-<button class="doc-btn" data-act="settings">Coordonnées de la société</button>
+<button class="doc-btn" data-act="settings">Coordonnées des sociétés</button>
 <button class="doc-btn" data-act="backup">Sauvegarder (fichier)</button>
 <button class="doc-btn" data-act="restore">Restaurer une sauvegarde</button>
-<button class="doc-btn" data-act="export">Exporter data/ventes.js</button>
+<button class="doc-btn" data-act="export">Exporter les données</button>
 <input type="file" id="docRestoreFile" accept=".json,application/json" hidden>
 </div>
 <p class="doc-sub" id="docStatus" style="margin-bottom:10px"></p>
 <div class="doc-table-wrap"><table>
-<thead><tr><th>Type</th><th>N°</th><th>Date</th><th>Client</th><th class="text-right">Total HT</th><th>Statut</th><th>Actions</th></tr></thead>
+<thead><tr><th>Société</th><th>Type</th><th>N°</th><th>Date</th><th>Client</th><th class="text-right">Total HT</th><th>Statut</th><th>Actions</th></tr></thead>
 <tbody id="docList"></tbody>
 </table></div>
 </div>
@@ -414,7 +422,7 @@
 <div class="modal-overlay" id="docSettings">
 <div class="modal doc-modal">
 <button class="modal-close" data-act="sclose">×</button>
-<h2>Coordonnées de la société</h2>
+<h2>Coordonnées des sociétés</h2>
 <p class="doc-sub" style="margin-bottom:14px">Elles apparaissent en en-tête et en pied de chaque document. Pense à renseigner l'IBAN.</p>
 <div id="docSetBody"></div>
 <div class="doc-row-actions doc-ed-foot"><button class="doc-btn" data-act="sclose">Annuler</button><button class="doc-btn primary" data-act="ssave">Enregistrer</button></div>
@@ -431,7 +439,11 @@
 <script src="data/virements-en-attente.js"></script>
 <script src="data/charges-fixes.js"></script>
 <script src="data/inventaire.js"></script>
+<script src="data/intragroupe.js"></script>
+<script src="data/depenses-nb.js"></script>
 <script src="js/app.js"></script>
+<script src="js/rebuild.js"></script>
+<script src="js/societes.js"></script>
 <script src="js/documents.js"></script>
 <div id="docPrint"></div>
 </body>

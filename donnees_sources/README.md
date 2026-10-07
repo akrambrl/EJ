@@ -15,11 +15,14 @@ Le guide d'origine est dans [`dashboard-netlify/CLAUDE.md`](../dashboard-netlify
 | `CATALOGUE_REFERENCES.md` | Orthographe officielle des références par collection | noms des `lines[].reference` |
 | `Recap_Charges_2026.xlsx` | Relevé BRED 2026 (02/01 → 10/07/2026) classé par catégorie | `dashboard-netlify/data/charges.js` 2026 |
 | `Catalogue_EJ.pdf` | Catalogue commercial (40 pages, Gotham / Proxima Nova, crème / or / noir) | Références : voir « Catalogue vs dashboard » ; charte reprise par le dashboard |
+| `modeles_factures/` | Factures réelles servant de modèle : BSD EJ2026029 (Arzum), proforma NB2026012 (Oud House) | Mise en page, coordonnées, banques et codes EAN des documents |
 | `LISEZ-MOI.txt` | Mode d'emploi du dossier d'origine | — |
 
 ## Écarts constatés (07/10/2026) — non corrigés
 
-1. **Factures NB Evolution au prix plein Dubaï.** Pour 18 commandes NB Evolution, le dashboard
+1. **[Expliqué]** Ce n'est pas une erreur : le dashboard est la vue consolidée du groupe (BSD + NB Evolution).
+   Les factures EJ du registre sont les ventes internes BSD → NB, désormais dans `dashboard-netlify/data/intragroupe.js`
+   (vue BSD). Détail d'origine : **Factures NB Evolution au prix plein Dubaï.** Pour 18 commandes NB Evolution, le dashboard
    contient la version Dubaï (n° `NB…`, prix plein) au lieu de la version EJ du registre (n° `EJ…`,
    prix négocié −10 % à −18 %). Écart cumulé : **+224 753,60 € de CA** dans le dashboard
    (1 616 840,60 € contre 1 392 087,00 €). Le `CLAUDE.md` d'origine indique pourtant que
@@ -53,3 +56,13 @@ qu'il ne faut pas changer sans tout renommer, sinon doublons) :
 
 Le catalogue appelle la collection 50ML « VIP Black 50 ml ». La seule « référence » en plus dans le dashboard
 est « Lot de brumes (vente en lot) » (facture EJ2026030), qui n'est pas un produit.
+
+## Points relevés sur les factures modèles (07/10/2026)
+
+- **EAN Caramelia** : la proforma NB2026012 indique 3 760 120 372 826, qui n'est pas un EAN-13 valide (clé de
+  contrôle). Le bon code est probablement 3 760 120 372 **9**26 — à vérifier avant de le saisir.
+- **N° TVA de BSD** : la facture EJ2026029 indique « FR4953270768400025 » (SIRET complet). Le format officiel est
+  **FR49532707684** (clé + SIREN), utilisé dans les documents du dashboard.
+- **Testeurs BRUMES de la proforma NB2026012** : 15 références × 3 cartons, mais 42 testeurs comptés (45 attendus).
+- **50 ml** : facturé 10 flacons à 130 € le carton sur EJ2026029, contre 11 flacons à 143 € dans les règles tarifaires
+  (le nombre de flacons par carton est modifiable sur chaque ligne).
