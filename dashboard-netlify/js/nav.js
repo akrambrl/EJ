@@ -17,6 +17,8 @@
     const nav = document.querySelector('.nav');
     if(nav && (window.innerWidth < 700 || nav.getBoundingClientRect().top < 0)) window.scrollTo({top:nav.offsetTop - 4});
   }));
+  // Redessine les graphiques une fois les polices (Cormorant, Montserrat) chargées.
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if(typeof renderAll === 'function') renderAll(); });
   const active = document.querySelector('.tab.active[data-group]');
   show(active ? active.dataset.group : 'ventes');
 })();

@@ -18,6 +18,7 @@ function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[i
 Chart.defaults.color = '#F2E8D8';
 Chart.defaults.borderColor = 'rgba(242,232,216,.1)';
 Chart.defaults.font.family = "Montserrat, 'Helvetica Neue', Arial, sans-serif";
+Chart.defaults.plugins.title.font = {family:"'Cormorant Garamond', Georgia, serif", size:19, weight:'500'};
 const PALETTE = ['#c98500','#3987e5','#d95926','#199e70','#9085e9','#d55181','#008300','#e66767','#8a5c00','#245a9c','#93401b','#11694b','#5f57a3','#93385a']; // thème sombre : 8 teintes validées (fond #15120F) + 6 teintes foncées
 
 function renderKpis(){
@@ -58,13 +59,13 @@ function renderOverview(){
   charts.chartCollections = new Chart(document.getElementById('chartCollections'),{
     type:'doughnut',
     data:{labels:d.collections.map(c=>c.collection),datasets:[{data:d.collections.map(c=>c.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#15120F'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Collection',font:{size:14},color:'#C9A456'},legend:{position:'right'}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Collection',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:'#C9A456'},legend:{position:'right'}}}
   });
   destroyChart('chartPays');
   charts.chartPays = new Chart(document.getElementById('chartPays'),{
     type:'doughnut',
     data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#15120F'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays',font:{size:14},color:'#C9A456'},legend:{position:'right'}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:'#C9A456'},legend:{position:'right'}}}
   });
   destroyChart('chartMois');
   charts.chartMois = new Chart(document.getElementById('chartMois'),{
@@ -73,7 +74,7 @@ function renderOverview(){
       {label:'CA (€)',data:d.mois.map(m=>m.ca),backgroundColor:'#C9A456',borderRadius:6},
       {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),backgroundColor:'#7CC796',borderRadius:6}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA & Bénéfice mensuel',font:{size:14},color:'#C9A456'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA & Bénéfice mensuel',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:'#C9A456'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   // Podium
   const podium = document.getElementById('podium');
@@ -199,7 +200,7 @@ function renderRefs(){
   charts.chartTopRefs = new Chart(document.getElementById('chartTopRefs'),{
     type:'bar',
     data:{labels:top15.map(r=>r.reference),datasets:[{label:'Bouteilles vendues',data:top15.map(r=>r.btl),backgroundColor:'#C9A456',borderRadius:4}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Top 15 références (par bouteilles vendues)',font:{size:14},color:'#C9A456'},legend:{display:false}}}
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Top 15 références (par bouteilles vendues)',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:'#C9A456'},legend:{display:false}}}
   });
   filterRefs();
 }

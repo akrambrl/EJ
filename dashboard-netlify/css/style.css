@@ -299,3 +299,96 @@ body{background:var(--paper)}
 .brand .logo{filter:brightness(1.35) saturate(1.1)}
 .sim-frame{border-color:var(--line)}
 a{color:var(--gold)}
+
+/* ===================== Style maison de parfum ===================== */
+:root{
+  --serif:"Cormorant Garamond","Didot","Bodoni 72",Georgia,serif;
+  --gold-grad:linear-gradient(135deg,#F6E3A8 0%,#D9B866 38%,#B8913F 62%,#E9CF85 100%);
+  --hair:rgba(201,164,86,.28);
+}
+body{background:radial-gradient(1200px 600px at 85% -10%,rgba(201,164,86,.10),transparent 60%),radial-gradient(900px 500px at -10% 30%,rgba(201,164,86,.05),transparent 60%),#0B0A09;background-attachment:fixed;font-weight:400}
+
+/* En-tête sur marbre noir */
+.topbar{max-width:none;margin:0;padding:34px max(24px,calc((100vw - 1400px)/2 + 24px)) 30px;position:relative;
+  background:linear-gradient(90deg,rgba(11,10,9,.94) 0%,rgba(11,10,9,.72) 45%,rgba(11,10,9,.35) 100%),url(../img/marbre.jpg) right center/cover no-repeat;
+  border-bottom:1px solid var(--hair)}
+.topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,#C9A456 30%,#F2D995 50%,#C9A456 70%,transparent)}
+.brand{gap:20px}
+.brand .logo{width:74px}
+.brand-txt{gap:4px}
+.brand-sub{order:-1;font-size:.62rem;letter-spacing:.38em;color:var(--gold)}
+.brand-name{font-family:var(--serif);font-size:2.3rem;font-weight:400;letter-spacing:.04em;text-transform:none;color:#F6EEDF;line-height:1}
+.seg{background:rgba(11,10,9,.55);border-color:var(--hair);backdrop-filter:blur(6px)}
+.seg button{font-size:.66rem;letter-spacing:.18em;color:#CDBFA8}
+.seg button + button{border-left-color:var(--hair)}
+.seg button.active{background:var(--gold-grad);color:#14110D}
+
+/* Indicateurs : chiffres en capitales élégantes et dorées */
+.kpis-top{margin-top:26px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.kpis-top .kpi{border-left-color:var(--hair);padding:20px 16px}
+.kpi-label{letter-spacing:.2em;font-size:.6rem}
+.kpis-top .kpi-value,.kpis-top .kpi-value.big{font-family:var(--serif);font-size:1.75rem;font-weight:500;letter-spacing:.01em;font-variant-numeric:lining-nums tabular-nums;line-height:1.1}
+.kpis-top .kpi-main .kpi-value{background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:2.05rem}
+.kpi-value{font-variant-numeric:lining-nums tabular-nums}
+.kpis:not(.kpis-top) .kpi,div[style*="repeat(auto-fit"] > .kpi{background:linear-gradient(180deg,rgba(201,164,86,.06),rgba(201,164,86,0) 60%),var(--surface);border-color:var(--hair)}
+.kpis:not(.kpis-top) .kpi-value,div[style*="repeat(auto-fit"] > .kpi .kpi-value{font-family:var(--serif);font-size:1.5rem;font-weight:500}
+
+.notes summary{letter-spacing:.14em;text-transform:uppercase;font-size:.6rem;color:var(--gold)}
+.notes summary::before{content:"◆  ";font-size:.5rem;vertical-align:middle}
+.notes[open] summary::before{content:"◇  "}
+
+/* Navigation */
+.nav{background:rgba(11,10,9,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--hair)}
+.nav-groups{gap:28px}
+.nav-group{font-family:var(--serif);font-size:1.15rem;font-weight:500;letter-spacing:.06em;text-transform:none;color:#8F8476}
+.nav-group.active{color:#F6EEDF;font-style:italic}
+.tab{font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;font-weight:500}
+.tab.active{color:var(--gold);border-bottom:1px solid var(--gold)}
+
+/* Titres de sections : serif, filet doré dégradé, losange */
+.section h2{font-family:var(--serif);font-size:1.7rem;font-weight:400;letter-spacing:.02em;text-transform:none;color:#F6EEDF;margin:10px 0 18px;gap:18px}
+.section h2::before{content:"◆";font-size:.55rem;color:var(--gold);order:-1}
+.section h2::after{background:linear-gradient(90deg,var(--gold),transparent);opacity:.7}
+.section h3,.doc-h3{font-family:var(--serif);font-size:1.2rem;font-weight:500;letter-spacing:.02em;text-transform:none}
+.modal h2{font-family:var(--serif);font-size:1.7rem;font-weight:400;letter-spacing:.02em;text-transform:none}
+
+/* Cadres, graphiques et tableaux plus légers */
+.chart-container{background:linear-gradient(180deg,rgba(201,164,86,.05),transparent 40%),var(--surface);border:1px solid var(--hair)}
+table{background:transparent;border:none;border-top:1px solid var(--hair)}
+th{background:transparent;color:var(--gold);border-bottom:1px solid var(--gold);font-size:.62rem;letter-spacing:.2em;font-weight:600}
+td{border-bottom:1px solid rgba(201,164,86,.12)}
+tr.clickable:hover td{background:rgba(201,164,86,.07)}
+.info-box{background:linear-gradient(90deg,rgba(201,164,86,.09),rgba(201,164,86,.02));border-left:1px solid var(--gold)}
+.warning-box{border-left-width:1px}
+.alert-success{border-left-width:1px}
+.badge{border-radius:0;font-size:.6rem;letter-spacing:.16em}
+.podium-step{background:var(--surface);border-color:var(--hair)}
+.podium-name{font-family:var(--serif);font-size:1.15rem;font-weight:500}
+.podium-amount{font-family:var(--serif);font-size:1.05rem}
+.doc-btn{border-color:var(--hair);color:#E9DCC6;letter-spacing:.16em}
+.doc-btn:hover{border-color:var(--gold);color:var(--gold);background:transparent}
+.doc-btn.primary{background:var(--gold-grad);border:none;color:#14110D}
+.doc-btn.primary:hover{filter:brightness(1.08);color:#14110D}
+.doc-totals{background:var(--surface);border-color:var(--hair)}
+.doc-totals .kv.strong{font-family:var(--serif);font-size:1.35rem;font-weight:600;border-bottom-color:var(--gold)}
+.modal{background:#100E0C;border:1px solid var(--hair);box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 0 1px rgba(201,164,86,.08) inset}
+.search-box,select,.doc-modal input,.doc-modal select,.doc-modal textarea{background:#110F0D;border-color:var(--hair)}
+.footer{font-family:var(--serif);font-size:.95rem;letter-spacing:.3em;color:#7E7366;border-top:1px solid var(--hair)}
+
+@media(max-width:700px){
+  .topbar{padding:22px 16px 18px;background-position:70% center}
+  .brand .logo{width:52px}
+  .brand-name{font-size:1.7rem}
+  .brand-sub{font-size:.55rem;letter-spacing:.28em}
+  .kpis-top{margin-top:14px}
+  .kpis-top .kpi-value,.kpis-top .kpi-value.big{font-size:1.4rem}
+  .kpis-top .kpi:first-child .kpi-value{font-size:1.75rem}
+  .nav-groups{gap:0}
+  .nav-group{font-size:1rem;letter-spacing:.02em}
+  .tab{font-size:.62rem;letter-spacing:.12em}
+  .section h2{font-size:1.35rem}
+  .section h2::after{display:block}
+}
+.kpis-top{grid-template-columns:1.7fr repeat(6,minmax(0,1fr))}
+@media(max-width:1100px){.kpis-top{grid-template-columns:repeat(4,minmax(0,1fr))}.kpis-top .kpi-main{grid-column:span 2}}
+@media(max-width:700px){.kpis-top .kpi-main{grid-column:auto}}

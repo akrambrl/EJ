@@ -17,7 +17,7 @@ Lancer en local : `cd dashboard-netlify && python3 -m http.server 8000` puis htt
 | `data/intragroupe.js` | 18 factures BSD → NB Evolution (ventes internes), générées par `outils/construire_intragroupe.py` |
 | `data/depenses-nb.js` | Dépenses de NB Evolution (vide pour l'instant, même format que celles de BSD) |
 | `simulateur-offres/` | Simulateur d'offres (paliers de remise et cadeaux), affiché dans son onglet |
-| `img/` | Logo |
+| `img/` | Logo et marbre noir (visuels VIP Black du catalogue) |
 | `data/ventes.js` | `ALL` : ventes 2025 / 2026 / total, prix de revient, stock |
 | `data/charges.js` | `CHARGES_DATA` : charges par fournisseur et par mois |
 | `data/revenus.js` | `REVENUE_DATA` : revenus par source et par mois |
