@@ -59,19 +59,13 @@ Pour ne pas avoir à confirmer l'email à chaque compte :
 
 ## Étape 5 — Coller les clés dans l'outil
 
-Dans le fichier `index.html`, repère tout en haut (dans le `<head>`) la ligne :
+Ouvre le fichier `js/config.js` et remplace les deux valeurs en haut par les tiennes, par exemple :
 
-```html
-<script>window.EJ_CONFIG = { SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };</script>
-```
-
-Remplace par tes valeurs, par exemple :
-
-```html
-<script>window.EJ_CONFIG = {
+```js
+window.EJ_CONFIG = {
   SUPABASE_URL: "https://abcd1234.supabase.co",
-  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsIn..."
-};</script>
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsIn...",
+  ...
 ```
 
 Enregistre / pousse → Vercel redéploie. **Un écran de connexion apparaît** : clique
