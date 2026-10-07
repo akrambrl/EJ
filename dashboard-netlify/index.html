@@ -12,61 +12,39 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<header class="header">
-<img class="logo" src="img/logo.png" alt="Parfums Emmanuelle Jane Paris">
-<h1>Tableau de bord</h1>
-<p>Ventes, marges, stock et trésorerie</p>
+<header class="topbar">
+<div class="brand"><img class="logo" src="img/logo.png" alt="Parfums Emmanuelle Jane Paris"><div class="brand-txt"><span class="brand-name">Tableau de bord</span><span class="brand-sub">Emmanuelle Jane Paris</span></div></div>
+<div class="filters">
+<div class="seg soc-switcher" role="group" aria-label="Société">
+<button class="soc-btn active" data-soc="groupe">Groupe</button><button class="soc-btn" data-soc="BSD">BSD</button><button class="soc-btn" data-soc="NB">NB Evolution</button>
+</div>
+<div class="seg year-switcher" role="group" aria-label="Année">
+<button class="year-btn" data-year="2025">2025</button><button class="year-btn" data-year="2026">2026</button><button class="year-btn active" data-year="total">Total</button>
+</div>
+</div>
 </header>
 <div class="page">
 
-<div class="soc-switcher" role="group" aria-label="Société">
-<button class="soc-btn active" data-soc="groupe">Groupe</button>
-<button class="soc-btn" data-soc="BSD">BSD · France</button>
-<button class="soc-btn" data-soc="NB">NB Evolution · Dubaï</button>
-</div>
-<p class="soc-note" id="socNote"></p>
-<div class="year-switcher">
-<button class="year-btn" data-year="2025">📅 2025</button>
-<button class="year-btn" data-year="2026">📅 2026</button>
-<button class="year-btn active" data-year="total">🌍 Total (2025 + 2026)</button>
-</div>
-
-<div class="warning-box" id="royalWarning">
-ℹ️ <strong>Note</strong> : Le prix de revient de la collection <strong>ROYAL</strong> est provisoirement fixé à <strong>4,50 €/bouteille</strong> (à affiner). Les bénéfices ROYAL affichés sont donc indicatifs.
-</div>
-
-<div class="kpis">
-<div class="kpi"><div class="kpi-label">Chiffre d'Affaires</div><div class="kpi-value big" id="kpi-ca"></div></div>
-<div class="kpi"><div class="kpi-label">Bénéfice produit (net)*</div><div class="kpi-value big" id="kpi-benefice-produit"></div></div>
-<div class="kpi danger"><div class="kpi-label">Charges fixes mensuelles**</div><div class="kpi-value big" id="kpi-charges-fixes-mensuelles"></div></div>
+<div class="kpis kpis-top">
+<div class="kpi kpi-main"><div class="kpi-label">Chiffre d'affaires</div><div class="kpi-value big" id="kpi-ca"></div></div>
+<div class="kpi"><div class="kpi-label">Bénéfice produit*</div><div class="kpi-value big" id="kpi-benefice-produit"></div></div>
+<div class="kpi danger"><div class="kpi-label">Charges fixes / mois**</div><div class="kpi-value big" id="kpi-charges-fixes-mensuelles"></div></div>
 <div class="kpi"><div class="kpi-label">Bouteilles vendues</div><div class="kpi-value" id="kpi-btl"></div></div>
-<div class="kpi"><div class="kpi-label">Testers offerts</div><div class="kpi-value" id="kpi-testers"></div></div>
+<div class="kpi"><div class="kpi-label">Testeurs offerts</div><div class="kpi-value" id="kpi-testers"></div></div>
 <div class="kpi"><div class="kpi-label">Factures</div><div class="kpi-value" id="kpi-factures"></div></div>
 <div class="kpi"><div class="kpi-label">Clients</div><div class="kpi-value" id="kpi-clients"></div></div>
 </div>
-<div style="font-size:.78rem;color:#76695C;margin:-8px 0 14px 4px">* Bénéfice produit = CA − prix de revient (coût de fabrication, testeurs offerts inclus) − coût des cadeaux offerts (sacs, mouillettes, catalogues, échantillons). ** Estimation des charges fixes + salaires par mois (hors rémunération du gérant), voir l'onglet "Charges fixes mensuelles" pour le détail.</div>
+<details class="notes">
+<summary>Notes de calcul</summary>
+<p id="socNote" class="soc-note"></p>
+<p>* Bénéfice produit = CA − prix de revient (coût de fabrication, testeurs offerts inclus) − coût des cadeaux offerts (sacs, mouillettes, catalogues, échantillons). ** Estimation des charges fixes + salaires par mois (hors rémunération du gérant), voir l'onglet "Charges fixes mensuelles" pour le détail.</p>
+<p>Le prix de revient de la collection ROYAL est provisoirement fixé à 4,50 € la bouteille (à affiner) : les bénéfices ROYAL sont indicatifs.</p>
+</details>
 
-<div class="tabs">
-<button class="tab active" data-tab="overview">📊 Vue d'ensemble</button>
-<button class="tab" data-tab="clients">👥 Clients</button>
-<button class="tab" data-tab="pays">🌍 Pays</button>
-<button class="tab" data-tab="mois">📅 Mois</button>
-<button class="tab" data-tab="refs">🌹 Références</button>
-<button class="tab" data-tab="factures">📄 Factures</button>
-<button class="tab" data-tab="cadeaux">🎁 Cadeaux offerts</button>
-<button class="tab" data-tab="evolution">📈 Évolution Clients</button>
-<button class="tab" data-tab="costs">💰 Prix de Revient</button>
-<button class="tab" data-tab="stock">📦 Stock</button>
-<button class="tab" data-tab="simulation">🛒 Simulation commande</button>
-<button class="tab" data-tab="production">🏭 Production</button>
-<button class="tab" data-tab="compare">⚖️ Compare 25 vs 26</button>
-<button class="tab" data-tab="fournisseurs">🧾 Factures fournisseurs</button>
-<button class="tab" data-tab="virements">💸 Virements en attente</button>
-<button class="tab" data-tab="chargesfixes">📌 Charges fixes mensuelles</button>
-<button class="tab" data-tab="inventaire">🧰 Inventaire</button>
-<button class="tab" data-tab="documents">🧾 Devis &amp; Factures</button>
-<button class="tab" data-tab="simulateur">🎯 Simulateur d'offres</button>
-</div>
+<nav class="nav" aria-label="Rubriques">
+<div class="nav-groups"><button class="nav-group active" data-group="ventes">Ventes</button><button class="nav-group" data-group="produits">Produits</button><button class="nav-group" data-group="finances">Finances</button><button class="nav-group" data-group="commercial">Commercial</button></div>
+<div class="tabs"><button class="tab active" data-tab="overview" data-group="ventes">Vue d'ensemble</button><button class="tab" data-tab="clients" data-group="ventes">Clients</button><button class="tab" data-tab="pays" data-group="ventes">Pays</button><button class="tab" data-tab="mois" data-group="ventes">Mois</button><button class="tab" data-tab="refs" data-group="ventes">Références</button><button class="tab" data-tab="factures" data-group="ventes">Factures</button><button class="tab" data-tab="evolution" data-group="ventes">Évolution clients</button><button class="tab" data-tab="compare" data-group="ventes">2025 vs 2026</button><button class="tab" data-tab="stock" data-group="produits">Stock</button><button class="tab" data-tab="costs" data-group="produits">Prix de revient</button><button class="tab" data-tab="production" data-group="produits">Production</button><button class="tab" data-tab="inventaire" data-group="produits">Inventaire</button><button class="tab" data-tab="cadeaux" data-group="produits">Cadeaux offerts</button><button class="tab" data-tab="fournisseurs" data-group="finances">Factures fournisseurs</button><button class="tab" data-tab="virements" data-group="finances">Virements attendus</button><button class="tab" data-tab="chargesfixes" data-group="finances">Charges fixes</button><button class="tab" data-tab="documents" data-group="commercial">Devis &amp; factures</button><button class="tab" data-tab="simulateur" data-group="commercial">Simulateur d'offres</button><button class="tab" data-tab="simulation" data-group="commercial">Simulation commande</button></div>
+</nav>
 
 <div id="overview" class="section active">
 <h2>Vue d'ensemble</h2>
@@ -75,12 +53,12 @@
 <div class="chart-container"><canvas id="chartPays"></canvas></div>
 </div>
 <div class="chart-container tall"><canvas id="chartMois"></canvas></div>
-<h2>🏆 Podium des Clients</h2>
+<h2>Podium des clients</h2>
 <div class="podium" id="podium"></div>
 </div>
 
 <div id="clients" class="section">
-<h2>Tous les clients (triés par CA)</h2>
+<h2>Tous les clients</h2>
 <div class="info-box">💡 Clique sur une ligne pour voir le détail des factures du client</div>
 <div class="controls">
 <input type="text" class="search-box" id="search-client" placeholder="🔍 Rechercher...">
@@ -92,7 +70,7 @@
 </div>
 
 <div id="pays" class="section">
-<h2>Analyse par Pays (avec séparation des clients)</h2>
+<h2>Analyse par pays</h2>
 <div class="info-box">💡 Le tableau ci-dessous affiche chaque <strong>couple Pays — Client</strong> séparément (les 2 clients irakiens apparaissent distinctement).</div>
 <div class="grid-2">
 <div class="chart-container"><canvas id="chartPaysCA"></canvas></div>
@@ -106,7 +84,7 @@
 </div>
 
 <div id="mois" class="section">
-<h2>Analyse mensuelle (tous les mois affichés, même à 0€)</h2>
+<h2>Analyse mensuelle</h2>
 <div class="chart-container tall"><canvas id="chartMoisCA"></canvas></div>
 <div class="chart-container"><canvas id="chartMoisMarge"></canvas></div>
 <table>
@@ -148,7 +126,7 @@
 </div>
 
 <div id="cadeaux" class="section">
-<h2>🎁 Cadeaux offerts</h2>
+<h2>Cadeaux offerts</h2>
 <div class="info-box">💡 Tous les cadeaux (hors parfums) offerts avec les commandes — sacs, mouillettes, catalogues, échantillons 2ml, testeurs. Suit le sélecteur d'année en haut de page.</div>
 <div class="kpis" id="cadeauxKpis"></div>
 <div class="controls">
@@ -183,7 +161,7 @@
 </div>
 
 <div id="evolution" class="section">
-<h2>📈 Évolution du CA par Client (dans le temps)</h2>
+<h2>Évolution du CA par Client (dans le temps)</h2>
 <div class="info-box">💡 Clique sur un client à gauche pour voir comment ses commandes ont évolué dans le temps. Tu verras tout de suite s'il est en croissance 📈 ou en baisse 📉.</div>
 <div style="display:grid;grid-template-columns:280px 1fr;gap:18px;@media(max-width:900px){grid-template-columns:1fr}" id="evolutionGrid">
 <div style="background:rgba(28,24,20,.03);border-radius:8px;padding:14px;max-height:600px;overflow-y:auto">
@@ -205,7 +183,7 @@
 </div>
 
 <div id="costs" class="section">
-<h2>💰 Détail des prix de revient par collection</h2>
+<h2>Détail des prix de revient par collection</h2>
 <div class="info-box">💡 Tu trouveras ici le détail complet : composants physiques, main-d'œuvre, concentrés, coût total par bouteille et par carton vendu, ainsi que la marge réalisée au tarif standard.</div>
 <div class="controls">
 <label style="color:#76695C;font-size:.9rem">Collection :</label>
@@ -222,14 +200,14 @@
 </div>
 
 <div id="stock" class="section">
-<h2>📦 Gestion du stock — Produits finis</h2>
+<h2>Gestion du stock — Produits finis</h2>
 <div class="info-box">💡 Le stock se met à jour automatiquement quand une facture postérieure au <strong id="stockRefDateInfo"></strong> est ajoutée. Code couleur : 🔴 Critique • 🟠 Faible • 🟡 Moyen • 🟢 OK • ⚫ Épuisé</div>
 <div id="stockGlobalKpis"></div>
 <div id="stockContent"></div>
 </div>
 
 <div id="simulation" class="section">
-<h2>🛒 Simulation de commande</h2>
+<h2>Simulation de commande</h2>
 <div class="info-box">💡 Saisis les quantités souhaitées (en <strong>bouteilles</strong>) pour chaque référence. Le système compare avec le stock actuel et te dit si la commande est <strong>faisable</strong> ou si tu dois <strong>produire</strong> avant. Tu peux aussi basculer en mode "cartons" pour saisir en cartons.</div>
 <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
   <button id="simReset" style="padding:9px 16px;background:#B8433F;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">🗑️ Tout effacer</button>
@@ -247,7 +225,7 @@
 </div>
 
 <div id="production" class="section">
-<h2>🏭 Planification de production</h2>
+<h2>Planification de production</h2>
 <div class="info-box">💡 Entre les quantités que tu veux produire pour chaque référence. Le système calcule automatiquement <strong>tout ce qu'il te faut commander</strong> : composants, concentrés, coûts et CA potentiel.</div>
 <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
 <button id="prodFillStock" style="padding:9px 16px;background:#2F6FA8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">📦 Remplir pour atteindre 1000 btl/réf</button>
@@ -269,7 +247,7 @@
 <div id="floatingTooltip" style="display:none;position:fixed;z-index:999;background:#FCF6EE;border:2px solid #81620F;border-radius:8px;padding:12px;box-shadow:0 8px 24px rgba(28,24,20,.18);max-width:300px;font-size:.85rem;pointer-events:none"></div>
 
 <div id="compare" class="section">
-<h2>⚖️ Comparaison 2025 vs 2026</h2>
+<h2>Comparaison 2025 vs 2026</h2>
 <div class="info-box">💡 Compare directement les performances entre les deux années</div>
 <div id="compareKpis" class="kpis"></div>
 <div class="grid-2">
@@ -295,7 +273,7 @@
 
 
 <div id="fournisseurs" class="section">
-<h2>🧾 Factures fournisseurs à payer</h2>
+<h2>Factures fournisseurs à payer</h2>
 <div class="info-box">💡 Suivi manuel (mis à jour à la main, pas connecté à la banque) des factures fournisseurs à venir — France + Goldrock. Dernière mise à jour : <strong id="fournisseursUpdated"></strong>. Mois déjà soldés : <strong id="fournisseursSoldes"></strong>.</div>
 <div class="kpis" id="fournisseursKpis"></div>
 <h2>Fournisseurs France — par mois</h2>
@@ -311,7 +289,7 @@
 </div>
 
 <div id="virements" class="section">
-<h2>💸 Virements clients en attente</h2>
+<h2>Virements clients en attente</h2>
 <div class="info-box">💡 Suivi manuel (mis à jour à la main) des encaissements clients attendus. Dernière mise à jour : <strong id="virementsUpdated"></strong>.</div>
 <div class="kpis" id="virementsKpis"></div>
 <table>
@@ -323,7 +301,7 @@
 
 
 <div id="chargesfixes" class="section">
-<h2>📌 Charges fixes mensuelles (estimation)</h2>
+<h2>Charges fixes mensuelles (estimation)</h2>
 <div class="info-box">💡 Suivi manuel — ce que tu payes à peu près chaque mois. Dernière mise à jour : <strong id="chargesfixesUpdated"></strong>. <span style="color:#A33A35">🟠 La rémunération du gérant (Boudjada Said) n'est volontairement PAS incluse : ses prélèvements sont irréguliers et il ne va plus en prendre pendant un moment.</span> L'Électricité/Gaz est basée sur la moyenne 2025 (mois par mois très variable, mais le pattern annuel se répète). Certains montants sont des moyennes récentes (Orange, Google Workspace, URSSAF, AG2R, salaires de Natali/Sabrina/Mounir) plutôt que des montants fixes exacts.</div>
 <div class="kpis" id="chargesfixesKpis"></div>
 <h2>Charges fixes (hors salaires)</h2>
@@ -339,7 +317,7 @@
 </div>
 
 <div id="inventaire" class="section">
-<h2>🧰 Inventaire — Composants & emballages</h2>
+<h2>Inventaire — Composants & emballages</h2>
 <div class="info-box">💡 Suivi manuel (comptage physique périodique) des composants et emballages : flacons, capots, pompes, cartons, étiquettes, frettes, sacs, éléments d'impression... Dernière mise à jour : <strong id="inventaireUpdated"></strong>. Le stock marqué <strong>non conforme</strong> est exclu des totaux utilisables mais affiché à part sur chaque ligne concernée.</div>
 <div class="kpis" id="inventaireKpis"></div>
 <div class="controls"><input type="text" class="search-box" id="search-inventaire" placeholder="🔍 Rechercher un composant..."></div>
@@ -441,10 +419,12 @@
 <script src="data/inventaire.js"></script>
 <script src="data/intragroupe.js"></script>
 <script src="data/depenses-nb.js"></script>
+<script src="js/mobile.js"></script>
 <script src="js/app.js"></script>
 <script src="js/rebuild.js"></script>
 <script src="js/societes.js"></script>
 <script src="js/documents.js"></script>
+<script src="js/nav.js"></script>
 <div id="docPrint"></div>
 </body>
 </html>
