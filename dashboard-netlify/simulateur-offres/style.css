@@ -125,3 +125,13 @@ td input{font-size:16px;width:60px}
 .layout{display:block}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Thème sombre aligné sur le dashboard (fond noir, accents or) */
+:root[data-theme="dark"]{ --cream:#0B0A09; --paper:#15120F; --ink:#F2E8D8; --muted:#A3968A; --line:#332C25; --gold:#C9A456; --copper:#D08A55; }
+:root[data-theme="dark"] body{background:var(--cream)}
+:root[data-theme="dark"] .hero{background:#0B0A09;min-height:0;padding:30px 18px 100px}
+:root[data-theme="dark"] .hero::after{display:none}
+:root[data-theme="dark"] .hero img.logo{filter:brightness(1.35) saturate(1.1);width:120px}
+:root[data-theme="dark"] .hero h1{color:var(--ink)}
+:root[data-theme="dark"] .hero p{color:var(--muted)}
+:root[data-theme="dark"] .title::after{background:var(--line);opacity:1}

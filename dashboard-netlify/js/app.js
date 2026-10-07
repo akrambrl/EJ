@@ -15,10 +15,10 @@ function getD(){ return ALL[currentYear]; }
 
 function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
 
-Chart.defaults.color = '#1C1814';
-Chart.defaults.borderColor = 'rgba(28,24,20,.1)';
+Chart.defaults.color = '#F2E8D8';
+Chart.defaults.borderColor = 'rgba(242,232,216,.1)';
 Chart.defaults.font.family = "Montserrat, 'Helvetica Neue', Arial, sans-serif";
-const PALETTE = ['#A87B12','#2F6FA8','#C0612A','#2E8B57','#9A4C8C','#00929F','#B8433F','#D2B266','#86A9C9','#DCA07A','#8CBF9F','#C79BBF','#7FC4CB','#D99490']; // charte catalogue : 7 teintes validées + 7 teintes claires
+const PALETTE = ['#c98500','#3987e5','#d95926','#199e70','#9085e9','#d55181','#008300','#e66767','#8a5c00','#245a9c','#93401b','#11694b','#5f57a3','#93385a']; // thème sombre : 8 teintes validées (fond #15120F) + 6 teintes foncées
 
 function renderKpis(){
   const d = getD();
@@ -57,23 +57,23 @@ function renderOverview(){
   destroyChart('chartCollections');
   charts.chartCollections = new Chart(document.getElementById('chartCollections'),{
     type:'doughnut',
-    data:{labels:d.collections.map(c=>c.collection),datasets:[{data:d.collections.map(c=>c.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#FCF6EE'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Collection',font:{size:14},color:'#81620F'},legend:{position:'right'}}}
+    data:{labels:d.collections.map(c=>c.collection),datasets:[{data:d.collections.map(c=>c.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#15120F'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Collection',font:{size:14},color:'#C9A456'},legend:{position:'right'}}}
   });
   destroyChart('chartPays');
   charts.chartPays = new Chart(document.getElementById('chartPays'),{
     type:'doughnut',
-    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#FCF6EE'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays',font:{size:14},color:'#81620F'},legend:{position:'right'}}}
+    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#15120F'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays',font:{size:14},color:'#C9A456'},legend:{position:'right'}}}
   });
   destroyChart('chartMois');
   charts.chartMois = new Chart(document.getElementById('chartMois'),{
     type:'bar',
     data:{labels:d.mois.map(m=>m.mois),datasets:[
-      {label:'CA (€)',data:d.mois.map(m=>m.ca),backgroundColor:'#81620F',borderRadius:6},
-      {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),backgroundColor:'#2E7D4F',borderRadius:6}
+      {label:'CA (€)',data:d.mois.map(m=>m.ca),backgroundColor:'#C9A456',borderRadius:6},
+      {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),backgroundColor:'#7CC796',borderRadius:6}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA & Bénéfice mensuel',font:{size:14},color:'#81620F'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA & Bénéfice mensuel',font:{size:14},color:'#C9A456'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   // Podium
   const podium = document.getElementById('podium');
@@ -86,7 +86,7 @@ function renderOverview(){
     if(top3[i]){
       const div = document.createElement('div');
       div.className = 'podium-step ' + cls[j];
-      div.innerHTML = `<div class="podium-rank">${ranks[i]}</div><div class="podium-name">${top3[i].client}</div><div class="podium-amount">${fmtMoneyShort(top3[i].ca)}<br><small style="color:#2E7D4F">+${fmtMoneyShort(top3[i].marge)} bénéfice</small></div>`;
+      div.innerHTML = `<div class="podium-rank">${ranks[i]}</div><div class="podium-name">${top3[i].client}</div><div class="podium-amount">${fmtMoneyShort(top3[i].ca)}<br><small style="color:#7CC796">+${fmtMoneyShort(top3[i].marge)} bénéfice</small></div>`;
       podium.appendChild(div);
     }
   });
@@ -119,14 +119,14 @@ function showClientTooltip(key, e){
   if(top.length === 0) return;
   const tt = document.getElementById('floatingTooltip');
   tt.innerHTML = `
-    <div style="color:#81620F;font-weight:bold;margin-bottom:6px;font-size:.9rem">⭐ Top 3 produits</div>
+    <div style="color:#C9A456;font-weight:bold;margin-bottom:6px;font-size:.9rem">⭐ Top 3 produits</div>
     ${top.map((p, i) => `
-      <div style="margin-bottom:6px;padding:6px;background:rgba(28,24,20,.05);border-radius:5px">
+      <div style="margin-bottom:6px;padding:6px;background:rgba(242,232,216,.05);border-radius:5px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-weight:bold">#${i+1} ${p.reference}</span>
           <span class="${collClass(p.collection)}" style="font-size:.7rem">${p.collection}</span>
         </div>
-        <div style="color:#76695C;font-size:.75rem;margin-top:3px">${fmtNum(p.btl)} btl • ${fmtMoneyShort(p.ca)}</div>
+        <div style="color:#A3968A;font-size:.75rem;margin-top:3px">${fmtNum(p.btl)} btl • ${fmtMoneyShort(p.ca)}</div>
       </div>
     `).join('')}
   `;
@@ -151,14 +151,14 @@ function renderPays(){
   destroyChart('chartPaysCA');
   charts.chartPaysCA = new Chart(document.getElementById('chartPaysCA'),{
     type:'pie',
-    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#FCF6EE'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par pays (agrégé)',color:'#81620F'},legend:{position:'bottom'}}}
+    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#15120F'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par pays (agrégé)',color:'#C9A456'},legend:{position:'bottom'}}}
   });
   destroyChart('chartPaysClientCA');
   charts.chartPaysClientCA = new Chart(document.getElementById('chartPaysClientCA'),{
     type:'pie',
-    data:{labels:d.pays_client.map(p=>p.label),datasets:[{data:d.pays_client.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#FCF6EE'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays × Client (2 irakiens séparés)',color:'#81620F'},legend:{position:'bottom'}}}
+    data:{labels:d.pays_client.map(p=>p.label),datasets:[{data:d.pays_client.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#15120F'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays × Client (2 irakiens séparés)',color:'#C9A456'},legend:{position:'bottom'}}}
   });
   const tb = document.getElementById('tbody-pays-client');
   tb.innerHTML = '';
@@ -173,16 +173,16 @@ function renderMois(){
   charts.chartMoisCA = new Chart(document.getElementById('chartMoisCA'),{
     type:'line',
     data:{labels:d.mois.map(m=>m.mois),datasets:[
-      {label:'CA (€)',data:d.mois.map(m=>m.ca),borderColor:'#81620F',backgroundColor:'rgba(129,98,15,.2)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#81620F'},
-      {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),borderColor:'#2E7D4F',backgroundColor:'rgba(46,125,79,.15)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#2E7D4F'}
+      {label:'CA (€)',data:d.mois.map(m=>m.ca),borderColor:'#C9A456',backgroundColor:'rgba(201,164,86,.2)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#C9A456'},
+      {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),borderColor:'#7CC796',backgroundColor:'rgba(124,199,150,.15)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#7CC796'}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Évolution mensuelle (CA + Bénéfice)',color:'#81620F'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Évolution mensuelle (CA + Bénéfice)',color:'#C9A456'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   destroyChart('chartMoisMarge');
   charts.chartMoisMarge = new Chart(document.getElementById('chartMoisMarge'),{
     type:'bar',
-    data:{labels:d.mois.map(m=>m.mois),datasets:[{label:'Bouteilles',data:d.mois.map(m=>m.btl),backgroundColor:'#2F6FA8',borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Bouteilles vendues par mois',color:'#81620F'},legend:{display:false}}}
+    data:{labels:d.mois.map(m=>m.mois),datasets:[{label:'Bouteilles',data:d.mois.map(m=>m.btl),backgroundColor:'#6FA6E8',borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Bouteilles vendues par mois',color:'#C9A456'},legend:{display:false}}}
   });
   const tb = document.getElementById('tbody-mois');
   tb.innerHTML = '';
@@ -198,8 +198,8 @@ function renderRefs(){
   destroyChart('chartTopRefs');
   charts.chartTopRefs = new Chart(document.getElementById('chartTopRefs'),{
     type:'bar',
-    data:{labels:top15.map(r=>r.reference),datasets:[{label:'Bouteilles vendues',data:top15.map(r=>r.btl),backgroundColor:'#81620F',borderRadius:4}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Top 15 références (par bouteilles vendues)',font:{size:14},color:'#81620F'},legend:{display:false}}}
+    data:{labels:top15.map(r=>r.reference),datasets:[{label:'Bouteilles vendues',data:top15.map(r=>r.btl),backgroundColor:'#C9A456',borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Top 15 références (par bouteilles vendues)',font:{size:14},color:'#C9A456'},legend:{display:false}}}
   });
   filterRefs();
 }
@@ -228,10 +228,10 @@ function filterRefs(){
     if(currentColl !== r.collection){
       // Insérer le total de la collection précédente si applicable
       if(currentColl !== null){
-        tb.innerHTML += `<tr style="background:rgba(129,98,15,.10);font-weight:bold"><td colspan="3"><em>↳ Sous-total ${currentColl} (${collCount} réf.)</em></td><td></td><td class="text-right">${fmtNum(collTotalBtl)}</td><td class="text-right amount">${fmtMoneyShort(collTotalCA)}</td><td class="text-right amount-negative">${fmtMoneyShort(collTotalCout)}</td><td class="text-right amount-positive">${fmtMoneyShort(collTotalMarge)}</td></tr>`;
+        tb.innerHTML += `<tr style="background:rgba(201,164,86,.10);font-weight:bold"><td colspan="3"><em>↳ Sous-total ${currentColl} (${collCount} réf.)</em></td><td></td><td class="text-right">${fmtNum(collTotalBtl)}</td><td class="text-right amount">${fmtMoneyShort(collTotalCA)}</td><td class="text-right amount-negative">${fmtMoneyShort(collTotalCout)}</td><td class="text-right amount-positive">${fmtMoneyShort(collTotalMarge)}</td></tr>`;
       }
       // En-tête de la nouvelle collection
-      tb.innerHTML += `<tr style="background:#1C1814"><td colspan="8" style="padding:10px 12px;color:#81620F;font-weight:bold;font-size:.95rem;text-transform:uppercase;letter-spacing:.5px"><span class="${collClass(r.collection)}" style="margin-right:8px">${r.collection}</span></td></tr>`;
+      tb.innerHTML += `<tr style="background:#F2E8D8"><td colspan="8" style="padding:10px 12px;color:#C9A456;font-weight:bold;font-size:.95rem;text-transform:uppercase;letter-spacing:.5px"><span class="${collClass(r.collection)}" style="margin-right:8px">${r.collection}</span></td></tr>`;
       currentColl = r.collection;
       collTotalCA = 0; collTotalBtl = 0; collTotalCout = 0; collTotalMarge = 0; collCount = 0;
     }
@@ -246,7 +246,7 @@ function filterRefs(){
   });
   // Total de la dernière collection
   if(currentColl !== null){
-    tb.innerHTML += `<tr style="background:rgba(129,98,15,.10);font-weight:bold"><td colspan="3"><em>↳ Sous-total ${currentColl} (${collCount} réf.)</em></td><td></td><td class="text-right">${fmtNum(collTotalBtl)}</td><td class="text-right amount">${fmtMoneyShort(collTotalCA)}</td><td class="text-right amount-negative">${fmtMoneyShort(collTotalCout)}</td><td class="text-right amount-positive">${fmtMoneyShort(collTotalMarge)}</td></tr>`;
+    tb.innerHTML += `<tr style="background:rgba(201,164,86,.10);font-weight:bold"><td colspan="3"><em>↳ Sous-total ${currentColl} (${collCount} réf.)</em></td><td></td><td class="text-right">${fmtNum(collTotalBtl)}</td><td class="text-right amount">${fmtMoneyShort(collTotalCA)}</td><td class="text-right amount-negative">${fmtMoneyShort(collTotalCout)}</td><td class="text-right amount-positive">${fmtMoneyShort(collTotalMarge)}</td></tr>`;
   }
 }
 
@@ -270,8 +270,8 @@ function openFactureModal(factureId){
   document.getElementById('modalMeta').innerHTML = `<strong>${f.client}</strong> — ${f.pays}<br>Date : ${f.date}`;
   document.getElementById('modalSummary').innerHTML = `
     <div class="modal-stat"><div class="modal-stat-label">CA</div><div class="modal-stat-value">${fmtMoney(f.ca)}</div></div>
-    <div class="modal-stat"><div class="modal-stat-label">Coût</div><div class="modal-stat-value" style="color:#B8433F">${fmtMoney(f.cout)}</div></div>
-    <div class="modal-stat"><div class="modal-stat-label">Bénéfice</div><div class="modal-stat-value" style="color:#2E7D4F">${fmtMoney(f.marge)}</div></div>
+    <div class="modal-stat"><div class="modal-stat-label">Coût</div><div class="modal-stat-value" style="color:#E8847A">${fmtMoney(f.cout)}</div></div>
+    <div class="modal-stat"><div class="modal-stat-label">Bénéfice</div><div class="modal-stat-value" style="color:#7CC796">${fmtMoney(f.marge)}</div></div>
     <div class="modal-stat"><div class="modal-stat-label">Bouteilles</div><div class="modal-stat-value">${fmtNum(f.btl)}</div></div>
   `;
   const tb = document.getElementById('modalLines');
@@ -284,16 +284,16 @@ function openFactureModal(factureId){
   const bd = factureCadeauxBreakdown(f);
   let cadeauxRows = '';
   bd.items.forEach(it => {
-    const costCell = it.cost !== null ? `<span style="color:#B8433F;font-weight:600">${fmtMoney(it.cost)}</span>` : '<span style="color:#76695C">—</span>';
+    const costCell = it.cost !== null ? `<span style="color:#E8847A;font-weight:600">${fmtMoney(it.cost)}</span>` : '<span style="color:#A3968A">—</span>';
     cadeauxRows += `<tr><td>${it.article}</td><td class="text-right">${fmtNum(it.quantite)}</td><td class="text-right">${costCell}</td></tr>`;
   });
   bd.testers.forEach(t => {
-    const costCell = t.allKnown ? `<span style="color:#B8433F;font-weight:600">${fmtMoney(t.cost)}</span>` : `<span style="color:#B8433F;font-weight:600">≥ ${fmtMoney(t.cost)}</span>`;
+    const costCell = t.allKnown ? `<span style="color:#E8847A;font-weight:600">${fmtMoney(t.cost)}</span>` : `<span style="color:#E8847A;font-weight:600">≥ ${fmtMoney(t.cost)}</span>`;
     cadeauxRows += `<tr><td>🧪 Testeurs ${t.collection}</td><td class="text-right">${fmtNum(t.qty)}</td><td class="text-right">${costCell}</td></tr>`;
   });
   if(cadeauxRows){
     const totalLabel = bd.totalKnown ? fmtMoney(bd.totalCost) : `≥ ${fmtMoney(bd.totalCost)}`;
-    cadeauxRows += `<tr style="font-weight:bold;border-top:2px solid #81620F"><td colspan="2">TOTAL — ce que ça t'a coûté</td><td class="text-right" style="color:#B8433F">${totalLabel}</td></tr>`;
+    cadeauxRows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td colspan="2">TOTAL — ce que ça t'a coûté</td><td class="text-right" style="color:#E8847A">${totalLabel}</td></tr>`;
     cadeauxTb.innerHTML = cadeauxRows;
     cadeauxWrap.style.display = '';
   } else {
@@ -369,11 +369,11 @@ function renderCadeaux(filter=''){
   CADEAUX_ORDER.forEach(article => {
     if(totals[article] === undefined) return;
     const rate = CADEAUX_UNIT_COST[article];
-    const sub = rate !== undefined ? `<br><span style="font-size:.78rem;color:#76695C">≈ ${fmtMoney(totals[article]*rate)}</span>` : '';
+    const sub = rate !== undefined ? `<br><span style="font-size:.78rem;color:#A3968A">≈ ${fmtMoney(totals[article]*rate)}</span>` : '';
     kpiHtml += `<div class="kpi"><div class="kpi-label">${CADEAUX_ICONS[article]||'🎁'} ${article}</div><div class="kpi-value big">${fmtNum(totals[article])}${sub}</div></div>`;
   });
   if(totalTesters > 0){
-    kpiHtml += `<div class="kpi"><div class="kpi-label">🧪 Testeurs offerts</div><div class="kpi-value big">${fmtNum(totalTesters)}<br><span style="font-size:.78rem;color:#76695C">≈ ${fmtMoney(totalTestersCost)}</span></div></div>`;
+    kpiHtml += `<div class="kpi"><div class="kpi-label">🧪 Testeurs offerts</div><div class="kpi-value big">${fmtNum(totalTesters)}<br><span style="font-size:.78rem;color:#A3968A">≈ ${fmtMoney(totalTestersCost)}</span></div></div>`;
   }
   kpiHtml += `<div class="kpi"><div class="kpi-label">📄 Factures avec cadeaux</div><div class="kpi-value">${withGifts.length}</div></div>`;
   document.getElementById('cadeauxKpis').innerHTML = kpiHtml;
@@ -388,10 +388,10 @@ function renderCadeaux(filter=''){
     tb.innerHTML += `<tr class="clickable" data-facture="${f.facture}"><td><strong>${f.facture}</strong></td><td>${f.date}</td><td>${f.client}</td><td>${f.pays}</td><td>${parts.join(', ')}</td><td class="text-right amount-negative">${fmtMoney(bd.totalCost)}</td></tr>`;
   });
   if(filtered.length===0){
-    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#76695C">Aucun cadeau trouvé.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#A3968A">Aucun cadeau trouvé.</td></tr>';
   } else {
     const filteredCost = filtered.reduce((s,{bd}) => s + bd.totalCost, 0);
-    tb.innerHTML += `<tr style="font-weight:bold;border-top:2px solid #81620F"><td colspan="5">TOTAL${filter?' (filtré)':''}</td><td class="text-right amount-negative">${fmtMoney(filteredCost)}</td></tr>`;
+    tb.innerHTML += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td colspan="5">TOTAL${filter?' (filtré)':''}</td><td class="text-right amount-negative">${fmtMoney(filteredCost)}</td></tr>`;
   }
   tb.querySelectorAll('tr[data-facture]').forEach(tr => tr.addEventListener('click', () => openFactureModal(tr.dataset.facture)));
 
@@ -441,8 +441,8 @@ function renderCadeauxClientList(filter=''){
   filtered.forEach(c => {
     const isSelected = selectedCadeauxClient && selectedCadeauxClient.client === c.client && selectedCadeauxClient.pays === c.pays;
     const btn = document.createElement('div');
-    btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(129,98,15,.25)':'rgba(28,24,20,.05)'};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#81620F':'transparent'};transition:all .15s`;
-    btn.innerHTML = `<div style="font-weight:600;color:#81620F;font-size:.92rem">${c.client}</div><div style="color:#76695C;font-size:.78rem;margin-top:2px">${c.pays} • ${c.factures} fact. • <span style="color:#B8433F">${fmtMoney(c.totalCost)}</span> de cadeaux</div>`;
+    btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(201,164,86,.25)':'rgba(242,232,216,.05)'};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#C9A456':'transparent'};transition:all .15s`;
+    btn.innerHTML = `<div style="font-weight:600;color:#C9A456;font-size:.92rem">${c.client}</div><div style="color:#A3968A;font-size:.78rem;margin-top:2px">${c.pays} • ${c.factures} fact. • <span style="color:#E8847A">${fmtMoney(c.totalCost)}</span> de cadeaux</div>`;
     btn.addEventListener('click', () => {
       selectedCadeauxClient = c;
       renderCadeauxClientList(document.getElementById('search-cadeaux-client').value);
@@ -458,7 +458,7 @@ function renderCadeauxClientDetail(){
   const tbody = document.querySelector('#tableCadeauxClient tbody');
   if(!header || !tbody) return;
   if(!selectedCadeauxClient){
-    header.innerHTML = '<div style="color:#76695C;font-size:.9rem">Sélectionne un client à gauche pour voir le détail de ses cadeaux</div>';
+    header.innerHTML = '<div style="color:#A3968A;font-size:.9rem">Sélectionne un client à gauche pour voir le détail de ses cadeaux</div>';
     tbody.innerHTML = '';
     return;
   }
@@ -466,12 +466,12 @@ function renderCadeauxClientDetail(){
   header.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:10px">
       <div>
-        <div style="color:#81620F;font-size:1.2rem;font-weight:bold">${c.client}</div>
-        <div style="color:#76695C;font-size:.9rem">${c.pays} • ${c.factures} commande(s) • ${fmtMoney(c.ca)} de CA</div>
+        <div style="color:#C9A456;font-size:1.2rem;font-weight:bold">${c.client}</div>
+        <div style="color:#A3968A;font-size:.9rem">${c.pays} • ${c.factures} commande(s) • ${fmtMoney(c.ca)} de CA</div>
       </div>
       <div style="text-align:right">
-        <div style="color:#76695C;font-size:.78rem">Coût total cadeaux offerts</div>
-        <div style="color:#B8433F;font-size:1.4rem;font-weight:bold">${fmtMoney(c.totalCost)}</div>
+        <div style="color:#A3968A;font-size:.78rem">Coût total cadeaux offerts</div>
+        <div style="color:#E8847A;font-size:1.4rem;font-weight:bold">${fmtMoney(c.totalCost)}</div>
       </div>
     </div>
   `;
@@ -479,13 +479,13 @@ function renderCadeauxClientDetail(){
   CADEAUX_ORDER.forEach(article => {
     const it = c.items[article];
     if(!it) return;
-    rows += `<tr><td>${CADEAUX_ICONS[article]||'🎁'} ${article}</td><td class="text-right">${fmtNum(it.quantite)}</td><td class="text-right" style="color:#B8433F;font-weight:600">${fmtMoney(it.cost)}</td></tr>`;
+    rows += `<tr><td>${CADEAUX_ICONS[article]||'🎁'} ${article}</td><td class="text-right">${fmtNum(it.quantite)}</td><td class="text-right" style="color:#E8847A;font-weight:600">${fmtMoney(it.cost)}</td></tr>`;
   });
   Object.keys(c.testers).forEach(coll => {
     const t = c.testers[coll];
-    rows += `<tr><td>🧪 Testeurs ${coll}</td><td class="text-right">${fmtNum(t.qty)}</td><td class="text-right" style="color:#B8433F;font-weight:600">${fmtMoney(t.cost)}</td></tr>`;
+    rows += `<tr><td>🧪 Testeurs ${coll}</td><td class="text-right">${fmtNum(t.qty)}</td><td class="text-right" style="color:#E8847A;font-weight:600">${fmtMoney(t.cost)}</td></tr>`;
   });
-  rows += `<tr style="font-weight:bold;border-top:2px solid #81620F"><td colspan="2">TOTAL</td><td class="text-right" style="color:#B8433F">${fmtMoney(c.totalCost)}</td></tr>`;
+  rows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td colspan="2">TOTAL</td><td class="text-right" style="color:#E8847A">${fmtMoney(c.totalCost)}</td></tr>`;
   tbody.innerHTML = rows;
 }
 
@@ -501,17 +501,17 @@ function renderCadeauxClientsChart(){
     data: {
       labels: top.map(c => c.client),
       datasets: [
-        {type:'bar', label:'Chiffre d\'affaires (€)', data: top.map(c=>c.ca), backgroundColor:'#9A4C8C', borderRadius:5, yAxisID:'y'},
-        {type:'line', label:'Cadeaux offerts (€)', data: top.map(c=>c.totalCost), borderColor:'#B8433F', backgroundColor:'#B8433F', yAxisID:'y1', tension:.3, pointRadius:4, pointBackgroundColor:'#B8433F'}
+        {type:'bar', label:'Chiffre d\'affaires (€)', data: top.map(c=>c.ca), backgroundColor:'#C88BC0', borderRadius:5, yAxisID:'y'},
+        {type:'line', label:'Cadeaux offerts (€)', data: top.map(c=>c.totalCost), borderColor:'#E8847A', backgroundColor:'#E8847A', yAxisID:'y1', tension:.3, pointRadius:4, pointBackgroundColor:'#E8847A'}
       ]
     },
     options: {
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ labels:{ color:'#1C1814' } } },
+      plugins:{ legend:{ labels:{ color:'#F2E8D8' } } },
       scales:{
-        x:{ ticks:{ color:'#76695C', font:{size:10} }, grid:{ display:false } },
-        y:{ position:'left', ticks:{ color:'#76695C' }, grid:{ color:'rgba(28,24,20,.08)' }, title:{display:true,text:'Chiffre d\'affaires (€)',color:'#76695C'} },
-        y1:{ position:'right', ticks:{ color:'#B8433F' }, grid:{ display:false }, title:{display:true,text:'Cadeaux offerts (€)',color:'#B8433F'} }
+        x:{ ticks:{ color:'#A3968A', font:{size:10} }, grid:{ display:false } },
+        y:{ position:'left', ticks:{ color:'#A3968A' }, grid:{ color:'rgba(242,232,216,.08)' }, title:{display:true,text:'Chiffre d\'affaires (€)',color:'#A3968A'} },
+        y1:{ position:'right', ticks:{ color:'#E8847A' }, grid:{ display:false }, title:{display:true,text:'Cadeaux offerts (€)',color:'#E8847A'} }
       }
     }
   });
@@ -532,25 +532,25 @@ function renderCompare(){
   charts.chartCompareCA = new Chart(document.getElementById('chartCompareCA'),{
     type:'bar',
     data:{labels:['CA','Coût','Bénéfice'],datasets:[
-      {label:'2025',data:[d25.kpi_ca,d25.kpi_cout,d25.kpi_marge],backgroundColor:'#2F6FA8',borderRadius:6},
-      {label:'2026',data:[d26.kpi_ca,d26.kpi_cout,d26.kpi_marge],backgroundColor:'#81620F',borderRadius:6}
+      {label:'2025',data:[d25.kpi_ca,d25.kpi_cout,d25.kpi_marge],backgroundColor:'#6FA6E8',borderRadius:6},
+      {label:'2026',data:[d26.kpi_ca,d26.kpi_cout,d26.kpi_marge],backgroundColor:'#C9A456',borderRadius:6}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Comparaison 2025 vs 2026',color:'#81620F'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Comparaison 2025 vs 2026',color:'#C9A456'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   destroyChart('chartCompareMarge');
   charts.chartCompareMarge = new Chart(document.getElementById('chartCompareMarge'),{
     type:'doughnut',
-    data:{labels:['CA 2025','CA 2026'],datasets:[{data:[d25.kpi_ca,d26.kpi_ca],backgroundColor:['#2F6FA8','#81620F'],borderWidth:2,borderColor:'#FCF6EE'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Part de chaque année',color:'#81620F'},legend:{position:'bottom'}}}
+    data:{labels:['CA 2025','CA 2026'],datasets:[{data:[d25.kpi_ca,d26.kpi_ca],backgroundColor:['#6FA6E8','#C9A456'],borderWidth:2,borderColor:'#15120F'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Part de chaque année',color:'#C9A456'},legend:{position:'bottom'}}}
   });
   destroyChart('chartCompareMois');
   charts.chartCompareMois = new Chart(document.getElementById('chartCompareMois'),{
     type:'line',
     data:{labels:d25.mois.map(m=>m.mois),datasets:[
-      {label:'CA 2025',data:d25.mois.map(m=>m.ca),borderColor:'#2F6FA8',backgroundColor:'rgba(47,111,168,.2)',fill:false,tension:.3,pointRadius:5},
-      {label:'CA 2026',data:d26.mois.map(m=>m.ca),borderColor:'#81620F',backgroundColor:'rgba(129,98,15,.2)',fill:false,tension:.3,pointRadius:5}
+      {label:'CA 2025',data:d25.mois.map(m=>m.ca),borderColor:'#6FA6E8',backgroundColor:'rgba(111,166,232,.2)',fill:false,tension:.3,pointRadius:5},
+      {label:'CA 2026',data:d26.mois.map(m=>m.ca),borderColor:'#C9A456',backgroundColor:'rgba(201,164,86,.2)',fill:false,tension:.3,pointRadius:5}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA mensuel — 2025 vs 2026',color:'#81620F'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA mensuel — 2025 vs 2026',color:'#C9A456'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   // Tableau comparatif
   const evol = (a,b) => {
@@ -606,8 +606,8 @@ function renderEvolutionList(filter=''){
     }
     const isSelected = selectedEvoClient && selectedEvoClient.client === c.client && selectedEvoClient.pays === c.pays;
     const btn = document.createElement('div');
-    btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(129,98,15,.25)':'rgba(28,24,20,.05)'};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#81620F':'transparent'};transition:all .15s`;
-    btn.innerHTML = `<div style="font-weight:600;color:#81620F;font-size:.92rem">${trendIcon} ${c.client}</div><div style="color:#76695C;font-size:.78rem;margin-top:2px">${c.pays} • ${factures.length} fact. • ${fmtMoneyShort(c.ca)}</div>`;
+    btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(201,164,86,.25)':'rgba(242,232,216,.05)'};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#C9A456':'transparent'};transition:all .15s`;
+    btn.innerHTML = `<div style="font-weight:600;color:#C9A456;font-size:.92rem">${trendIcon} ${c.client}</div><div style="color:#A3968A;font-size:.78rem;margin-top:2px">${c.pays} • ${factures.length} fact. • ${fmtMoneyShort(c.ca)}</div>`;
     btn.addEventListener('click', () => {
       selectedEvoClient = c;
       renderEvolutionList(document.getElementById('search-evo-client').value);
@@ -619,7 +619,7 @@ function renderEvolutionList(filter=''){
 
 function renderEvolutionChart(){
   if(!selectedEvoClient){
-    document.getElementById('evoSelectedHeader').innerHTML = '<div style="color:#76695C;font-size:.9rem">Sélectionne un client à gauche pour voir son évolution</div>';
+    document.getElementById('evoSelectedHeader').innerHTML = '<div style="color:#A3968A;font-size:.9rem">Sélectionne un client à gauche pour voir son évolution</div>';
     destroyChart('chartEvoClient');
     document.querySelector('#tableEvoClient tbody').innerHTML = '';
     return;
@@ -635,14 +635,14 @@ function renderEvolutionChart(){
 
   // Tendance globale
   let trendText = 'pas assez de données';
-  let trendColor = '#76695C';
+  let trendColor = '#A3968A';
   let trendIcon = '➡️';
   if(factures.length >= 2){
     const first = factures[0].ca;
     const last = factures[factures.length-1].ca;
     const evol = ((last - first) / first * 100);
-    if(evol > 10){ trendText = `+${evol.toFixed(1)}% entre 1ère et dernière commande`; trendColor = '#2E7D4F'; trendIcon = '📈'; }
-    else if(evol < -10){ trendText = `${evol.toFixed(1)}% entre 1ère et dernière commande`; trendColor = '#B8433F'; trendIcon = '📉'; }
+    if(evol > 10){ trendText = `+${evol.toFixed(1)}% entre 1ère et dernière commande`; trendColor = '#7CC796'; trendIcon = '📈'; }
+    else if(evol < -10){ trendText = `${evol.toFixed(1)}% entre 1ère et dernière commande`; trendColor = '#E8847A'; trendIcon = '📉'; }
     else { trendText = `${evol>=0?'+':''}${evol.toFixed(1)}% (stable)`; trendIcon = '➡️'; }
   } else if(factures.length === 1){
     trendText = 'Première commande — pas d\'historique';
@@ -657,8 +657,8 @@ function renderEvolutionChart(){
   document.getElementById('evoSelectedHeader').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:10px">
       <div>
-        <div style="color:#81620F;font-size:1.2rem;font-weight:bold">${c.client}</div>
-        <div style="color:#76695C;font-size:.9rem">${c.pays} • ${factures.length} commande(s)</div>
+        <div style="color:#C9A456;font-size:1.2rem;font-weight:bold">${c.client}</div>
+        <div style="color:#A3968A;font-size:.9rem">${c.pays} • ${factures.length} commande(s)</div>
       </div>
       <div style="text-align:right">
         <div style="font-size:1.6rem">${trendIcon}</div>
@@ -666,9 +666,9 @@ function renderEvolutionChart(){
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px">
-      <div><div style="color:#76695C;font-size:.75rem">CA Total</div><div style="color:#81620F;font-weight:bold">${fmtMoneyShort(totalCA)}</div></div>
-      <div><div style="color:#76695C;font-size:.75rem">Bénéfice</div><div style="color:#2E7D4F;font-weight:bold">${fmtMoneyShort(totalMarge)}</div></div>
-      <div><div style="color:#76695C;font-size:.75rem">CA moyen / commande</div><div style="color:#81620F;font-weight:bold">${fmtMoneyShort(avgCA)}</div></div>
+      <div><div style="color:#A3968A;font-size:.75rem">CA Total</div><div style="color:#C9A456;font-weight:bold">${fmtMoneyShort(totalCA)}</div></div>
+      <div><div style="color:#A3968A;font-size:.75rem">Bénéfice</div><div style="color:#7CC796;font-weight:bold">${fmtMoneyShort(totalMarge)}</div></div>
+      <div><div style="color:#A3968A;font-size:.75rem">CA moyen / commande</div><div style="color:#C9A456;font-weight:bold">${fmtMoneyShort(avgCA)}</div></div>
     </div>
   `;
 
@@ -678,13 +678,13 @@ function renderEvolutionChart(){
     data:{
       labels:factures.map(f=>f.date),
       datasets:[
-        {label:'CA par commande (€)',data:factures.map(f=>f.ca),borderColor:'#81620F',backgroundColor:'rgba(129,98,15,.2)',fill:true,tension:.25,pointRadius:7,pointHoverRadius:10,pointBackgroundColor:'#81620F'},
-        {label:'Bénéfice net (€)',data:factures.map(f=>f.marge),borderColor:'#2E7D4F',backgroundColor:'rgba(46,125,79,.15)',fill:false,tension:.25,pointRadius:5,pointBackgroundColor:'#2E7D4F',borderDash:[5,5]}
+        {label:'CA par commande (€)',data:factures.map(f=>f.ca),borderColor:'#C9A456',backgroundColor:'rgba(201,164,86,.2)',fill:true,tension:.25,pointRadius:7,pointHoverRadius:10,pointBackgroundColor:'#C9A456'},
+        {label:'Bénéfice net (€)',data:factures.map(f=>f.marge),borderColor:'#7CC796',backgroundColor:'rgba(124,199,150,.15)',fill:false,tension:.25,pointRadius:5,pointBackgroundColor:'#7CC796',borderDash:[5,5]}
       ]
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      plugins:{title:{display:true,text:`Évolution des commandes — ${c.client}`,color:'#81620F',font:{size:14}},legend:{position:'top'}},
+      plugins:{title:{display:true,text:`Évolution des commandes — ${c.client}`,color:'#C9A456',font:{size:14}},legend:{position:'top'}},
       scales:{y:{ticks:{callback:v=>(v/1000).toFixed(1)+' k€'}}}
     }
   });
@@ -694,12 +694,12 @@ function renderEvolutionChart(){
   tb.innerHTML = '';
   factures.forEach((f, i) => {
     let variation = '—';
-    let varColor = '#76695C';
+    let varColor = '#A3968A';
     if(i > 0){
       const prev = factures[i-1].ca;
       const ev = ((f.ca - prev) / prev * 100);
-      if(ev > 0) { variation = `📈 +${ev.toFixed(1)}%`; varColor = '#2E7D4F'; }
-      else if(ev < 0) { variation = `📉 ${ev.toFixed(1)}%`; varColor = '#B8433F'; }
+      if(ev > 0) { variation = `📈 +${ev.toFixed(1)}%`; varColor = '#7CC796'; }
+      else if(ev < 0) { variation = `📉 ${ev.toFixed(1)}%`; varColor = '#E8847A'; }
       else variation = '➡️ 0%';
     }
     tb.innerHTML += `<tr class="clickable" data-facture="${f.facture}"><td>${f.date}</td><td><strong>${f.facture}</strong></td><td class="text-right">${fmtNum(f.btl)}</td><td class="text-right amount">${fmtMoneyShort(f.ca)}</td><td class="text-right amount-positive">${fmtMoneyShort(f.marge)}</td><td class="text-right" style="color:${varColor};font-weight:600">${variation}</td></tr>`;
@@ -740,7 +740,7 @@ function renderCostsCadeaux(out){
   const d = getD();
   const yr = currentYear === 'total' ? '2025 + 2026' : currentYear;
   const e4 = v => (v === null || v === undefined) ? '—' : v.toFixed(4) + ' €';
-  const NEWC = '#2F6FA8';
+  const NEWC = '#6FA6E8';
   const qty = {}; const testers = {};
   d.factures.forEach(f => {
     const bd = factureCadeauxBreakdown(f);
@@ -752,7 +752,7 @@ function renderCostsCadeaux(out){
   });
   let html = `
     <div class="info-box">🎁 Prix de revient des cadeaux offerts aux clients. <strong>Ancien</strong> = prix utilisés actuellement dans les factures et le bénéfice. <strong style="color:${NEWC}">Nouveau</strong> = nouveaux prix, affichés ici pour comparaison seulement. Période : <strong>${yr}</strong>.</div>
-    <h3 style="color:#81620F;margin-bottom:10px">🧾 Prix de revient unitaire par cadeau</h3>
+    <h3 style="color:#C9A456;margin-bottom:10px">🧾 Prix de revient unitaire par cadeau</h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:14px">`;
   ['Sacs noirs','Paquets de mouillettes','Catalogues','Box 2ml'].forEach(art => {
     const det = CADEAUX_COST_DETAIL[art];
@@ -763,7 +763,7 @@ function renderCostsCadeaux(out){
       <thead><tr><th>${icon} ${art}</th><th class="text-right">Ancien</th><th class="text-right">Nouveau</th></tr></thead>
       <tbody>
         ${det.map(([n,o,nv]) => `<tr><td>${n}</td><td class="text-right amount" style="white-space:nowrap">${e4(o)}</td><td class="text-right" style="white-space:nowrap;color:${NEWC};font-weight:600">${e4(nv)}</td></tr>`).join('')}
-        <tr style="background:rgba(129,98,15,.12);font-weight:bold"><td><strong>Prix de revient / unité</strong></td><td class="text-right amount" style="white-space:nowrap">${e4(oldU)}</td><td class="text-right" style="white-space:nowrap;color:${NEWC}">${e4(newU)}</td></tr>
+        <tr style="background:rgba(201,164,86,.12);font-weight:bold"><td><strong>Prix de revient / unité</strong></td><td class="text-right amount" style="white-space:nowrap">${e4(oldU)}</td><td class="text-right" style="white-space:nowrap;color:${NEWC}">${e4(newU)}</td></tr>
       </tbody></table></div>`;
   });
   html += `</div>`;
@@ -772,8 +772,8 @@ function renderCostsCadeaux(out){
       <thead><tr><th>💧 Échantillons 2ml</th><th class="text-right">Ancien</th><th class="text-right">Nouveau — transparent</th><th class="text-right">Nouveau — black</th></tr></thead>
       <tbody>
         ${CADEAUX_2ML_DETAIL.map(([n,o,t,b]) => `<tr><td>${n}</td><td class="text-right amount" style="white-space:nowrap">${e4(o)}</td><td class="text-right" style="white-space:nowrap;color:${NEWC};font-weight:600">${e4(t)}</td><td class="text-right" style="white-space:nowrap;color:${NEWC};font-weight:600">${e4(b)}</td></tr>`).join('')}
-        <tr style="background:rgba(129,98,15,.12);font-weight:bold"><td><strong>Prix de revient / unité</strong></td><td class="text-right amount">${e4(CADEAUX_UNIT_COST['Échantillons 2ml'])}</td><td class="text-right" style="color:${NEWC}">${e4(CADEAUX_2ML_NEW_TRANSP)}</td><td class="text-right" style="color:${NEWC}">${e4(CADEAUX_2ML_NEW_BLACK)}</td></tr>
-        <tr><td colspan="2" style="color:#76695C;font-size:.85rem">Moyenne nouveau (transparent + black) — utilisée pour le calcul des factures ci-dessous</td><td colspan="2" class="text-right" style="color:${NEWC};font-weight:bold">${e4(CADEAUX_UNIT_COST_NEW['Échantillons 2ml'])}</td></tr>
+        <tr style="background:rgba(201,164,86,.12);font-weight:bold"><td><strong>Prix de revient / unité</strong></td><td class="text-right amount">${e4(CADEAUX_UNIT_COST['Échantillons 2ml'])}</td><td class="text-right" style="color:${NEWC}">${e4(CADEAUX_2ML_NEW_TRANSP)}</td><td class="text-right" style="color:${NEWC}">${e4(CADEAUX_2ML_NEW_BLACK)}</td></tr>
+        <tr><td colspan="2" style="color:#A3968A;font-size:.85rem">Moyenne nouveau (transparent + black) — utilisée pour le calcul des factures ci-dessous</td><td colspan="2" class="text-right" style="color:${NEWC};font-weight:bold">${e4(CADEAUX_UNIT_COST_NEW['Échantillons 2ml'])}</td></tr>
       </tbody></table>`;
   // Quantités offertes + coût ancien vs nouveau
   let totOld = 0, totNew = 0, rows = '';
@@ -790,18 +790,18 @@ function renderCostsCadeaux(out){
   Object.keys(testers).sort().forEach(coll => {
     const t = testers[coll]; totOld += t.cost; totNew += t.cost;
     const avg = t.qty ? (t.cost/t.qty).toFixed(4)+' € (moy.)' : '—';
-    rows += `<tr><td>🧪 <strong>Testeurs ${coll}</strong></td><td class="text-right">${fmtNum(t.qty)}</td><td class="text-right" style="color:#76695C;font-size:.85rem">${avg}</td><td class="text-right amount-negative" style="font-weight:bold">${fmtMoney(t.cost)}</td><td class="text-right" style="color:#76695C;font-size:.85rem">inchangé</td><td class="text-right" style="font-weight:bold;color:${NEWC}">${fmtMoney(t.cost)}</td></tr>`;
+    rows += `<tr><td>🧪 <strong>Testeurs ${coll}</strong></td><td class="text-right">${fmtNum(t.qty)}</td><td class="text-right" style="color:#A3968A;font-size:.85rem">${avg}</td><td class="text-right amount-negative" style="font-weight:bold">${fmtMoney(t.cost)}</td><td class="text-right" style="color:#A3968A;font-size:.85rem">inchangé</td><td class="text-right" style="font-weight:bold;color:${NEWC}">${fmtMoney(t.cost)}</td></tr>`;
   });
   const diff = totNew - totOld;
   html += `
-    <h3 style="color:#81620F;margin-bottom:10px">📦 Cadeaux offerts sur la période (${yr}) — ancien vs nouveau</h3>
+    <h3 style="color:#C9A456;margin-bottom:10px">📦 Cadeaux offerts sur la période (${yr}) — ancien vs nouveau</h3>
     <table>
       <thead><tr><th>Cadeau</th><th class="text-right">Quantité</th><th class="text-right">PR ancien</th><th class="text-right">Coût ancien</th><th class="text-right">PR nouveau</th><th class="text-right">Coût nouveau</th></tr></thead>
       <tbody>${rows}
-        <tr style="background:rgba(129,98,15,.12);font-weight:bold"><td colspan="3"><strong>TOTAL — ce que les cadeaux t'ont coûté</strong></td><td class="text-right amount-negative" style="font-size:1.05rem">${fmtMoney(totOld)}</td><td></td><td class="text-right" style="font-size:1.05rem;color:${NEWC}">${fmtMoney(totNew)}</td></tr>
+        <tr style="background:rgba(201,164,86,.12);font-weight:bold"><td colspan="3"><strong>TOTAL — ce que les cadeaux t'ont coûté</strong></td><td class="text-right amount-negative" style="font-size:1.05rem">${fmtMoney(totOld)}</td><td></td><td class="text-right" style="font-size:1.05rem;color:${NEWC}">${fmtMoney(totNew)}</td></tr>
       </tbody>
     </table>
-    ${qty['Box 2ml'] ? '' : `<div style="color:#76695C;font-size:.82rem;margin-top:6px">📦 Box 2ml (0,98 €) : aucune box enregistrée dans les factures pour l'instant — elle sera comptée dès qu'une facture en contiendra (article « Box 2ml »).</div>`}
+    ${qty['Box 2ml'] ? '' : `<div style="color:#A3968A;font-size:.82rem;margin-top:6px">📦 Box 2ml (0,98 €) : aucune box enregistrée dans les factures pour l'instant — elle sera comptée dès qu'une facture en contiendra (article « Box 2ml »).</div>`}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:18px">
       <div class="kpi danger"><div class="kpi-label">Cadeaux (hors testeurs) — ancien</div><div class="kpi-value">${fmtMoney(giftsOld)}</div></div>
       <div class="kpi"><div class="kpi-label">Cadeaux (hors testeurs) — nouveau</div><div class="kpi-value" style="color:${NEWC}">${fmtMoney(giftsNew)}</div></div>
@@ -821,7 +821,7 @@ function renderCosts(){
     out.innerHTML = `
       <div class="warning-box">
         ⚠️ <strong>Prix de revient ${collName} pas encore renseignés.</strong><br>
-        <span style="font-size:.88rem;color:#A33A35">Les coûts de production pour cette collection seront ajoutés ultérieurement. Aucune marge n'est donc calculable pour le moment sur les ROYAL.</span>
+        <span style="font-size:.88rem;color:#E8847A">Les coûts de production pour cette collection seront ajoutés ultérieurement. Aucune marge n'est donc calculable pour le moment sur les ROYAL.</span>
       </div>
       <div class="info-box">
         Pour mémoire : un carton ROYAL standard contient ${c.carton_size} bouteilles (${c.tester_info}) et se vend ${fmtMoney(c.standard_price_carton)} (${fmtMoney(c.standard_price_bottle)}/bouteille).
@@ -833,24 +833,24 @@ function renderCosts(){
     const margeCarton = c.standard_price_carton - (c.total_fixed * c.units_total_per_carton);
     const margePct = (margeCarton / c.standard_price_carton * 100).toFixed(1);
     out.innerHTML = `
-      <div class="info-box" style="background:rgba(47,111,168,.12);border-left:4px solid #2F6FA8">
+      <div class="info-box" style="background:rgba(111,166,232,.12);border-left:4px solid #6FA6E8">
         ℹ️ <strong>Prix de revient provisoire : ${c.total_fixed.toFixed(2)} €/bouteille</strong><br>
-        <span style="font-size:.88rem;color:#76695C">À affiner avec le détail réel des composants, concentrés et production. En attendant, les marges affichées sont basées sur ce coût forfaitaire.</span>
+        <span style="font-size:.88rem;color:#A3968A">À affiner avec le détail réel des composants, concentrés et production. En attendant, les marges affichées sont basées sur ce coût forfaitaire.</span>
       </div>
-      <div style="background:rgba(129,98,15,.08);border-left:4px solid #81620F;padding:14px;border-radius:6px;margin:18px 0">
+      <div style="background:rgba(201,164,86,.08);border-left:4px solid #C9A456;padding:14px;border-radius:6px;margin:18px 0">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
-          <div><div style="color:#76695C;font-size:.75rem">Bouteilles / carton</div><div style="color:#81620F;font-weight:bold">${c.carton_size}</div></div>
-          <div><div style="color:#76695C;font-size:.75rem">Système</div><div style="color:#81620F;font-weight:bold">${c.tester_info}</div></div>
-          <div><div style="color:#76695C;font-size:.75rem">Prix vente carton</div><div style="color:#81620F;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
-          <div><div style="color:#76695C;font-size:.75rem">Prix vente bouteille</div><div style="color:#81620F;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
+          <div><div style="color:#A3968A;font-size:.75rem">Bouteilles / carton</div><div style="color:#C9A456;font-weight:bold">${c.carton_size}</div></div>
+          <div><div style="color:#A3968A;font-size:.75rem">Système</div><div style="color:#C9A456;font-weight:bold">${c.tester_info}</div></div>
+          <div><div style="color:#A3968A;font-size:.75rem">Prix vente carton</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
+          <div><div style="color:#A3968A;font-size:.75rem">Prix vente bouteille</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
         </div>
       </div>
-      <div style="background:rgba(46,125,79,.12);border:1px solid #2E7D4F;padding:18px;border-radius:8px;margin-bottom:18px;text-align:center">
-        <div style="color:#2E7D4F;font-size:.95rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600">💎 Marge par carton (estimée)</div>
-        <div style="font-size:2.1rem;color:#2E7D4F;font-weight:bold;margin-top:6px">${fmtMoney(margeCarton)} (${margePct}%)</div>
-        <div style="color:#2E7D4F;font-size:.85rem;margin-top:6px">Vente ${fmtMoney(c.standard_price_carton)} − Coût ${fmtMoney(c.total_fixed * c.units_total_per_carton)} (${c.units_total_per_carton} btl × ${c.total_fixed}€, testeur inclus)</div>
+      <div style="background:rgba(124,199,150,.12);border:1px solid #7CC796;padding:18px;border-radius:8px;margin-bottom:18px;text-align:center">
+        <div style="color:#7CC796;font-size:.95rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600">💎 Marge par carton (estimée)</div>
+        <div style="font-size:2.1rem;color:#7CC796;font-weight:bold;margin-top:6px">${fmtMoney(margeCarton)} (${margePct}%)</div>
+        <div style="color:#7CC796;font-size:.85rem;margin-top:6px">Vente ${fmtMoney(c.standard_price_carton)} − Coût ${fmtMoney(c.total_fixed * c.units_total_per_carton)} (${c.units_total_per_carton} btl × ${c.total_fixed}€, testeur inclus)</div>
       </div>
-      <h3 style="color:#81620F;margin-bottom:10px">📋 Références ${collName}</h3>
+      <h3 style="color:#C9A456;margin-bottom:10px">📋 Références ${collName}</h3>
       <table>
         <thead><tr><th>Référence</th><th class="text-right">Coût/btl</th><th class="text-right">Coût/carton (+ tester)</th><th class="text-right">Marge/carton</th></tr></thead>
         <tbody>
@@ -863,13 +863,13 @@ function renderCosts(){
   let html = '';
   // En-tête
   html += `
-    <div style="background:rgba(129,98,15,.08);border-left:4px solid #81620F;padding:14px;border-radius:6px;margin-bottom:18px">
+    <div style="background:rgba(201,164,86,.08);border-left:4px solid #C9A456;padding:14px;border-radius:6px;margin-bottom:18px">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
-        <div><div style="color:#76695C;font-size:.75rem">Volume bouteille</div><div style="color:#81620F;font-weight:bold">${c.volume_ml} ml</div></div>
-        <div><div style="color:#76695C;font-size:.75rem">Bouteilles / carton</div><div style="color:#81620F;font-weight:bold">${c.carton_size}</div></div>
-        <div><div style="color:#76695C;font-size:.75rem">Système</div><div style="color:#81620F;font-weight:bold">${c.tester_info}</div></div>
-        <div><div style="color:#76695C;font-size:.75rem">Prix vente carton</div><div style="color:#81620F;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
-        <div><div style="color:#76695C;font-size:.75rem">Prix vente bouteille</div><div style="color:#81620F;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
+        <div><div style="color:#A3968A;font-size:.75rem">Volume bouteille</div><div style="color:#C9A456;font-weight:bold">${c.volume_ml} ml</div></div>
+        <div><div style="color:#A3968A;font-size:.75rem">Bouteilles / carton</div><div style="color:#C9A456;font-weight:bold">${c.carton_size}</div></div>
+        <div><div style="color:#A3968A;font-size:.75rem">Système</div><div style="color:#C9A456;font-weight:bold">${c.tester_info}</div></div>
+        <div><div style="color:#A3968A;font-size:.75rem">Prix vente carton</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
+        <div><div style="color:#A3968A;font-size:.75rem">Prix vente bouteille</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
       </div>
     </div>
   `;
@@ -878,22 +878,22 @@ function renderCosts(){
   html += `
     <div class="grid-2" style="margin-bottom:18px">
       <div>
-        <h3 style="color:#81620F;margin-bottom:10px">🧱 Composants physiques</h3>
+        <h3 style="color:#C9A456;margin-bottom:10px">🧱 Composants physiques</h3>
         <table>
           <thead><tr><th>Élément</th><th class="text-right">Prix d'origine</th><th class="text-right">En EUR</th></tr></thead>
           <tbody>
-            ${c.components.map(comp => `<tr><td>${comp.name}</td><td class="text-right" style="color:#76695C;font-size:.85rem">${comp.price_orig}</td><td class="text-right amount">${comp.price_eur.toFixed(4)} €</td></tr>`).join('')}
-            <tr style="background:rgba(129,98,15,.12);font-weight:bold"><td colspan="2"><strong>TOTAL composants</strong></td><td class="text-right amount" style="font-size:1rem">${c.total_components.toFixed(4)} €</td></tr>
+            ${c.components.map(comp => `<tr><td>${comp.name}</td><td class="text-right" style="color:#A3968A;font-size:.85rem">${comp.price_orig}</td><td class="text-right amount">${comp.price_eur.toFixed(4)} €</td></tr>`).join('')}
+            <tr style="background:rgba(201,164,86,.12);font-weight:bold"><td colspan="2"><strong>TOTAL composants</strong></td><td class="text-right amount" style="font-size:1rem">${c.total_components.toFixed(4)} €</td></tr>
           </tbody>
         </table>
       </div>
       <div>
-        <h3 style="color:#81620F;margin-bottom:10px">⚙️ Main-d'œuvre / Production</h3>
+        <h3 style="color:#C9A456;margin-bottom:10px">⚙️ Main-d'œuvre / Production</h3>
         <table>
           <thead><tr><th>Étape</th><th class="text-right">Détail</th><th class="text-right">Coût €</th></tr></thead>
           <tbody>
-            ${c.production.map(p => `<tr><td>${p.name}</td><td class="text-right" style="color:#76695C;font-size:.85rem">${p.detail}</td><td class="text-right amount">${p.price_eur.toFixed(4)} €</td></tr>`).join('')}
-            <tr style="background:rgba(129,98,15,.12);font-weight:bold"><td colspan="2"><strong>TOTAL production</strong></td><td class="text-right amount" style="font-size:1rem">${c.total_production.toFixed(4)} €</td></tr>
+            ${c.production.map(p => `<tr><td>${p.name}</td><td class="text-right" style="color:#A3968A;font-size:.85rem">${p.detail}</td><td class="text-right amount">${p.price_eur.toFixed(4)} €</td></tr>`).join('')}
+            <tr style="background:rgba(201,164,86,.12);font-weight:bold"><td colspan="2"><strong>TOTAL production</strong></td><td class="text-right amount" style="font-size:1rem">${c.total_production.toFixed(4)} €</td></tr>
           </tbody>
         </table>
       </div>
@@ -907,18 +907,18 @@ function renderCosts(){
   const min_total = Math.min(...c.refs.map(r => r.cost_per_bottle));
   const max_total = Math.max(...c.refs.map(r => r.cost_per_bottle));
   html += `
-    <div style="background:rgba(46,125,79,.12);border:1px solid #2E7D4F;padding:18px;border-radius:8px;margin-bottom:18px;text-align:center">
-      <div style="color:#2E7D4F;font-size:.95rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600">💎 Prix de revient par bouteille vendue (testeur${c.transport_eur ? ' + transport' : ''} inclus)</div>
-      <div style="font-size:2.1rem;color:#2E7D4F;font-weight:bold;margin-top:6px">${avg_total_cost.toFixed(4)} €</div>
-      <div style="color:#2E7D4F;font-size:.85rem;margin-top:6px">Coût moyen — varie de <strong>${min_total.toFixed(2)} €</strong> à <strong>${max_total.toFixed(2)} €</strong> selon la référence</div>
-      <div style="color:#76695C;font-size:.75rem;margin-top:8px">Fabrication : ${avg_fab_cost.toFixed(4)} € (composants+production+concentré) × ${c.tester_ratio.toFixed(3)} (testeur offert amorti sur les btl vendues)${c.transport_eur ? ` + ${c.transport_eur.toFixed(2)} € transport/btl` : ''}</div>
+    <div style="background:rgba(124,199,150,.12);border:1px solid #7CC796;padding:18px;border-radius:8px;margin-bottom:18px;text-align:center">
+      <div style="color:#7CC796;font-size:.95rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600">💎 Prix de revient par bouteille vendue (testeur${c.transport_eur ? ' + transport' : ''} inclus)</div>
+      <div style="font-size:2.1rem;color:#7CC796;font-weight:bold;margin-top:6px">${avg_total_cost.toFixed(4)} €</div>
+      <div style="color:#7CC796;font-size:.85rem;margin-top:6px">Coût moyen — varie de <strong>${min_total.toFixed(2)} €</strong> à <strong>${max_total.toFixed(2)} €</strong> selon la référence</div>
+      <div style="color:#A3968A;font-size:.75rem;margin-top:8px">Fabrication : ${avg_fab_cost.toFixed(4)} € (composants+production+concentré) × ${c.tester_ratio.toFixed(3)} (testeur offert amorti sur les btl vendues)${c.transport_eur ? ` + ${c.transport_eur.toFixed(2)} € transport/btl` : ''}</div>
     </div>
   `;
 
   // Concentré + Coût total + Marge
   const refs_sorted = [...c.refs].sort((a,b) => a.cost_per_bottle - b.cost_per_bottle);
   html += `
-    <h3 style="color:#81620F;margin-bottom:10px">💎 Concentré + Coût total par référence</h3>
+    <h3 style="color:#C9A456;margin-bottom:10px">💎 Concentré + Coût total par référence</h3>
     <table>
       <thead>
         <tr>
@@ -945,7 +945,7 @@ function renderCosts(){
             <td class="text-right amount-negative" style="font-weight:bold">${r.cost_per_bottle.toFixed(4)} €</td>
             <td class="text-right amount-negative" style="font-weight:bold">${r.cost_per_carton_sold.toFixed(2)} €</td>
             <td class="text-right amount-positive" style="font-weight:bold">${r.margin_per_carton.toFixed(2)} €</td>
-            <td class="text-right" style="color:${r.margin_pct >= 60 ? '#2E7D4F' : r.margin_pct >= 50 ? '#81620F' : '#B8433F'};font-weight:bold">${r.margin_pct} %</td>
+            <td class="text-right" style="color:${r.margin_pct >= 60 ? '#7CC796' : r.margin_pct >= 50 ? '#C9A456' : '#E8847A'};font-weight:bold">${r.margin_pct} %</td>
           </tr>
         `).join('')}
       </tbody>
@@ -961,8 +961,8 @@ function renderCosts(){
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:18px">
       <div class="kpi"><div class="kpi-label">Coût moyen / bouteille</div><div class="kpi-value">${avg_cost.toFixed(2)} €</div></div>
       <div class="kpi success"><div class="kpi-label">Marge moyenne</div><div class="kpi-value">${avg_margin_pct.toFixed(1)} %</div></div>
-      <div class="kpi"><div class="kpi-label">⭐ Moins cher</div><div class="kpi-value" style="font-size:1rem">${cheapest.name}<br><span style="font-size:.85rem;color:#2E7D4F">${cheapest.cost_per_bottle.toFixed(2)} €</span></div></div>
-      <div class="kpi"><div class="kpi-label">⭐ Plus cher</div><div class="kpi-value" style="font-size:1rem">${expensive.name}<br><span style="font-size:.85rem;color:#B8433F">${expensive.cost_per_bottle.toFixed(2)} €</span></div></div>
+      <div class="kpi"><div class="kpi-label">⭐ Moins cher</div><div class="kpi-value" style="font-size:1rem">${cheapest.name}<br><span style="font-size:.85rem;color:#7CC796">${cheapest.cost_per_bottle.toFixed(2)} €</span></div></div>
+      <div class="kpi"><div class="kpi-label">⭐ Plus cher</div><div class="kpi-value" style="font-size:1rem">${expensive.name}<br><span style="font-size:.85rem;color:#E8847A">${expensive.cost_per_bottle.toFixed(2)} €</span></div></div>
     </div>
   `;
 
@@ -979,11 +979,11 @@ function renderStock(){
 
   const COLL_ORDER = ['VIP', 'VIP BLACK', 'ROYAL', '50ML', 'BRUMES'];
   const statusColors = {
-    epuise: {bg:'rgba(28,24,20,.08)', border:'#000', text:'⚫ Épuisé', color:'#76695C'},
-    critical: {bg:'rgba(184,67,63,.15)', border:'#B8433F', text:'🔴 Critique', color:'#B8433F'},
-    low: {bg:'rgba(183,121,31,.12)', border:'#B7791F', text:'🟠 Faible', color:'#B7791F'},
-    medium: {bg:'rgba(129,98,15,.10)', border:'#81620F', text:'🟡 Moyen', color:'#81620F'},
-    ok: {bg:'rgba(46,125,79,.10)', border:'#2E7D4F', text:'🟢 OK', color:'#2E7D4F'},
+    epuise: {bg:'rgba(242,232,216,.08)', border:'#6E655C', text:'⚫ Épuisé', color:'#A3968A'},
+    critical: {bg:'rgba(232,132,122,.15)', border:'#E8847A', text:'🔴 Critique', color:'#E8847A'},
+    low: {bg:'rgba(224,168,79,.12)', border:'#E0A84F', text:'🟠 Faible', color:'#E0A84F'},
+    medium: {bg:'rgba(201,164,86,.10)', border:'#C9A456', text:'🟡 Moyen', color:'#C9A456'},
+    ok: {bg:'rgba(124,199,150,.10)', border:'#7CC796', text:'🟢 OK', color:'#7CC796'},
   };
 
   // KPI globaux
@@ -1007,7 +1007,7 @@ function renderStock(){
       <div class="kpi danger"><div class="kpi-label">Réf. critiques</div><div class="kpi-value">${totalCritique}</div></div>
       <div class="kpi danger"><div class="kpi-label">Réf. épuisées</div><div class="kpi-value">${totalEpuise}</div></div>
     </div>
-    <div style="color:#76695C;font-size:.78rem;margin-bottom:14px">*Bénéfice calculé hors ROYAL (coût non renseigné). CA potentiel calculé au prix de vente unitaire standard (VIP 16€, VIP BLACK 18€, ROYAL 9€, 50ML 13€, BRUMES 4€).</div>
+    <div style="color:#A3968A;font-size:.78rem;margin-bottom:14px">*Bénéfice calculé hors ROYAL (coût non renseigné). CA potentiel calculé au prix de vente unitaire standard (VIP 16€, VIP BLACK 18€, ROYAL 9€, 50ML 13€, BRUMES 4€).</div>
   `;
 
   let html = '';
@@ -1016,13 +1016,13 @@ function renderStock(){
     const s = stock[coll];
     const benefDisplay = s.has_cost ? fmtMoneyShort(s.total_benef_pot) : '—';
     html += `
-      <div style="background:rgba(28,24,20,.04);border-radius:8px;padding:18px;margin-bottom:18px">
+      <div style="background:rgba(242,232,216,.04);border-radius:8px;padding:18px;margin-bottom:18px">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:14px">
-          <h3 style="color:#81620F"><span class="${collClass(coll)}">${coll}</span></h3>
-          <div style="color:#76695C;font-size:.95rem">
-            <strong style="color:#81620F">${fmtNum(s.total_qty)}</strong> btl •
-            CA : <strong style="color:#81620F">${fmtMoneyShort(s.total_ca_pot)}</strong> •
-            Bénéfice : <strong style="color:#2E7D4F">${benefDisplay}</strong>
+          <h3 style="color:#C9A456"><span class="${collClass(coll)}">${coll}</span></h3>
+          <div style="color:#A3968A;font-size:.95rem">
+            <strong style="color:#C9A456">${fmtNum(s.total_qty)}</strong> btl •
+            CA : <strong style="color:#C9A456">${fmtMoneyShort(s.total_ca_pot)}</strong> •
+            Bénéfice : <strong style="color:#7CC796">${benefDisplay}</strong>
           </div>
         </div>
         <table>
@@ -1152,8 +1152,8 @@ function renderProduction(){
   COLL_ORDER.forEach(coll => {
     const c = costs[coll];
     if(!c || c.not_yet) return;
-    html += `<div style="background:rgba(28,24,20,.04);border-radius:8px;padding:18px;margin-bottom:16px">
-      <h3 style="color:#81620F;margin-bottom:10px"><span class="${collClass(coll)}">${coll}</span> <span style="color:#76695C;font-size:.85rem;font-weight:normal">(${c.volume_ml}ml • prix vente btl : ${c.standard_price_bottle}€)</span></h3>
+    html += `<div style="background:rgba(242,232,216,.04);border-radius:8px;padding:18px;margin-bottom:16px">
+      <h3 style="color:#C9A456;margin-bottom:10px"><span class="${collClass(coll)}">${coll}</span> <span style="color:#A3968A;font-size:.85rem;font-weight:normal">(${c.volume_ml}ml • prix vente btl : ${c.standard_price_bottle}€)</span></h3>
       <table>
         <thead><tr><th>Référence</th><th class="text-right">Stock actuel</th><th class="text-right">Quantité à produire</th><th class="text-right">Concentré nécessaire</th><th class="text-right">Coût estimé</th><th class="text-right">CA si vendu</th></tr></thead>
         <tbody>`;
@@ -1169,8 +1169,8 @@ function renderProduction(){
       html += `<tr>
         <td><strong>${r.name}</strong></td>
         <td class="text-right">${fmtNum(stockQty)}</td>
-        <td class="text-right"><input type="number" min="0" step="100" value="${qty}" data-prod-key="${key}" style="width:90px;padding:6px 10px;background:rgba(28,24,20,.08);border:1px solid rgba(28,24,20,.2);border-radius:6px;color:#1C1814;text-align:right;font-size:.95rem"></td>
-        <td class="text-right">${qty > 0 ? `<strong style="color:#81620F">${concKg} kg</strong><br><span style="color:#76695C;font-size:.78rem">${concEur} €</span>` : '—'}</td>
+        <td class="text-right"><input type="number" min="0" step="100" value="${qty}" data-prod-key="${key}" style="width:90px;padding:6px 10px;background:rgba(242,232,216,.08);border:1px solid rgba(242,232,216,.2);border-radius:6px;color:#F2E8D8;text-align:right;font-size:.95rem"></td>
+        <td class="text-right">${qty > 0 ? `<strong style="color:#C9A456">${concKg} kg</strong><br><span style="color:#A3968A;font-size:.78rem">${concEur} €</span>` : '—'}</td>
         <td class="text-right amount-negative">${qty > 0 ? fmtMoneyShort(totalCost) : '—'}</td>
         <td class="text-right amount">${qty > 0 ? fmtMoneyShort(caPot) : '—'}</td>
       </tr>`;
@@ -1222,7 +1222,7 @@ function updateProductionNeeds(){
   }
 
   let totalBtlAll = 0, totalCostAll = 0, totalCaAll = 0;
-  let html = '<h2 style="color:#81620F;margin-top:20px;margin-bottom:12px">📋 Ce que tu dois commander</h2>';
+  let html = '<h2 style="color:#C9A456;margin-top:20px;margin-bottom:12px">📋 Ce que tu dois commander</h2>';
 
   Object.keys(byColl).forEach(coll => {
     const data = byColl[coll];
@@ -1232,11 +1232,11 @@ function updateProductionNeeds(){
     totalCostAll += data.total_cost;
     totalCaAll += data.total_ca;
 
-    html += `<div style="background:rgba(28,24,20,.04);border-radius:8px;padding:18px;margin-bottom:16px">
-      <h3 style="color:#81620F;margin-bottom:12px"><span class="${collClass(coll)}">${coll}</span> — <strong>${fmtNum(N)}</strong> bouteilles à produire</h3>
+    html += `<div style="background:rgba(242,232,216,.04);border-radius:8px;padding:18px;margin-bottom:16px">
+      <h3 style="color:#C9A456;margin-bottom:12px"><span class="${collClass(coll)}">${coll}</span> — <strong>${fmtNum(N)}</strong> bouteilles à produire</h3>
       <div class="grid-2">
         <div>
-          <h4 style="color:#81620F;margin-bottom:8px;font-size:.95rem">🧱 Composants physiques</h4>
+          <h4 style="color:#C9A456;margin-bottom:8px;font-size:.95rem">🧱 Composants physiques</h4>
           <table>
             <thead><tr><th>Élément</th><th class="text-right">Quantité</th><th class="text-right">Coût</th></tr></thead>
             <tbody>`;
@@ -1286,12 +1286,12 @@ function updateProductionNeeds(){
       compTotal += total;
       html += `<tr><td>${name}</td><td class="text-right">${fmtNum(qty)}</td><td class="text-right amount-negative">${fmtMoney(total)}</td></tr>`;
     });
-    html += `<tr style="background:rgba(129,98,15,.10);font-weight:bold"><td><strong>Sous-total composants</strong></td><td></td><td class="text-right amount-negative">${fmtMoneyShort(compTotal)}</td></tr>`;
+    html += `<tr style="background:rgba(201,164,86,.10);font-weight:bold"><td><strong>Sous-total composants</strong></td><td></td><td class="text-right amount-negative">${fmtMoneyShort(compTotal)}</td></tr>`;
     html += '</tbody></table></div>';
 
     // Concentré
     html += `<div>
-      <h4 style="color:#81620F;margin-bottom:8px;font-size:.95rem">💎 Concentré nécessaire</h4>
+      <h4 style="color:#C9A456;margin-bottom:8px;font-size:.95rem">💎 Concentré nécessaire</h4>
       <table>
         <thead><tr><th>Référence</th><th class="text-right">Quantité (kg)</th><th class="text-right">Coût</th></tr></thead>
         <tbody>`;
@@ -1302,7 +1302,7 @@ function updateProductionNeeds(){
       concTotal += cost;
       html += `<tr><td><strong>${refName}</strong></td><td class="text-right">${info.kg.toFixed(2)} kg</td><td class="text-right amount-negative">${fmtMoney(cost)}</td></tr>`;
     });
-    html += `<tr style="background:rgba(129,98,15,.10);font-weight:bold"><td><strong>Sous-total concentré</strong></td><td></td><td class="text-right amount-negative">${fmtMoneyShort(concTotal)}</td></tr>`;
+    html += `<tr style="background:rgba(201,164,86,.10);font-weight:bold"><td><strong>Sous-total concentré</strong></td><td></td><td class="text-right amount-negative">${fmtMoneyShort(concTotal)}</td></tr>`;
     html += '</tbody></table></div></div>';
 
     // Production / main d'œuvre
@@ -1319,11 +1319,11 @@ function updateProductionNeeds(){
 
     // Recap collection
     const benefice = data.total_ca - data.total_cost;
-    html += `<div style="margin-top:14px;padding:12px;background:rgba(129,98,15,.08);border-radius:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
-      <div><div style="color:#76695C;font-size:.75rem">Main-d'œuvre</div><div style="color:#B8433F;font-weight:bold">${fmtMoneyShort(prodCost)}</div></div>
-      <div><div style="color:#76695C;font-size:.75rem">Coût TOTAL ${coll}</div><div style="color:#B8433F;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_cost)}</div></div>
-      <div><div style="color:#76695C;font-size:.75rem">CA potentiel</div><div style="color:#81620F;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_ca)}</div></div>
-      <div><div style="color:#76695C;font-size:.75rem">Bénéfice</div><div style="color:#2E7D4F;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(benefice)}</div></div>
+    html += `<div style="margin-top:14px;padding:12px;background:rgba(201,164,86,.08);border-radius:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+      <div><div style="color:#A3968A;font-size:.75rem">Main-d'œuvre</div><div style="color:#E8847A;font-weight:bold">${fmtMoneyShort(prodCost)}</div></div>
+      <div><div style="color:#A3968A;font-size:.75rem">Coût TOTAL ${coll}</div><div style="color:#E8847A;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_cost)}</div></div>
+      <div><div style="color:#A3968A;font-size:.75rem">CA potentiel</div><div style="color:#C9A456;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_ca)}</div></div>
+      <div><div style="color:#A3968A;font-size:.75rem">Bénéfice</div><div style="color:#7CC796;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(benefice)}</div></div>
     </div></div>`;
   });
 
@@ -1333,12 +1333,12 @@ function updateProductionNeeds(){
   const totalBenef = totalCaAll - totalCostAll;
   document.getElementById('prodSummary').style.display = 'block';
   document.getElementById('prodSummary').innerHTML = `
-    <h3 style="color:#81620F;margin-bottom:10px">💼 Récap global de la production</h3>
+    <h3 style="color:#C9A456;margin-bottom:10px">💼 Récap global de la production</h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
-      <div><div style="color:#76695C;font-size:.78rem">Total bouteilles</div><div style="font-size:1.5rem;color:#81620F;font-weight:bold">${fmtNum(totalBtlAll)}</div></div>
-      <div><div style="color:#76695C;font-size:.78rem">Investissement total</div><div style="font-size:1.5rem;color:#B8433F;font-weight:bold">${fmtMoneyShort(totalCostAll)}</div></div>
-      <div><div style="color:#76695C;font-size:.78rem">CA potentiel</div><div style="font-size:1.5rem;color:#81620F;font-weight:bold">${fmtMoneyShort(totalCaAll)}</div></div>
-      <div><div style="color:#76695C;font-size:.78rem">💚 Bénéfice attendu</div><div style="font-size:1.5rem;color:#2E7D4F;font-weight:bold">${fmtMoneyShort(totalBenef)}</div></div>
+      <div><div style="color:#A3968A;font-size:.78rem">Total bouteilles</div><div style="font-size:1.5rem;color:#C9A456;font-weight:bold">${fmtNum(totalBtlAll)}</div></div>
+      <div><div style="color:#A3968A;font-size:.78rem">Investissement total</div><div style="font-size:1.5rem;color:#E8847A;font-weight:bold">${fmtMoneyShort(totalCostAll)}</div></div>
+      <div><div style="color:#A3968A;font-size:.78rem">CA potentiel</div><div style="font-size:1.5rem;color:#C9A456;font-weight:bold">${fmtMoneyShort(totalCaAll)}</div></div>
+      <div><div style="color:#A3968A;font-size:.78rem">💚 Bénéfice attendu</div><div style="font-size:1.5rem;color:#7CC796;font-weight:bold">${fmtMoneyShort(totalBenef)}</div></div>
     </div>
   `;
 }
@@ -1378,19 +1378,19 @@ function renderAnticipation(){
 
   let html = '';
   if(overdue.length){
-    html += `<h3 style="color:#B8433F;margin-bottom:10px;margin-top:14px">🔔 Clients en retard sur leur commande habituelle (${overdue.length})</h3>`;
+    html += `<h3 style="color:#E8847A;margin-bottom:10px;margin-top:14px">🔔 Clients en retard sur leur commande habituelle (${overdue.length})</h3>`;
     html += renderPredCards(overdue, 'danger');
   }
   if(upcoming.length){
-    html += `<h3 style="color:#81620F;margin-bottom:10px;margin-top:18px">📅 Prochaines commandes prévues (${upcoming.length})</h3>`;
+    html += `<h3 style="color:#C9A456;margin-bottom:10px;margin-top:18px">📅 Prochaines commandes prévues (${upcoming.length})</h3>`;
     html += renderPredCards(upcoming, 'info');
   }
   if(inactive.length){
-    html += `<h3 style="color:#B7791F;margin-bottom:10px;margin-top:18px">😴 Clients inactifs > 6 mois (${inactive.length})</h3>`;
+    html += `<h3 style="color:#E0A84F;margin-bottom:10px;margin-top:18px">😴 Clients inactifs > 6 mois (${inactive.length})</h3>`;
     html += renderPredCards(inactive, 'warning');
   }
   if(noHistory.length){
-    html += `<h3 style="color:#76695C;margin-bottom:10px;margin-top:18px">🆕 Clients avec 1 seule commande (${noHistory.length})</h3>`;
+    html += `<h3 style="color:#A3968A;margin-bottom:10px;margin-top:18px">🆕 Clients avec 1 seule commande (${noHistory.length})</h3>`;
     html += renderPredCards(noHistory, 'newbie');
   }
   out.innerHTML = html;
@@ -1398,10 +1398,10 @@ function renderAnticipation(){
 
 function renderPredCards(preds, level){
   const colorMap = {
-    danger:{bg:'rgba(184,67,63,.10)',border:'#B8433F',accent:'#A33A35'},
-    info:{bg:'rgba(47,111,168,.10)',border:'#2F6FA8',accent:'#2F6FA8'},
-    warning:{bg:'rgba(183,121,31,.10)',border:'#B7791F',accent:'#fcd34d'},
-    newbie:{bg:'rgba(28,24,20,.06)',border:'#76695C',accent:'#9C8F80'}
+    danger:{bg:'rgba(232,132,122,.10)',border:'#E8847A',accent:'#E8847A'},
+    info:{bg:'rgba(111,166,232,.10)',border:'#6FA6E8',accent:'#6FA6E8'},
+    warning:{bg:'rgba(224,168,79,.10)',border:'#E0A84F',accent:'#fcd34d'},
+    newbie:{bg:'rgba(242,232,216,.06)',border:'#A3968A',accent:'#6E655C'}
   };
   const c = colorMap[level];
   return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px">' +
@@ -1409,8 +1409,8 @@ function renderPredCards(preds, level){
       <div style="background:${c.bg};border-left:4px solid ${c.border};padding:14px;border-radius:8px">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
           <div>
-            <div style="color:#81620F;font-weight:bold;font-size:1rem">${p.client}</div>
-            <div style="color:#76695C;font-size:.8rem">${p.pays} • ${p.n_factures} commande(s)</div>
+            <div style="color:#C9A456;font-weight:bold;font-size:1rem">${p.client}</div>
+            <div style="color:#A3968A;font-size:.8rem">${p.pays} • ${p.n_factures} commande(s)</div>
           </div>
           <div style="text-align:right">
             <div style="color:${c.accent};font-size:.75rem;text-transform:uppercase">Confiance</div>
@@ -1418,12 +1418,12 @@ function renderPredCards(preds, level){
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;font-size:.85rem">
-          <div><span style="color:#76695C">Dernière :</span><br><strong>${p.last_order}</strong> (il y a ${p.days_since_last}j)</div>
-          <div><span style="color:#76695C">Prochaine prévue :</span><br><strong style="color:#81620F">${p.predicted_date || '?'}</strong></div>
-          <div><span style="color:#76695C">Intervalle moyen :</span><br><strong>${p.avg_interval ? p.avg_interval+' j' : 'N/A'}</strong></div>
-          <div><span style="color:#76695C">CA attendu :</span><br><strong style="color:#2E7D4F">${fmtMoneyShort(p.predicted_ca)}</strong></div>
+          <div><span style="color:#A3968A">Dernière :</span><br><strong>${p.last_order}</strong> (il y a ${p.days_since_last}j)</div>
+          <div><span style="color:#A3968A">Prochaine prévue :</span><br><strong style="color:#C9A456">${p.predicted_date || '?'}</strong></div>
+          <div><span style="color:#A3968A">Intervalle moyen :</span><br><strong>${p.avg_interval ? p.avg_interval+' j' : 'N/A'}</strong></div>
+          <div><span style="color:#A3968A">CA attendu :</span><br><strong style="color:#7CC796">${fmtMoneyShort(p.predicted_ca)}</strong></div>
         </div>
-        ${p.top_refs.length ? `<div style="border-top:1px solid rgba(28,24,20,.1);padding-top:8px"><div style="color:#76695C;font-size:.75rem;margin-bottom:4px">📦 À prévoir (top références) :</div>${p.top_refs.slice(0,3).map(r => `<div style="font-size:.8rem;display:flex;justify-content:space-between"><span><span class="${collClass(r.collection)}" style="font-size:.65rem">${r.collection}</span> ${r.reference}</span><span style="color:#81620F">${r.cartons} cart.</span></div>`).join('')}</div>` : ''}
+        ${p.top_refs.length ? `<div style="border-top:1px solid rgba(242,232,216,.1);padding-top:8px"><div style="color:#A3968A;font-size:.75rem;margin-bottom:4px">📦 À prévoir (top références) :</div>${p.top_refs.slice(0,3).map(r => `<div style="font-size:.8rem;display:flex;justify-content:space-between"><span><span class="${collClass(r.collection)}" style="font-size:.65rem">${r.collection}</span> ${r.reference}</span><span style="color:#C9A456">${r.cartons} cart.</span></div>`).join('')}</div>` : ''}
       </div>
     `).join('') + '</div>';
 }
@@ -1452,40 +1452,40 @@ function renderObjectifs(){
     const evolution = dN1.kpi_ca > 0 ? ((d.kpi_ca - dN1.kpi_ca) / dN1.kpi_ca * 100) : 0;
     const projectionVsN1 = dN1.kpi_ca > 0 ? ((projectionAnnee - dN1.kpi_ca) / dN1.kpi_ca * 100) : 0;
     compHtml = `
-      <div style="background:rgba(28,24,20,.05);padding:16px;border-radius:8px;margin-bottom:16px">
-        <h3 style="color:#81620F;margin-bottom:10px">📅 Comparaison avec ${yearN1}</h3>
+      <div style="background:rgba(242,232,216,.05);padding:16px;border-radius:8px;margin-bottom:16px">
+        <h3 style="color:#C9A456;margin-bottom:10px">📅 Comparaison avec ${yearN1}</h3>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
-          <div><div style="color:#76695C;font-size:.8rem">CA ${yearN1} (réf.)</div><div style="color:#81620F;font-weight:bold;font-size:1.15rem">${fmtMoney(dN1.kpi_ca)}</div></div>
-          <div><div style="color:#76695C;font-size:.8rem">CA ${year} (actuel)</div><div style="color:#81620F;font-weight:bold;font-size:1.15rem">${fmtMoney(d.kpi_ca)}</div></div>
-          <div><div style="color:#76695C;font-size:.8rem">Évolution actuelle</div><div style="color:${evolution>=0?'#2E7D4F':'#B8433F'};font-weight:bold;font-size:1.15rem">${evolution>=0?'+':''}${evolution.toFixed(1)}%</div></div>
-          <div><div style="color:#76695C;font-size:.8rem">Évolution projetée</div><div style="color:${projectionVsN1>=0?'#2E7D4F':'#B8433F'};font-weight:bold;font-size:1.15rem">${projectionVsN1>=0?'+':''}${projectionVsN1.toFixed(1)}%</div></div>
+          <div><div style="color:#A3968A;font-size:.8rem">CA ${yearN1} (réf.)</div><div style="color:#C9A456;font-weight:bold;font-size:1.15rem">${fmtMoney(dN1.kpi_ca)}</div></div>
+          <div><div style="color:#A3968A;font-size:.8rem">CA ${year} (actuel)</div><div style="color:#C9A456;font-weight:bold;font-size:1.15rem">${fmtMoney(d.kpi_ca)}</div></div>
+          <div><div style="color:#A3968A;font-size:.8rem">Évolution actuelle</div><div style="color:${evolution>=0?'#7CC796':'#E8847A'};font-weight:bold;font-size:1.15rem">${evolution>=0?'+':''}${evolution.toFixed(1)}%</div></div>
+          <div><div style="color:#A3968A;font-size:.8rem">Évolution projetée</div><div style="color:${projectionVsN1>=0?'#7CC796':'#E8847A'};font-weight:bold;font-size:1.15rem">${projectionVsN1>=0?'+':''}${projectionVsN1.toFixed(1)}%</div></div>
         </div>
       </div>
     `;
   }
 
   // Status
-  let statusIcon = '🟢', statusColor = '#2E7D4F', statusText = 'Sur la bonne voie';
-  if(pctProjection < 80){ statusIcon = '🔴'; statusColor = '#B8433F'; statusText = 'En retard sur l\'objectif'; }
-  else if(pctProjection < 100){ statusIcon = '🟡'; statusColor = '#B7791F'; statusText = 'Légèrement en-dessous'; }
-  else if(pctProjection > 120){ statusIcon = '🚀'; statusColor = '#2E7D4F'; statusText = 'Au-dessus des prévisions !'; }
+  let statusIcon = '🟢', statusColor = '#7CC796', statusText = 'Sur la bonne voie';
+  if(pctProjection < 80){ statusIcon = '🔴'; statusColor = '#E8847A'; statusText = 'En retard sur l\'objectif'; }
+  else if(pctProjection < 100){ statusIcon = '🟡'; statusColor = '#E0A84F'; statusText = 'Légèrement en-dessous'; }
+  else if(pctProjection > 120){ statusIcon = '🚀'; statusColor = '#7CC796'; statusText = 'Au-dessus des prévisions !'; }
 
   let html = compHtml;
 
   // Bar de progression
   html += `
-    <div style="background:rgba(28,24,20,.05);padding:18px;border-radius:8px;margin-bottom:16px">
+    <div style="background:rgba(242,232,216,.05);padding:18px;border-radius:8px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap">
-        <h3 style="color:#81620F">🎯 Objectif ${year} : ${fmtMoney(cible)}</h3>
+        <h3 style="color:#C9A456">🎯 Objectif ${year} : ${fmtMoney(cible)}</h3>
         <div style="color:${statusColor};font-weight:bold;font-size:1.05rem">${statusIcon} ${statusText}</div>
       </div>
-      <div style="background:rgba(28,24,20,.08);height:30px;border-radius:15px;overflow:hidden;position:relative;margin-bottom:10px">
-        <div style="background:linear-gradient(90deg,#81620F 0%,#2E7D4F 100%);height:100%;width:${Math.min(pctObjectif,100)}%;border-radius:15px;transition:width .5s;display:flex;align-items:center;justify-content:center;color:#FCF6EE;font-weight:bold;font-size:.85rem">${pctObjectif.toFixed(1)}%</div>
-        ${pctProjection > pctObjectif ? `<div style="position:absolute;top:0;height:100%;width:2px;background:#1C1814;left:${Math.min(pctProjection,100)}%"><div style="position:absolute;top:-22px;left:-30px;color:#fff;font-size:.7rem">Projection ${pctProjection.toFixed(0)}%</div></div>`:''}
+      <div style="background:rgba(242,232,216,.08);height:30px;border-radius:15px;overflow:hidden;position:relative;margin-bottom:10px">
+        <div style="background:linear-gradient(90deg,#C9A456 0%,#7CC796 100%);height:100%;width:${Math.min(pctObjectif,100)}%;border-radius:15px;transition:width .5s;display:flex;align-items:center;justify-content:center;color:#15120F;font-weight:bold;font-size:.85rem">${pctObjectif.toFixed(1)}%</div>
+        ${pctProjection > pctObjectif ? `<div style="position:absolute;top:0;height:100%;width:2px;background:#F2E8D8;left:${Math.min(pctProjection,100)}%"><div style="position:absolute;top:-22px;left:-30px;color:#fff;font-size:.7rem">Projection ${pctProjection.toFixed(0)}%</div></div>`:''}
       </div>
-      <div style="display:flex;justify-content:space-between;color:#76695C;font-size:.85rem">
-        <span>CA actuel : <strong style="color:#81620F">${fmtMoney(d.kpi_ca)}</strong></span>
-        <span>Reste à faire : <strong style="color:${cible-d.kpi_ca>0?'#B8433F':'#2E7D4F'}">${fmtMoney(Math.max(cible-d.kpi_ca,0))}</strong></span>
+      <div style="display:flex;justify-content:space-between;color:#A3968A;font-size:.85rem">
+        <span>CA actuel : <strong style="color:#C9A456">${fmtMoney(d.kpi_ca)}</strong></span>
+        <span>Reste à faire : <strong style="color:${cible-d.kpi_ca>0?'#E8847A':'#7CC796'}">${fmtMoney(Math.max(cible-d.kpi_ca,0))}</strong></span>
       </div>
     </div>
   `;
@@ -1503,7 +1503,7 @@ function renderObjectifs(){
 
   // Tableau mensuel
   html += `
-    <h3 style="color:#81620F;margin-bottom:10px">Détail mensuel et cumul</h3>
+    <h3 style="color:#C9A456;margin-bottom:10px">Détail mensuel et cumul</h3>
     <table>
       <thead><tr><th>Mois</th><th class="text-right">CA du mois</th><th class="text-right">Cumul</th><th class="text-right">% objectif atteint</th></tr></thead>
       <tbody>
@@ -1512,7 +1512,7 @@ function renderObjectifs(){
   d.mois.forEach(m => {
     cumul += m.ca;
     const pct = cible > 0 ? (cumul/cible*100) : 0;
-    html += `<tr style="${m.ca===0?'opacity:.4':''}"><td><strong>${m.mois}</strong></td><td class="text-right amount">${fmtMoneyShort(m.ca)}</td><td class="text-right">${fmtMoneyShort(cumul)}</td><td class="text-right" style="color:${pct>=100?'#2E7D4F':'#81620F'}">${pct.toFixed(1)}%</td></tr>`;
+    html += `<tr style="${m.ca===0?'opacity:.4':''}"><td><strong>${m.mois}</strong></td><td class="text-right amount">${fmtMoneyShort(m.ca)}</td><td class="text-right">${fmtMoneyShort(cumul)}</td><td class="text-right" style="color:${pct>=100?'#7CC796':'#C9A456'}">${pct.toFixed(1)}%</td></tr>`;
   });
   html += '</tbody></table>';
 
@@ -1528,10 +1528,10 @@ function renderInsights(){
     return;
   }
   const colorMap = {
-    success:{bg:'rgba(46,125,79,.12)',border:'#2E7D4F'},
-    warning:{bg:'rgba(183,121,31,.12)',border:'#B7791F'},
-    danger:{bg:'rgba(184,67,63,.12)',border:'#B8433F'},
-    info:{bg:'rgba(47,111,168,.12)',border:'#2F6FA8'}
+    success:{bg:'rgba(124,199,150,.12)',border:'#7CC796'},
+    warning:{bg:'rgba(224,168,79,.12)',border:'#E0A84F'},
+    danger:{bg:'rgba(232,132,122,.12)',border:'#E8847A'},
+    info:{bg:'rgba(111,166,232,.12)',border:'#6FA6E8'}
   };
   const html = d.insights.map(ins => {
     const c = colorMap[ins.level] || colorMap.info;
@@ -1539,8 +1539,8 @@ function renderInsights(){
       <div style="background:${c.bg};border-left:4px solid ${c.border};padding:14px 18px;border-radius:8px;margin-bottom:10px;display:flex;gap:14px;align-items:start">
         <div style="font-size:1.8rem">${ins.icon}</div>
         <div style="flex:1">
-          <div style="color:#81620F;font-weight:bold;font-size:1rem;margin-bottom:4px">${ins.title}</div>
-          <div style="color:#1C1814;font-size:.9rem">${ins.desc}</div>
+          <div style="color:#C9A456;font-weight:bold;font-size:1rem;margin-bottom:4px">${ins.title}</div>
+          <div style="color:#F2E8D8;font-size:.9rem">${ins.desc}</div>
         </div>
       </div>
     `;
@@ -1574,14 +1574,14 @@ function renderCharges(filter=''){
     </tr>`;
   });
   if(!filter){
-    rows += `<tr style="font-weight:bold;border-top:2px solid #81620F">
+    rows += `<tr style="font-weight:bold;border-top:2px solid #C9A456">
       <td>TOTAL</td>
       <td class="text-right">${fmtNum(data.total_ops)}</td>
       <td class="text-right amount-negative">${fmtMoney(data.total_amt)}</td>
       <td class="text-right">100,0 %</td>
     </tr>`;
   }
-  if(visibleCats.length===0){ rows = '<tr><td colspan="4" style="text-align:center;color:#76695C">Aucune catégorie ne correspond à la recherche.</td></tr>'; }
+  if(visibleCats.length===0){ rows = '<tr><td colspan="4" style="text-align:center;color:#A3968A">Aucune catégorie ne correspond à la recherche.</td></tr>'; }
   document.getElementById('tbody-charges').innerHTML = rows;
 
   const labels = data.order;
@@ -1589,14 +1589,14 @@ function renderCharges(filter=''){
   if(charts.charges) charts.charges.destroy();
   charts.charges = new Chart(document.getElementById('chartCharges'), {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Montant (€)', data: values, backgroundColor: '#81620F' }] },
+    data: { labels, datasets: [{ label: 'Montant (€)', data: values, backgroundColor: '#C9A456' }] },
     options: {
       indexAxis: 'y',
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#76695C' }, grid: { color: 'rgba(28,24,20,.08)' } },
-        y: { ticks: { color: '#1C1814', font: { size: 10 } }, grid: { display: false } }
+        x: { ticks: { color: '#A3968A' }, grid: { color: 'rgba(242,232,216,.08)' } },
+        y: { ticks: { color: '#F2E8D8', font: { size: 10 } }, grid: { display: false } }
       }
     }
   });
@@ -1617,7 +1617,7 @@ function openChargesModal(cat){
   document.getElementById('chargesModalMeta').innerHTML = `Compte BRED ${currentYear === 'total' ? '2025 + 2026' : currentYear} — ${data.period}`;
   document.getElementById('chargesModalSummary').innerHTML = `
     <div class="modal-stat"><div class="modal-stat-label">Nb opérations</div><div class="modal-stat-value">${fmtNum(c.count)}</div></div>
-    <div class="modal-stat"><div class="modal-stat-label">Montant total</div><div class="modal-stat-value" style="color:#B8433F">${fmtMoney(c.total)}</div></div>
+    <div class="modal-stat"><div class="modal-stat-label">Montant total</div><div class="modal-stat-value" style="color:#E8847A">${fmtMoney(c.total)}</div></div>
     <div class="modal-stat"><div class="modal-stat-label">% du total charges</div><div class="modal-stat-value">${fmtPct(pct)}</div></div>
   `;
   const tb = document.getElementById('chargesModalVendors');
@@ -1640,12 +1640,12 @@ function showChargesMonths(cat, vendorName){
   if(vendorName){
     const v = c.vendors.find(v => v.vendor === vendorName);
     months = (v && v.months) ? v.months : [];
-    titleEl.innerHTML = `Répartition mensuelle — <span style="color:#81620F">${vendorName}</span> <a href="#" id="chargesMonthsBack" style="color:#76695C;font-size:.8rem;margin-left:8px">🔙 Toute la catégorie</a>`;
+    titleEl.innerHTML = `Répartition mensuelle — <span style="color:#C9A456">${vendorName}</span> <a href="#" id="chargesMonthsBack" style="color:#A3968A;font-size:.8rem;margin-left:8px">🔙 Toute la catégorie</a>`;
     document.getElementById('chargesMonthsBack').addEventListener('click', e => { e.preventDefault(); showChargesMonths(cat, null); });
   } else {
     titleEl.textContent = 'Répartition mensuelle';
   }
-  if(months.length===0){ mb.innerHTML = '<tr><td colspan="2" style="text-align:center;color:#76695C">Pas de détail mensuel disponible.</td></tr>'; return; }
+  if(months.length===0){ mb.innerHTML = '<tr><td colspan="2" style="text-align:center;color:#A3968A">Pas de détail mensuel disponible.</td></tr>'; return; }
   months.forEach(m => {
     const mm = m.mois.split('-')[1];
     const yy = m.mois.split('-')[0];
@@ -1679,14 +1679,14 @@ function renderRevenus(filter=''){
     </tr>`;
   });
   if(!filter){
-    rows += `<tr style="font-weight:bold;border-top:2px solid #81620F">
+    rows += `<tr style="font-weight:bold;border-top:2px solid #C9A456">
       <td>TOTAL</td>
       <td class="text-right">${fmtNum(data.total_ops)}</td>
       <td class="text-right amount-positive">${fmtMoney(data.total_amt)}</td>
       <td class="text-right">100,0 %</td>
     </tr>`;
   }
-  if(visibleCats.length===0){ rows = '<tr><td colspan="4" style="text-align:center;color:#76695C">Aucune source ne correspond à la recherche.</td></tr>'; }
+  if(visibleCats.length===0){ rows = '<tr><td colspan="4" style="text-align:center;color:#A3968A">Aucune source ne correspond à la recherche.</td></tr>'; }
   document.getElementById('tbody-revenus').innerHTML = rows;
 
   const labels = data.order;
@@ -1694,14 +1694,14 @@ function renderRevenus(filter=''){
   if(charts.revenus) charts.revenus.destroy();
   charts.revenus = new Chart(document.getElementById('chartRevenus'), {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Montant (€)', data: values, backgroundColor: '#2E7D4F' }] },
+    data: { labels, datasets: [{ label: 'Montant (€)', data: values, backgroundColor: '#7CC796' }] },
     options: {
       indexAxis: 'y',
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#76695C' }, grid: { color: 'rgba(28,24,20,.08)' } },
-        y: { ticks: { color: '#1C1814', font: { size: 10 } }, grid: { display: false } }
+        x: { ticks: { color: '#A3968A' }, grid: { color: 'rgba(242,232,216,.08)' } },
+        y: { ticks: { color: '#F2E8D8', font: { size: 10 } }, grid: { display: false } }
       }
     }
   });
@@ -1718,7 +1718,7 @@ function openRevenusModal(cat){
   document.getElementById('revenusModalMeta').innerHTML = `Compte BRED ${currentYear === 'total' ? '2025 + 2026' : currentYear} — ${data.period}`;
   document.getElementById('revenusModalSummary').innerHTML = `
     <div class="modal-stat"><div class="modal-stat-label">Nb opérations</div><div class="modal-stat-value">${fmtNum(c.count)}</div></div>
-    <div class="modal-stat"><div class="modal-stat-label">Montant total</div><div class="modal-stat-value" style="color:#2E7D4F">${fmtMoney(c.total)}</div></div>
+    <div class="modal-stat"><div class="modal-stat-label">Montant total</div><div class="modal-stat-value" style="color:#7CC796">${fmtMoney(c.total)}</div></div>
     <div class="modal-stat"><div class="modal-stat-label">% du total revenus</div><div class="modal-stat-value">${fmtPct(pct)}</div></div>
   `;
   const tb = document.getElementById('revenusModalVendors');
@@ -1741,12 +1741,12 @@ function showRevenusMonths(cat, vendorName){
   if(vendorName){
     const v = c.vendors.find(v => v.vendor === vendorName);
     months = (v && v.months) ? v.months : [];
-    titleEl.innerHTML = `Répartition mensuelle — <span style="color:#81620F">${vendorName}</span> <a href="#" id="revenusMonthsBack" style="color:#76695C;font-size:.8rem;margin-left:8px">🔙 Toute la source</a>`;
+    titleEl.innerHTML = `Répartition mensuelle — <span style="color:#C9A456">${vendorName}</span> <a href="#" id="revenusMonthsBack" style="color:#A3968A;font-size:.8rem;margin-left:8px">🔙 Toute la source</a>`;
     document.getElementById('revenusMonthsBack').addEventListener('click', e => { e.preventDefault(); showRevenusMonths(cat, null); });
   } else {
     titleEl.textContent = 'Répartition mensuelle';
   }
-  if(months.length===0){ mb.innerHTML = '<tr><td colspan="2" style="text-align:center;color:#76695C">Pas de détail mensuel disponible.</td></tr>'; return; }
+  if(months.length===0){ mb.innerHTML = '<tr><td colspan="2" style="text-align:center;color:#A3968A">Pas de détail mensuel disponible.</td></tr>'; return; }
   months.forEach(m => {
     const mm = m.mois.split('-')[1];
     const yy = m.mois.split('-')[0];
@@ -1772,10 +1772,10 @@ function renderFournisseurs(){
   let rows = '';
   d.months.forEach(m => {
     m.lines.forEach((l,i) => {
-      const paidTag = l.paid ? ' <span style="color:#2E7D4F;font-weight:700">✅ Payé</span>' : '';
-      rows += `<tr${l.paid ? ' style="background:rgba(46,125,79,.08)"' : ''}><td>${i===0?m.name:''}</td><td>${i===0?m.status:''}</td><td>${l.label}${paidTag}</td><td class="text-right ${l.paid ? '' : 'amount-negative'}" style="${l.paid ? 'color:#2E7D4F' : ''}">${fmtMoney(l.amount)}</td></tr>`;
+      const paidTag = l.paid ? ' <span style="color:#7CC796;font-weight:700">✅ Payé</span>' : '';
+      rows += `<tr${l.paid ? ' style="background:rgba(124,199,150,.08)"' : ''}><td>${i===0?m.name:''}</td><td>${i===0?m.status:''}</td><td>${l.label}${paidTag}</td><td class="text-right ${l.paid ? '' : 'amount-negative'}" style="${l.paid ? 'color:#7CC796' : ''}">${fmtMoney(l.amount)}</td></tr>`;
     });
-    rows += `<tr style="font-weight:bold;border-top:1px solid rgba(129,98,15,.4)"><td colspan="3">TOTAL ${m.name}</td><td class="text-right amount-negative">${fmtMoney(m.total)}</td></tr>`;
+    rows += `<tr style="font-weight:bold;border-top:1px solid rgba(201,164,86,.4)"><td colspan="3">TOTAL ${m.name}</td><td class="text-right amount-negative">${fmtMoney(m.total)}</td></tr>`;
   });
   document.getElementById('tbody-fournisseurs-france').innerHTML = rows;
 
@@ -1783,7 +1783,7 @@ function renderFournisseurs(){
   d.goldrock.lines.forEach(l => {
     grows += `<tr><td>${l.label}</td><td>${d.goldrock.status}</td><td class="text-right">${l.usd.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} $</td><td class="text-right amount-negative">${fmtMoney(l.eur)}</td></tr>`;
   });
-  grows += `<tr style="font-weight:bold;border-top:2px solid #81620F"><td colspan="2">TOTAL GOLDROCK</td><td class="text-right">${d.total_goldrock_usd.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} $</td><td class="text-right amount-negative">${fmtMoney(d.total_goldrock_eur)}</td></tr>`;
+  grows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td colspan="2">TOTAL GOLDROCK</td><td class="text-right">${d.total_goldrock_usd.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} $</td><td class="text-right amount-negative">${fmtMoney(d.total_goldrock_eur)}</td></tr>`;
   document.getElementById('tbody-fournisseurs-goldrock').innerHTML = grows;
 }
 
@@ -1802,16 +1802,16 @@ function renderChargesFixes(){
 
   let rows = '';
   d.charges.forEach(c => {
-    rows += `<tr><td>${c.label}</td><td class="text-right amount-negative">${fmtMoney(c.amount)}</td><td style="color:#76695C;font-size:.85rem">${c.note}</td></tr>`;
+    rows += `<tr><td>${c.label}</td><td class="text-right amount-negative">${fmtMoney(c.amount)}</td><td style="color:#A3968A;font-size:.85rem">${c.note}</td></tr>`;
   });
-  rows += `<tr style="font-weight:bold;border-top:2px solid #81620F"><td>TOTAL</td><td class="text-right amount-negative">${fmtMoney(totalCharges)}</td><td></td></tr>`;
+  rows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td>TOTAL</td><td class="text-right amount-negative">${fmtMoney(totalCharges)}</td><td></td></tr>`;
   document.getElementById('tbody-chargesfixes').innerHTML = rows;
 
   let srows = '';
   d.salaires.forEach(s => {
-    srows += `<tr><td>${s.label}</td><td class="text-right amount-negative">${fmtMoney(s.amount)}</td><td style="color:#76695C;font-size:.85rem">${s.note}</td></tr>`;
+    srows += `<tr><td>${s.label}</td><td class="text-right amount-negative">${fmtMoney(s.amount)}</td><td style="color:#A3968A;font-size:.85rem">${s.note}</td></tr>`;
   });
-  srows += `<tr style="font-weight:bold;border-top:2px solid #81620F"><td>TOTAL</td><td class="text-right amount-negative">${fmtMoney(totalSalaires)}</td><td></td></tr>`;
+  srows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td>TOTAL</td><td class="text-right amount-negative">${fmtMoney(totalSalaires)}</td><td></td></tr>`;
   document.getElementById('tbody-chargesfixes-salaires').innerHTML = srows;
 }
 
@@ -1829,7 +1829,7 @@ function renderVirements(){
     const pct = it.amount / d.total * 100;
     rows += `<tr><td>${it.label}</td><td class="text-right amount-positive">${fmtMoney(it.amount)}</td><td class="text-right">${fmtPct(pct)}</td></tr>`;
   });
-  rows += `<tr style="font-weight:bold;border-top:2px solid #81620F"><td>TOTAL</td><td class="text-right amount-positive">${fmtMoney(d.total)}</td><td class="text-right">100,0 %</td></tr>`;
+  rows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td>TOTAL</td><td class="text-right amount-positive">${fmtMoney(d.total)}</td><td class="text-right">100,0 %</td></tr>`;
   document.getElementById('tbody-virements').innerHTML = rows;
 }
 
@@ -1851,27 +1851,27 @@ function renderInventaire(filter=''){
     const items = f ? c.items.filter(it => it.label.toLowerCase().includes(f) || it.code.toLowerCase().includes(f)) : c.items;
     if(f && items.length === 0) return;
     html += `
-      <div style="background:rgba(28,24,20,.04);border-radius:8px;padding:18px;margin-bottom:18px">
+      <div style="background:rgba(242,232,216,.04);border-radius:8px;padding:18px;margin-bottom:18px">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:14px">
-          <h3 style="color:#81620F">${cat}</h3>
-          <div style="color:#76695C;font-size:.95rem">
-            <strong style="color:#81620F">${fmtNum(c.total_conforme)}</strong> unités conformes
-            ${c.total_non_conforme > 0 ? ` • <span style="color:#B8433F"><strong>${fmtNum(c.total_non_conforme)}</strong> non conformes</span>` : ''}
+          <h3 style="color:#C9A456">${cat}</h3>
+          <div style="color:#A3968A;font-size:.95rem">
+            <strong style="color:#C9A456">${fmtNum(c.total_conforme)}</strong> unités conformes
+            ${c.total_non_conforme > 0 ? ` • <span style="color:#E8847A"><strong>${fmtNum(c.total_non_conforme)}</strong> non conformes</span>` : ''}
             • ${c.count} référence${c.count>1?'s':''}
           </div>
         </div>
         <table>
           <thead>
-            <tr><th>#</th><th>Article</th><th style="color:#76695C;font-size:.8rem">Code</th><th class="text-right">Stock conforme</th><th class="text-right">Non conforme</th></tr>
+            <tr><th>#</th><th>Article</th><th style="color:#A3968A;font-size:.8rem">Code</th><th class="text-right">Stock conforme</th><th class="text-right">Non conforme</th></tr>
           </thead>
           <tbody>
             ${items.map((it,i) => `
               <tr>
                 <td>${i+1}</td>
                 <td>${it.label}</td>
-                <td style="color:#76695C;font-size:.8rem">${it.code}</td>
-                <td class="text-right" style="${it.conforme===0?'color:#76695C':''}">${fmtNum(it.conforme)}</td>
-                <td class="text-right" style="${it.non_conforme>0?'color:#B8433F;font-weight:600':'color:#76695C'}">${it.non_conforme>0?fmtNum(it.non_conforme):'—'}</td>
+                <td style="color:#A3968A;font-size:.8rem">${it.code}</td>
+                <td class="text-right" style="${it.conforme===0?'color:#A3968A':''}">${fmtNum(it.conforme)}</td>
+                <td class="text-right" style="${it.non_conforme>0?'color:#E8847A;font-weight:600':'color:#A3968A'}">${it.non_conforme>0?fmtNum(it.non_conforme):'—'}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -1964,10 +1964,10 @@ function renderSimulation(){
       totalCA += ca;
 
       const displayQty = simCartonMode ? (qtyBtl / info.size).toFixed(qtyBtl % info.size === 0 ? 0 : 1) : qtyBtl;
-      const statusColor = qtyBtl === 0 ? '#76695C' : (feasible ? '#2E7D4F' : '#B8433F');
+      const statusColor = qtyBtl === 0 ? '#A3968A' : (feasible ? '#7CC796' : '#E8847A');
       const statusIcon = qtyBtl === 0 ? '—' : (feasible ? '✅' : '❌');
-      const afterColor = after < 0 ? '#B8433F' : (after < 50 ? '#B7791F' : '#2E7D4F');
-      const stockColor = it.qty <= 0 ? '#B8433F' : (it.qty < 50 ? '#B7791F' : '#1C1814');
+      const afterColor = after < 0 ? '#E8847A' : (after < 50 ? '#E0A84F' : '#7CC796');
+      const stockColor = it.qty <= 0 ? '#E8847A' : (it.qty < 50 ? '#E0A84F' : '#F2E8D8');
 
       rows += `<tr>
         <td><strong>${it.reference}</strong></td>
@@ -1976,26 +1976,26 @@ function renderSimulation(){
           <input type="number" min="0" step="${simCartonMode ? 1 : 1}" value="${displayQty}"
                  data-key="${key}" data-coll="${coll}" data-size="${info.size}"
                  class="sim-input"
-                 style="width:100px;padding:6px 8px;border-radius:6px;border:1px solid #9C8F80;background:#FFFFFF;color:#1C1814;text-align:right;font-weight:600">
+                 style="width:100px;padding:6px 8px;border-radius:6px;border:1px solid #6E655C;background:#1E1A16;color:#F2E8D8;text-align:right;font-weight:600">
         </td>
-        <td class="text-right" style="color:#76695C;font-size:.85rem">${tester > 0 ? '+' + tester : '—'}</td>
+        <td class="text-right" style="color:#A3968A;font-size:.85rem">${tester > 0 ? '+' + tester : '—'}</td>
         <td class="text-right" style="color:${afterColor};font-weight:600">${qtyBtl === 0 ? '—' : fmtNum(after)}</td>
         <td class="text-right amount">${qtyBtl === 0 ? '—' : fmtMoney(ca)}</td>
         <td class="text-center" style="font-size:1.1rem;color:${statusColor}">${statusIcon}</td>
       </tr>`;
     });
 
-    const collStatus = collKO > 0 ? `<span style="color:#B8433F">⚠️ ${collKO} ref(s) en rupture</span>` : (collQty > 0 ? '<span style="color:#2E7D4F">✅ Faisable</span>' : '<span style="color:#76695C">Aucune saisie</span>');
+    const collStatus = collKO > 0 ? `<span style="color:#E8847A">⚠️ ${collKO} ref(s) en rupture</span>` : (collQty > 0 ? '<span style="color:#7CC796">✅ Faisable</span>' : '<span style="color:#A3968A">Aucune saisie</span>');
     html += `
-      <div style="background:rgba(28,24,20,.04);border-radius:8px;padding:18px;margin-bottom:16px">
+      <div style="background:rgba(242,232,216,.04);border-radius:8px;padding:18px;margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px">
-          <h3 style="color:#81620F;margin:0">
+          <h3 style="color:#C9A456;margin:0">
             <span class="${collClass(coll)}">${coll}</span>
-            <span style="color:#76695C;font-size:.85rem;font-weight:normal">
+            <span style="color:#A3968A;font-size:.85rem;font-weight:normal">
               (${info.price_btl}€/btl • carton de ${info.size}+1 à ${info.price_carton}€)
             </span>
           </h3>
-          <div style="font-size:.95rem">${collStatus} <span style="color:#76695C;margin-left:14px">${fmtNum(collQty)} btl • ${fmtMoney(collCA)}</span></div>
+          <div style="font-size:.95rem">${collStatus} <span style="color:#A3968A;margin-left:14px">${fmtNum(collQty)} btl • ${fmtMoney(collCA)}</span></div>
         </div>
         <table>
           <thead><tr>
@@ -2014,16 +2014,16 @@ function renderSimulation(){
   });
 
   // Sommaire global en haut
-  const summaryColor = refsKO > 0 ? '#B8433F' : (totalBtl > 0 ? '#2E7D4F' : '#76695C');
+  const summaryColor = refsKO > 0 ? '#E8847A' : (totalBtl > 0 ? '#7CC796' : '#A3968A');
   const summaryMsg = refsKO > 0
     ? `❌ ${refsKO} référence(s) en rupture — produire avant`
     : (totalBtl > 0 ? `✅ Commande entièrement faisable avec le stock actuel` : 'Aucune référence saisie');
   document.getElementById('simSummary').innerHTML = `
-    <div style="background:linear-gradient(135deg,rgba(129,98,15,.08),rgba(129,98,15,.02));border:1px solid ${summaryColor};border-radius:10px;padding:18px;margin-bottom:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
-      <div><div style="color:#76695C;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Statut</div><div style="font-size:1.05rem;color:${summaryColor};font-weight:bold;margin-top:4px">${summaryMsg}</div></div>
-      <div><div style="color:#76695C;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Total bouteilles</div><div style="font-size:1.6rem;color:#81620F;font-weight:bold">${fmtNum(totalBtl)}</div></div>
-      <div><div style="color:#76695C;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">CA estimé (prix standard)</div><div style="font-size:1.6rem;color:#2E7D4F;font-weight:bold">${fmtMoney(totalCA)}</div></div>
-      <div><div style="color:#76695C;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Réfs OK / KO</div><div style="font-size:1.6rem;font-weight:bold"><span style="color:#2E7D4F">${refsOK}</span> <span style="color:#76695C">/</span> <span style="color:#B8433F">${refsKO}</span></div></div>
+    <div style="background:linear-gradient(135deg,rgba(201,164,86,.08),rgba(201,164,86,.02));border:1px solid ${summaryColor};border-radius:10px;padding:18px;margin-bottom:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
+      <div><div style="color:#A3968A;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Statut</div><div style="font-size:1.05rem;color:${summaryColor};font-weight:bold;margin-top:4px">${summaryMsg}</div></div>
+      <div><div style="color:#A3968A;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Total bouteilles</div><div style="font-size:1.6rem;color:#C9A456;font-weight:bold">${fmtNum(totalBtl)}</div></div>
+      <div><div style="color:#A3968A;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">CA estimé (prix standard)</div><div style="font-size:1.6rem;color:#7CC796;font-weight:bold">${fmtMoney(totalCA)}</div></div>
+      <div><div style="color:#A3968A;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Réfs OK / KO</div><div style="font-size:1.6rem;font-weight:bold"><span style="color:#7CC796">${refsOK}</span> <span style="color:#A3968A">/</span> <span style="color:#E8847A">${refsKO}</span></div></div>
     </div>
   `;
   document.getElementById('simContent').innerHTML = html;
