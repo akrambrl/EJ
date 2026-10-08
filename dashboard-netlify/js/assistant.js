@@ -71,11 +71,32 @@
     return `<strong>Facture ${esc(f.facture)}</strong> du ${esc(f.date)} — ${esc(f.client)} (${esc(f.pays)})<br>Montant : <strong>${money(f.ca)}</strong> · ${nombre(f.btl)} flacons${f.marge != null ? ` · bénéfice ${money0(f.marge)}` : ''}<div class="ia-sub">${lignes}${(f.lines || []).length > 8 ? '<br>…' : ''}</div>${btn('Ouvrir la facture', 'factures', ` data-facture="${esc(f.facture)}"`)}`;
   }
   // Dernière(s) facture(s) / commande d'un client
-  regle(q => /(facture|commande|achat)/.test(norm(q)) && trouver(q, clientsNoms()), q => {
+  // Clients sans commande récente
+  regle(q => /(inactif|n ont pas commande|pas commande depuis|plus commande|sans commande|a relancer)/.test(norm(q)), () => {
+    const der = {}; factures().forEach(f => { const d = frToIso(f.date); if(!der[f.client] || d > der[f.client].d) der[f.client] = {d, pays:f.pays, ca:0}; });
+    const L = Object.entries(der).filter(([, x]) => days(x.d) < -120).sort((a, b) => a[1].d.localeCompare(b[1].d));
+    return `${L.length} clients sans commande depuis plus de 4 mois :<ul>${L.map(([c, x]) => `<li>${esc(c)} (${esc(x.pays)}) — dernière le ${fr(x.d)}</li>`).join('')}</ul>${btn('Espace Nassim', 'equipe-nassim')}`;
+  });
+  // Commandes d'un pays (dernière, liste, nombre)
+  const PAYS_ALIAS = {emirats:'Émirats Arabes Unis', eau:'Émirats Arabes Unis', dubai:'Émirats Arabes Unis', uae:'Émirats Arabes Unis', arabie:'Arabie Saoudite', saoudite:'Arabie Saoudite', ksa:'Arabie Saoudite', angleterre:'Angleterre', 'royaume uni':'Angleterre', uk:'Angleterre', usa:'USA', 'etats unis':'USA', amerique:'USA', azerbaidjan:'Azerbaïdjan', nigeria:'Nigéria'};
+  const ART = {'Sénégal':'du ', 'Qatar':'du ', 'Nigéria':'du ', 'Danemark':'du ', 'Vietnam':'du ', 'Maroc':'du ', 'Liban':'du ', 'Koweït':'du ', 'Pays-Bas':'des ', 'USA':'des ', 'Émirats Arabes Unis':'des ', 'Russie':'de la ', 'France':'de la '};
+  const dePays = p => ART[p] || (/^[aeiouéèiyÉ]/i.test(p) ? "d'" : 'de ');
+  function paysDe(q){ const p = trouver(q, paysNoms()); if(p) return p; const Q = ' ' + norm(q) + ' '; const k = Object.keys(PAYS_ALIAS).find(a => Q.includes(' ' + a + ' ')); return k && paysNoms().includes(PAYS_ALIAS[k]) ? PAYS_ALIAS[k] : null; }
+  regle(q => /(facture|commande|achat|client|quand)/.test(norm(q)) && !trouver(q, clientsNoms()) && !!paysDe(q), q => {
+    const p = paysDe(q), y = annee(q), L = factures().filter(f => f.pays === p && (!y || frToIso(f.date).startsWith(y))), Q = norm(q);
+    if(!L.length) return `Aucune commande trouvée pour <strong>${esc(p)}</strong>${y ? ' en ' + y : ''}.`;
+    const clients = [...new Set(L.map(f => f.client))];
+    if(/(client)/.test(Q) && !/(derniere|dernier|quand)/.test(Q)) return `Clients en <strong>${esc(p)}</strong> : ${clients.map(esc).join(', ')}.<div class="ia-sub">${L.length} commande(s), ${money0(L.reduce((a, f) => a + f.ca, 0))} au total.</div>${btn('Pays', 'pays')}`;
+    if(/(toutes|liste|historique|combien)/.test(Q)) return `<strong>${esc(p)}</strong>${y ? ' en ' + y : ''} : ${L.length} commande${L.length > 1 ? 's' : ''}, ${money0(L.reduce((a, f) => a + f.ca, 0))} (${clients.map(esc).join(', ')}).<ul>${L.slice(0, 12).map(f => `<li>${esc(f.date)} · ${esc(f.client)} · ${esc(f.facture)} · ${money0(f.ca)}</li>`).join('')}</ul>${btn('Pays', 'pays')}`;
+    const d = frToIso(L[0].date), n = -days(d);
+    return `La dernière commande ${dePays(p)}<strong>${esc(p)}</strong> remonte au <strong>${esc(L[0].date)}</strong> (il y a ${n > 60 ? Math.round(n / 30) + ' mois' : n + ' jours'}).<br>` + factureHtml(L[0]);
+  });
+  regle(q => /(facture|commande|achat|quand)/.test(norm(q)) && trouver(q, clientsNoms()), q => {
     const c = trouver(q, clientsNoms()), L = factures().filter(f => f.client === c);
     if(!L.length) return `Aucune facture trouvée pour <strong>${esc(c)}</strong>.`;
     if(/(toutes|liste|historique|combien de)/.test(norm(q))) return `<strong>${esc(c)}</strong> : ${L.length} facture${L.length > 1 ? 's' : ''}, ${money0(L.reduce((a, f) => a + f.ca, 0))} au total.<ul>${L.slice(0, 12).map(f => `<li>${esc(f.date)} · ${esc(f.facture)} · ${money0(f.ca)}</li>`).join('')}</ul>${btn('Voir ses factures', 'factures')}`;
-    return 'Dernière facture : ' + factureHtml(L[0]);
+    const n = -days(frToIso(L[0].date));
+    return `Dernière commande de <strong>${esc(c)}</strong> : le ${esc(L[0].date)} (il y a ${n > 60 ? Math.round(n / 30) + ' mois' : n + ' jours'}).<br>` + factureHtml(L[0]);
   });
   // Stock d'une référence / ruptures
   regle(q => /(rupture|epuise|manque|reappro|stock bas|plus de stock)/.test(norm(q)), () => {
@@ -150,12 +171,21 @@
   });
   // Chiffre d'affaires (client, pays, mois, année)
   regle(q => /(chiffre|ca |vendu|ventes|combien.*(fait|vend)|rapporte)/.test(norm(q) + ' '), q => {
-    const y = annee(q), c = trouver(q, clientsNoms()), p = trouver(q, paysNoms()), m = moisDe(q), S = stats()[y || 'total'];
+    const y = annee(q), c = trouver(q, clientsNoms()), p = paysDe(q), m = moisDe(q), S = stats()[y || 'total'];
+    if(!c && !p && trouver(q, refsNoms())) return null;   // ventes d'une référence : règle suivante
     if(c){ const L = factures().filter(f => f.client === c && (!y || frToIso(f.date).startsWith(y))); return `<strong>${esc(c)}</strong>${y ? ' en ' + y : ''} : <strong>${money0(L.reduce((a, f) => a + f.ca, 0))}</strong> sur ${L.length} facture${L.length > 1 ? 's' : ''}${L[0] ? ` (dernière le ${esc(L[0].date)})` : ''}.${btn('Fiche client', 'crm', ` data-client="${esc(c)}"`)}`; }
     if(p){ const x = (S.pays || []).find(z => z.pays === p) || {}; return `<strong>${esc(p)}</strong>${y ? ' en ' + y : ' (2025 + 2026)'} : <strong>${money0(x.ca)}</strong> · ${x.clients || 0} client(s) · ${x.factures || 0} facture(s).${btn('Pays', 'pays')}`; }
     if(m !== null){ const Y = y || YEAR, mm = (stats()[Y].mois || [])[m] || {}; return `${MOIS[m][0].toUpperCase() + MOIS[m].slice(1)} ${Y} : <strong>${money0(mm.ca)}</strong> · ${mm.factures || 0} facture(s) · ${nombre(mm.btl)} flacons.${btn('Mois', 'mois')}`; }
     const Y = y || YEAR, T = stats()[Y] || {};
     return `Chiffre d'affaires ${Y} : <strong>${money0(T.kpi_ca)}</strong> · ${T.kpi_factures} factures · ${T.kpi_clients} clients · ${nombre(T.kpi_btl)} flacons.${Y === YEAR ? `<div class="ia-sub">Projection fin d'année au rythme actuel : ${money0(T.kpi_ca * 12 / (today().getMonth() + today().getDate() / 30))}.</div>` : ''}${btn("Vue d'ensemble", 'overview')}`;
+  });
+  // Ventes d'une référence (« combien de Moon vendu », « ventes de Dolce Vita en 2026 »)
+  regle(q => /(vendu|vente|combien|ca |chiffre)/.test(norm(q) + ' ') && !!trouver(q, refsNoms()) && !trouver(q, clientsNoms()), q => {
+    const r = trouver(q, refsNoms()), y = annee(q), L = (stats()[y || 'total'].refs || []).filter(x => x.reference === r);
+    if(!L.length) return `Aucune vente de <strong>${esc(r)}</strong>${y ? ' en ' + y : ''}.`;
+    const clients = {}; factures().filter(f => !y || frToIso(f.date).startsWith(y)).forEach(f => (f.lines || []).forEach(l => { if(l.reference === r) clients[f.client] = (clients[f.client] || 0) + (l.btl || 0); }));
+    return L.map(x => `<strong>${esc(r)}</strong> (${esc(x.collection)})${y ? ' en ' + y : ' (2025 + 2026)'} : <strong>${nombre(x.btl)} flacons</strong> vendus · ${money0(x.ca)} · bénéfice ${money0(x.marge)}`).join('<br>') +
+      `<div class="ia-sub">Principaux clients : ${Object.entries(clients).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([c, n]) => `${esc(c)} (${nombre(n)})`).join(', ')}</div>${btn('Références', 'refs')}`;
   });
   // Informations sur un client
   regle(q => !!trouver(q, clientsNoms()), q => {
@@ -175,6 +205,15 @@
     Object.entries(ALL.costs || {}).forEach(([col, c]) => (c.refs || []).forEach(x => { if((x.name || x.reference) === r) L.push(`${esc(col)} : prix de revient ${money(x.cost_per_bottle)} par flacon vendu (fabrication ${money(x.cost_per_bottle_fabrication)}, concentré ${esc(x.conc || '')}) · marge ${esc(x.margin_pct)} % au prix standard`); }));
     const st = stockItems().filter(i => i.reference === r).map(i => `${esc(i.collection)} : prix de vente standard ${money(i.prix_btl)}`);
     return `<strong>${esc(r)}</strong><br>${st.concat(L).join('<br>') || 'Pas de prix enregistré.'}${btn('Prix de revient', 'costs')}`;
+  });
+
+  regle(q => !!paysDe(q), q => {
+    const p = paysDe(q), L = factures().filter(f => f.pays === p), x = (stats().total.pays || []).find(z => z.pays === p) || {};
+    return `<strong>${esc(p)}</strong> : ${money0(x.ca)} de chiffre d'affaires (2025 + 2026), ${L.length} commande(s), clients : ${[...new Set(L.map(f => f.client))].map(esc).join(', ')}.${L[0] ? `<br>Dernière commande le ${esc(L[0].date)} (${esc(L[0].client)}, ${money0(L[0].ca)}).` : ''}${btn('Pays', 'pays')}`;
+  });
+  regle(q => !!trouver(q, refsNoms()), q => {
+    const r = trouver(q, refsNoms()), st = stockItems().filter(i => i.reference === r), v = (stats().total.refs || []).filter(x => x.reference === r);
+    return `<strong>${esc(r)}</strong> : ${st.map(i => `${esc(i.collection)} — ${nombre(i.qty)} flacons en stock`).join(' · ') || 'pas de stock compté'}${v.length ? `<br>Ventes 2025 + 2026 : ${v.map(x => `${nombre(x.btl)} flacons (${money0(x.ca)})`).join(' · ')}` : ''}${btn('Page Stock', 'stock')}`;
   });
 
   function repondreLocal(q){
