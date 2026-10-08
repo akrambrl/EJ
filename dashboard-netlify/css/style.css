@@ -3,7 +3,8 @@
   /* Thème beige : fond sable, texte brun, accents or */
   --paper:#FBF7F0; --surface:#F7F0E4; --cream:#EFE6D8; --ink:#2B2118; --muted:#7A6B5C; --line:#DCCFBC;
   --gold:#A8823A; --gold-lt:#8C6A2C; --night:#2B2118; --on-night:#F7F0E4;
-  --good:#2F8551; --bad:#B4473C; --warn:#A86F12;
+  --good:#2F8551; --bad:#B4473C; --warn:#A86F12; --ink-rgb:43,33,24;
+  --page-bg:#EFE6D8; --sb-bg:linear-gradient(180deg,#E9DCC6 0%,#F1E8DA 45%,#F3EBDF 100%); --top-bg:linear-gradient(100deg,#F4ECDF 0%,#EDE2CF 55%,#E3D3B8 100%);
   color-scheme:light;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -307,11 +308,11 @@ a{color:var(--gold)}
   --gold-text:linear-gradient(135deg,#9A7531 0%,#7F5F24 50%,#A8823A 100%);
   --hair:rgba(201,164,86,.28);
 }
-body{background:radial-gradient(1200px 600px at 85% -10%,rgba(201,164,86,.10),transparent 60%),radial-gradient(900px 500px at -10% 30%,rgba(201,164,86,.05),transparent 60%),#EFE6D8;background-attachment:fixed;font-weight:400}
+body{background:radial-gradient(1200px 600px at 85% -10%,rgba(201,164,86,.10),transparent 60%),radial-gradient(900px 500px at -10% 30%,rgba(201,164,86,.05),transparent 60%),var(--page-bg);background-attachment:fixed;font-weight:400}
 
 /* En-tête sur marbre noir */
 .topbar{max-width:none;margin:0;padding:34px max(24px,calc((100vw - 1400px)/2 + 24px)) 30px;position:relative;
-  background:linear-gradient(100deg,#F4ECDF 0%,#EDE2CF 55%,#E3D3B8 100%);
+  background:var(--top-bg);
   border-bottom:1px solid var(--hair)}
 .topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,#C9A456 30%,#F2D995 50%,#C9A456 70%,transparent)}
 .brand{gap:20px}
@@ -396,7 +397,7 @@ tr.clickable:hover td{background:rgba(201,164,86,.07)}
 
 /* ===================== Menu latéral ===================== */
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;z-index:900;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#5E4F40 transparent;
-  background:linear-gradient(180deg,#E9DCC6 0%,#F1E8DA 45%,#F3EBDF 100%);
+  background:var(--sb-bg);
   border-right:1px solid var(--hair);display:flex;flex-direction:column;padding:28px 20px 20px;transition:transform .3s ease}
 .main{margin-left:260px;min-width:0;transition:margin-left .3s ease}
 body.menu-masque .sidebar{transform:translateX(-100%)}
@@ -899,3 +900,42 @@ tr.gx-urgent td{color:var(--bad)} tr.gx-bientot td{color:var(--warn)} tr.gx-dorm
 .kpi,.chart-container,.j-card,.eq-mission,.gx-card,.crm-fiche,.sl-mois,.j-vis,.reg-wrap{box-shadow:0 1px 2px rgba(80,60,30,.05)}
 .info-box{color:var(--ink)}
 .sb-overlay{background:rgba(43,33,24,.35)!important}
+
+/* ===================== Mode sombre (bouton soleil / lune) ===================== */
+:root[data-theme="dark"]{
+  --paper:#0B0A09; --surface:#15120F; --cream:#1E1A16; --ink:#F2E8D8; --muted:#A3968A; --line:#332C25;
+  --gold:#C9A456; --gold-lt:#E2C580; --night:#000; --on-night:#F4E9DA;
+  --good:#7CC796; --bad:#E8847A; --warn:#E0A84F; --ink-rgb:242,232,216;
+  --hair:rgba(201,164,86,.28);
+  --gold-grad:linear-gradient(135deg,#F6E3A8 0%,#D9B866 38%,#B8913F 62%,#E9CF85 100%);
+  --gold-text:linear-gradient(135deg,#F6E3A8 0%,#D9B866 45%,#E9CF85 100%);
+  --page-bg:#0B0A09;
+  --sb-bg:linear-gradient(180deg,rgba(11,10,9,.80),rgba(11,10,9,.97) 45%),url(../img/marbre.jpg) 70% top/auto 420px no-repeat,#0B0A09;
+  --top-bg:linear-gradient(90deg,rgba(11,10,9,.94) 0%,rgba(11,10,9,.72) 45%,rgba(11,10,9,.35) 100%),url(../img/marbre.jpg) right center/cover no-repeat;
+  color-scheme:dark;
+}
+[data-theme="dark"] .sb-brand .logo{filter:brightness(1.35) saturate(1.1)}
+[data-theme="dark"] .sidebar .tab{color:#A3968A}
+[data-theme="dark"] .sidebar .tab.active,[data-theme="dark"] .sidebar .tab:hover{color:var(--gold)}
+[data-theme="dark"] .sb-seg,[data-theme="dark"] .seg,[data-theme="dark"] .sb-toggle{background:rgba(11,10,9,.55)}
+[data-theme="dark"] .sb-seg button:not(.active){color:#CDBFA8}
+[data-theme="dark"] .badge-vip,[data-theme="dark"] .doc-soc-NB{background:#2A2316;color:#E2C580}
+[data-theme="dark"] .badge-royal,[data-theme="dark"] .doc-soc-BSD{background:#16222E;color:#9CC2EA;border-color:#3B5F82}
+[data-theme="dark"] .badge-50ml{background:#2A241F;color:#F4E9DA;border-color:#2A241F}
+[data-theme="dark"] .badge-remise,[data-theme="dark"] .doc-lines input.ean.bad{background:#2E1714}
+[data-theme="dark"] .sl-cat-niche,[data-theme="dark"] .j-cat-salon{color:#D7B6E0}
+[data-theme="dark"] .sl-cat-packaging,[data-theme="dark"] .j-cat-fournisseur{color:#9FC3D9}
+[data-theme="dark"] .sl-cat-ingredients,[data-theme="dark"] .j-cat-stock{color:#A9CF9A}
+[data-theme="dark"] .sl-cat-congres,[data-theme="dark"] .j-cat-paiement{color:#E6B98F}
+[data-theme="dark"] .j-vis{background:#1b1611}
+[data-theme="dark"] .j-vis-txt{background:radial-gradient(circle at 30% 20%,rgba(226,197,128,.22),transparent 60%),linear-gradient(135deg,#221b13,#0d0b09 70%)}
+[data-theme="dark"] .j-vis-big span{background:rgba(11,10,9,.72)}
+[data-theme="dark"] .eq-col{background:rgba(11,10,9,.45)}
+[data-theme="dark"] .cloud-auth{background:radial-gradient(circle at 50% 30%,#1d1712,#070605 70%)}
+[data-theme="dark"] .cloud-box{background:rgba(21,18,15,.9)}
+[data-theme="dark"] .kpi,[data-theme="dark"] .chart-container,[data-theme="dark"] .j-card,[data-theme="dark"] .eq-mission,[data-theme="dark"] .gx-card,[data-theme="dark"] .crm-fiche,[data-theme="dark"] .sl-mois,[data-theme="dark"] .reg-wrap{box-shadow:none}
+[data-theme="dark"] .sb-overlay{background:rgba(0,0,0,.6)!important}
+.theme-btn{flex:none;margin-left:auto;width:42px;height:42px;border:1px solid var(--hair);background:transparent;cursor:pointer;color:var(--gold);display:flex;align-items:center;justify-content:center}
+.theme-btn:hover{border-color:var(--gold)}
+.theme-btn svg{width:18px;height:18px}
+@media(max-width:599px){ .theme-btn{width:36px;height:36px} }

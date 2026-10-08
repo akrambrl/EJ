@@ -15,11 +15,13 @@ function getD(){ return ALL[currentYear]; }
 
 function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
 
-Chart.defaults.color = '#2B2118';
-Chart.defaults.borderColor = 'rgba(43,33,24,.1)';
+// Couleurs du thème (clair ou sombre) lues dans les variables CSS au moment du rendu
+function cv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function applyChartTheme(){ Chart.defaults.color = cv('--ink'); Chart.defaults.borderColor = 'rgba(' + cv('--ink-rgb') + ',.1)'; }
+applyChartTheme();
 Chart.defaults.font.family = "Montserrat, 'Helvetica Neue', Arial, sans-serif";
 Chart.defaults.plugins.title.font = {family:"'Cormorant Garamond', Georgia, serif", size:19, weight:'500'};
-const PALETTE = ['#c98500','#3987e5','#d95926','#199e70','#9085e9','#d55181','#008300','#e66767','#8a5c00','#245a9c','#93401b','#11694b','#5f57a3','#93385a']; // thème sombre : 8 teintes validées (fond #FAF6EF) + 6 teintes foncées
+const PALETTE = ['#c98500','#3987e5','#d95926','#199e70','#9085e9','#d55181','#008300','#e66767','#8a5c00','#245a9c','#93401b','#11694b','#5f57a3','#93385a']; // thème sombre : 8 teintes validées (fond var(--surface)) + 6 teintes foncées
 
 function renderKpis(){
   const d = getD();
@@ -58,23 +60,23 @@ function renderOverview(){
   destroyChart('chartCollections');
   charts.chartCollections = new Chart(document.getElementById('chartCollections'),{
     type:'doughnut',
-    data:{labels:d.collections.map(c=>c.collection),datasets:[{data:d.collections.map(c=>c.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#FAF6EF'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Collection',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:'#8C6A2C'},legend:{position:'right'}}}
+    data:{labels:d.collections.map(c=>c.collection),datasets:[{data:d.collections.map(c=>c.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:cv('--surface')}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Collection',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:cv('--gold-lt')},legend:{position:'right'}}}
   });
   destroyChart('chartPays');
   charts.chartPays = new Chart(document.getElementById('chartPays'),{
     type:'doughnut',
-    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#FAF6EF'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:'#8C6A2C'},legend:{position:'right'}}}
+    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:cv('--surface')}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:cv('--gold-lt')},legend:{position:'right'}}}
   });
   destroyChart('chartMois');
   charts.chartMois = new Chart(document.getElementById('chartMois'),{
     type:'bar',
     data:{labels:d.mois.map(m=>m.mois),datasets:[
       {label:'CA (€)',data:d.mois.map(m=>m.ca),backgroundColor:'#C9A456',borderRadius:6},
-      {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),backgroundColor:'#2F8551',borderRadius:6}
+      {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),backgroundColor:cv('--good'),borderRadius:6}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA & Bénéfice mensuel',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:'#8C6A2C'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA & Bénéfice mensuel',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:cv('--gold-lt')}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   // Podium
   const podium = document.getElementById('podium');
@@ -87,7 +89,7 @@ function renderOverview(){
     if(top3[i]){
       const div = document.createElement('div');
       div.className = 'podium-step ' + cls[j];
-      div.innerHTML = `<div class="podium-rank">${ranks[i]}</div><div class="podium-name">${top3[i].client}</div><div class="podium-amount">${fmtMoneyShort(top3[i].ca)}<br><small style="color:#2F8551">+${fmtMoneyShort(top3[i].marge)} bénéfice</small></div>`;
+      div.innerHTML = `<div class="podium-rank">${ranks[i]}</div><div class="podium-name">${top3[i].client}</div><div class="podium-amount">${fmtMoneyShort(top3[i].ca)}<br><small style="color:var(--good)">+${fmtMoneyShort(top3[i].marge)} bénéfice</small></div>`;
       podium.appendChild(div);
     }
   });
@@ -122,12 +124,12 @@ function showClientTooltip(key, e){
   tt.innerHTML = `
     <div style="color:#C9A456;font-weight:bold;margin-bottom:6px;font-size:.9rem">⭐ Top 3 produits</div>
     ${top.map((p, i) => `
-      <div style="margin-bottom:6px;padding:6px;background:rgba(43,33,24,.05);border-radius:5px">
+      <div style="margin-bottom:6px;padding:6px;background:rgba(var(--ink-rgb),.05);border-radius:5px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-weight:bold">#${i+1} ${p.reference}</span>
           <span class="${collClass(p.collection)}" style="font-size:.7rem">${p.collection}</span>
         </div>
-        <div style="color:#7A6B5C;font-size:.75rem;margin-top:3px">${fmtNum(p.btl)} btl • ${fmtMoneyShort(p.ca)}</div>
+        <div style="color:var(--muted);font-size:.75rem;margin-top:3px">${fmtNum(p.btl)} btl • ${fmtMoneyShort(p.ca)}</div>
       </div>
     `).join('')}
   `;
@@ -152,14 +154,14 @@ function renderPays(){
   destroyChart('chartPaysCA');
   charts.chartPaysCA = new Chart(document.getElementById('chartPaysCA'),{
     type:'pie',
-    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#FAF6EF'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par pays (agrégé)',color:'#8C6A2C'},legend:{position:'bottom'}}}
+    data:{labels:d.pays.map(p=>p.pays),datasets:[{data:d.pays.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:cv('--surface')}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par pays (agrégé)',color:cv('--gold-lt')},legend:{position:'bottom'}}}
   });
   destroyChart('chartPaysClientCA');
   charts.chartPaysClientCA = new Chart(document.getElementById('chartPaysClientCA'),{
     type:'pie',
-    data:{labels:d.pays_client.map(p=>p.label),datasets:[{data:d.pays_client.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:'#FAF6EF'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays × Client (2 irakiens séparés)',color:'#8C6A2C'},legend:{position:'bottom'}}}
+    data:{labels:d.pays_client.map(p=>p.label),datasets:[{data:d.pays_client.map(p=>p.ca),backgroundColor:PALETTE,borderWidth:2,borderColor:cv('--surface')}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA par Pays × Client (2 irakiens séparés)',color:cv('--gold-lt')},legend:{position:'bottom'}}}
   });
   const tb = document.getElementById('tbody-pays-client');
   tb.innerHTML = '';
@@ -175,15 +177,15 @@ function renderMois(){
     type:'line',
     data:{labels:d.mois.map(m=>m.mois),datasets:[
       {label:'CA (€)',data:d.mois.map(m=>m.ca),borderColor:'#C9A456',backgroundColor:'rgba(201,164,86,.2)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#C9A456'},
-      {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),borderColor:'#2F8551',backgroundColor:'rgba(124,199,150,.15)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#2F8551'}
+      {label:'Bénéfice (€)',data:d.mois.map(m=>m.marge),borderColor:cv('--good'),backgroundColor:'rgba(124,199,150,.15)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:cv('--good')}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Évolution mensuelle (CA + Bénéfice)',color:'#8C6A2C'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Évolution mensuelle (CA + Bénéfice)',color:cv('--gold-lt')}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   destroyChart('chartMoisMarge');
   charts.chartMoisMarge = new Chart(document.getElementById('chartMoisMarge'),{
     type:'bar',
     data:{labels:d.mois.map(m=>m.mois),datasets:[{label:'Bouteilles',data:d.mois.map(m=>m.btl),backgroundColor:'#6FA6E8',borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Bouteilles vendues par mois',color:'#8C6A2C'},legend:{display:false}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Bouteilles vendues par mois',color:cv('--gold-lt')},legend:{display:false}}}
   });
   const tb = document.getElementById('tbody-mois');
   tb.innerHTML = '';
@@ -200,7 +202,7 @@ function renderRefs(){
   charts.chartTopRefs = new Chart(document.getElementById('chartTopRefs'),{
     type:'bar',
     data:{labels:top15.map(r=>r.reference),datasets:[{label:'Bouteilles vendues',data:top15.map(r=>r.btl),backgroundColor:'#C9A456',borderRadius:4}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Top 15 références (par bouteilles vendues)',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:'#8C6A2C'},legend:{display:false}}}
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Top 15 références (par bouteilles vendues)',font:{family:"'Cormorant Garamond', Georgia, serif",size:19,weight:'500'},color:cv('--gold-lt')},legend:{display:false}}}
   });
   filterRefs();
 }
@@ -232,7 +234,7 @@ function filterRefs(){
         tb.innerHTML += `<tr style="background:rgba(201,164,86,.10);font-weight:bold"><td colspan="3"><em>↳ Sous-total ${currentColl} (${collCount} réf.)</em></td><td></td><td class="text-right">${fmtNum(collTotalBtl)}</td><td class="text-right amount">${fmtMoneyShort(collTotalCA)}</td><td class="text-right amount-negative">${fmtMoneyShort(collTotalCout)}</td><td class="text-right amount-positive">${fmtMoneyShort(collTotalMarge)}</td></tr>`;
       }
       // En-tête de la nouvelle collection
-      tb.innerHTML += `<tr style="background:#2B2118"><td colspan="8" style="padding:10px 12px;color:#C9A456;font-weight:bold;font-size:.95rem;text-transform:uppercase;letter-spacing:.5px"><span class="${collClass(r.collection)}" style="margin-right:8px">${r.collection}</span></td></tr>`;
+      tb.innerHTML += `<tr style="background:var(--cream)"><td colspan="8" style="padding:10px 12px;color:#C9A456;font-weight:bold;font-size:.95rem;text-transform:uppercase;letter-spacing:.5px"><span class="${collClass(r.collection)}" style="margin-right:8px">${r.collection}</span></td></tr>`;
       currentColl = r.collection;
       collTotalCA = 0; collTotalBtl = 0; collTotalCout = 0; collTotalMarge = 0; collCount = 0;
     }
@@ -271,8 +273,8 @@ function openFactureModal(factureId){
   document.getElementById('modalMeta').innerHTML = `<strong>${f.client}</strong> — ${f.pays}<br>Date : ${f.date}`;
   document.getElementById('modalSummary').innerHTML = `
     <div class="modal-stat"><div class="modal-stat-label">CA</div><div class="modal-stat-value">${fmtMoney(f.ca)}</div></div>
-    <div class="modal-stat"><div class="modal-stat-label">Coût</div><div class="modal-stat-value" style="color:#B4473C">${fmtMoney(f.cout)}</div></div>
-    <div class="modal-stat"><div class="modal-stat-label">Bénéfice</div><div class="modal-stat-value" style="color:#2F8551">${fmtMoney(f.marge)}</div></div>
+    <div class="modal-stat"><div class="modal-stat-label">Coût</div><div class="modal-stat-value" style="color:var(--bad)">${fmtMoney(f.cout)}</div></div>
+    <div class="modal-stat"><div class="modal-stat-label">Bénéfice</div><div class="modal-stat-value" style="color:var(--good)">${fmtMoney(f.marge)}</div></div>
     <div class="modal-stat"><div class="modal-stat-label">Bouteilles</div><div class="modal-stat-value">${fmtNum(f.btl)}</div></div>
   `;
   const tb = document.getElementById('modalLines');
@@ -285,16 +287,16 @@ function openFactureModal(factureId){
   const bd = factureCadeauxBreakdown(f);
   let cadeauxRows = '';
   bd.items.forEach(it => {
-    const costCell = it.cost !== null ? `<span style="color:#B4473C;font-weight:600">${fmtMoney(it.cost)}</span>` : '<span style="color:#7A6B5C">—</span>';
+    const costCell = it.cost !== null ? `<span style="color:var(--bad);font-weight:600">${fmtMoney(it.cost)}</span>` : '<span style="color:var(--muted)">—</span>';
     cadeauxRows += `<tr><td>${it.article}</td><td class="text-right">${fmtNum(it.quantite)}</td><td class="text-right">${costCell}</td></tr>`;
   });
   bd.testers.forEach(t => {
-    const costCell = t.allKnown ? `<span style="color:#B4473C;font-weight:600">${fmtMoney(t.cost)}</span>` : `<span style="color:#B4473C;font-weight:600">≥ ${fmtMoney(t.cost)}</span>`;
+    const costCell = t.allKnown ? `<span style="color:var(--bad);font-weight:600">${fmtMoney(t.cost)}</span>` : `<span style="color:var(--bad);font-weight:600">≥ ${fmtMoney(t.cost)}</span>`;
     cadeauxRows += `<tr><td>🧪 Testeurs ${t.collection}</td><td class="text-right">${fmtNum(t.qty)}</td><td class="text-right">${costCell}</td></tr>`;
   });
   if(cadeauxRows){
     const totalLabel = bd.totalKnown ? fmtMoney(bd.totalCost) : `≥ ${fmtMoney(bd.totalCost)}`;
-    cadeauxRows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td colspan="2">TOTAL — ce que ça t'a coûté</td><td class="text-right" style="color:#B4473C">${totalLabel}</td></tr>`;
+    cadeauxRows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td colspan="2">TOTAL — ce que ça t'a coûté</td><td class="text-right" style="color:var(--bad)">${totalLabel}</td></tr>`;
     cadeauxTb.innerHTML = cadeauxRows;
     cadeauxWrap.style.display = '';
   } else {
@@ -370,11 +372,11 @@ function renderCadeaux(filter=''){
   CADEAUX_ORDER.forEach(article => {
     if(totals[article] === undefined) return;
     const rate = CADEAUX_UNIT_COST[article];
-    const sub = rate !== undefined ? `<br><span style="font-size:.78rem;color:#7A6B5C">≈ ${fmtMoney(totals[article]*rate)}</span>` : '';
+    const sub = rate !== undefined ? `<br><span style="font-size:.78rem;color:var(--muted)">≈ ${fmtMoney(totals[article]*rate)}</span>` : '';
     kpiHtml += `<div class="kpi"><div class="kpi-label">${CADEAUX_ICONS[article]||'🎁'} ${article}</div><div class="kpi-value big">${fmtNum(totals[article])}${sub}</div></div>`;
   });
   if(totalTesters > 0){
-    kpiHtml += `<div class="kpi"><div class="kpi-label">🧪 Testeurs offerts</div><div class="kpi-value big">${fmtNum(totalTesters)}<br><span style="font-size:.78rem;color:#7A6B5C">≈ ${fmtMoney(totalTestersCost)}</span></div></div>`;
+    kpiHtml += `<div class="kpi"><div class="kpi-label">🧪 Testeurs offerts</div><div class="kpi-value big">${fmtNum(totalTesters)}<br><span style="font-size:.78rem;color:var(--muted)">≈ ${fmtMoney(totalTestersCost)}</span></div></div>`;
   }
   kpiHtml += `<div class="kpi"><div class="kpi-label">📄 Factures avec cadeaux</div><div class="kpi-value">${withGifts.length}</div></div>`;
   document.getElementById('cadeauxKpis').innerHTML = kpiHtml;
@@ -389,7 +391,7 @@ function renderCadeaux(filter=''){
     tb.innerHTML += `<tr class="clickable" data-facture="${f.facture}"><td><strong>${f.facture}</strong></td><td>${f.date}</td><td>${f.client}</td><td>${f.pays}</td><td>${parts.join(', ')}</td><td class="text-right amount-negative">${fmtMoney(bd.totalCost)}</td></tr>`;
   });
   if(filtered.length===0){
-    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#7A6B5C">Aucun cadeau trouvé.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">Aucun cadeau trouvé.</td></tr>';
   } else {
     const filteredCost = filtered.reduce((s,{bd}) => s + bd.totalCost, 0);
     tb.innerHTML += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td colspan="5">TOTAL${filter?' (filtré)':''}</td><td class="text-right amount-negative">${fmtMoney(filteredCost)}</td></tr>`;
@@ -442,8 +444,8 @@ function renderCadeauxClientList(filter=''){
   filtered.forEach(c => {
     const isSelected = selectedCadeauxClient && selectedCadeauxClient.client === c.client && selectedCadeauxClient.pays === c.pays;
     const btn = document.createElement('div');
-    btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(201,164,86,.25)':'rgba(43,33,24,.05)'};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#C9A456':'transparent'};transition:all .15s`;
-    btn.innerHTML = `<div style="font-weight:600;color:#C9A456;font-size:.92rem">${c.client}</div><div style="color:#7A6B5C;font-size:.78rem;margin-top:2px">${c.pays} • ${c.factures} fact. • <span style="color:#B4473C">${fmtMoney(c.totalCost)}</span> de cadeaux</div>`;
+    btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(201,164,86,.25)':('rgba('+cv('--ink-rgb')+',.05)')};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#C9A456':'transparent'};transition:all .15s`;
+    btn.innerHTML = `<div style="font-weight:600;color:#C9A456;font-size:.92rem">${c.client}</div><div style="color:var(--muted);font-size:.78rem;margin-top:2px">${c.pays} • ${c.factures} fact. • <span style="color:var(--bad)">${fmtMoney(c.totalCost)}</span> de cadeaux</div>`;
     btn.addEventListener('click', () => {
       selectedCadeauxClient = c;
       renderCadeauxClientList(document.getElementById('search-cadeaux-client').value);
@@ -459,7 +461,7 @@ function renderCadeauxClientDetail(){
   const tbody = document.querySelector('#tableCadeauxClient tbody');
   if(!header || !tbody) return;
   if(!selectedCadeauxClient){
-    header.innerHTML = '<div style="color:#7A6B5C;font-size:.9rem">Sélectionne un client à gauche pour voir le détail de ses cadeaux</div>';
+    header.innerHTML = '<div style="color:var(--muted);font-size:.9rem">Sélectionne un client à gauche pour voir le détail de ses cadeaux</div>';
     tbody.innerHTML = '';
     return;
   }
@@ -468,11 +470,11 @@ function renderCadeauxClientDetail(){
     <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:10px">
       <div>
         <div style="color:#C9A456;font-size:1.2rem;font-weight:bold">${c.client}</div>
-        <div style="color:#7A6B5C;font-size:.9rem">${c.pays} • ${c.factures} commande(s) • ${fmtMoney(c.ca)} de CA</div>
+        <div style="color:var(--muted);font-size:.9rem">${c.pays} • ${c.factures} commande(s) • ${fmtMoney(c.ca)} de CA</div>
       </div>
       <div style="text-align:right">
-        <div style="color:#7A6B5C;font-size:.78rem">Coût total cadeaux offerts</div>
-        <div style="color:#B4473C;font-size:1.4rem;font-weight:bold">${fmtMoney(c.totalCost)}</div>
+        <div style="color:var(--muted);font-size:.78rem">Coût total cadeaux offerts</div>
+        <div style="color:var(--bad);font-size:1.4rem;font-weight:bold">${fmtMoney(c.totalCost)}</div>
       </div>
     </div>
   `;
@@ -480,13 +482,13 @@ function renderCadeauxClientDetail(){
   CADEAUX_ORDER.forEach(article => {
     const it = c.items[article];
     if(!it) return;
-    rows += `<tr><td>${CADEAUX_ICONS[article]||'🎁'} ${article}</td><td class="text-right">${fmtNum(it.quantite)}</td><td class="text-right" style="color:#B4473C;font-weight:600">${fmtMoney(it.cost)}</td></tr>`;
+    rows += `<tr><td>${CADEAUX_ICONS[article]||'🎁'} ${article}</td><td class="text-right">${fmtNum(it.quantite)}</td><td class="text-right" style="color:var(--bad);font-weight:600">${fmtMoney(it.cost)}</td></tr>`;
   });
   Object.keys(c.testers).forEach(coll => {
     const t = c.testers[coll];
-    rows += `<tr><td>🧪 Testeurs ${coll}</td><td class="text-right">${fmtNum(t.qty)}</td><td class="text-right" style="color:#B4473C;font-weight:600">${fmtMoney(t.cost)}</td></tr>`;
+    rows += `<tr><td>🧪 Testeurs ${coll}</td><td class="text-right">${fmtNum(t.qty)}</td><td class="text-right" style="color:var(--bad);font-weight:600">${fmtMoney(t.cost)}</td></tr>`;
   });
-  rows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td colspan="2">TOTAL</td><td class="text-right" style="color:#B4473C">${fmtMoney(c.totalCost)}</td></tr>`;
+  rows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td colspan="2">TOTAL</td><td class="text-right" style="color:var(--bad)">${fmtMoney(c.totalCost)}</td></tr>`;
   tbody.innerHTML = rows;
 }
 
@@ -503,16 +505,16 @@ function renderCadeauxClientsChart(){
       labels: top.map(c => c.client),
       datasets: [
         {type:'bar', label:'Chiffre d\'affaires (€)', data: top.map(c=>c.ca), backgroundColor:'#C88BC0', borderRadius:5, yAxisID:'y'},
-        {type:'line', label:'Cadeaux offerts (€)', data: top.map(c=>c.totalCost), borderColor:'#B4473C', backgroundColor:'#B4473C', yAxisID:'y1', tension:.3, pointRadius:4, pointBackgroundColor:'#B4473C'}
+        {type:'line', label:'Cadeaux offerts (€)', data: top.map(c=>c.totalCost), borderColor:cv('--bad'), backgroundColor:cv('--bad'), yAxisID:'y1', tension:.3, pointRadius:4, pointBackgroundColor:cv('--bad')}
       ]
     },
     options: {
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ labels:{ color:'#2B2118' } } },
+      plugins:{ legend:{ labels:{ color:cv('--ink') } } },
       scales:{
-        x:{ ticks:{ color:'#7A6B5C', font:{size:10} }, grid:{ display:false } },
-        y:{ position:'left', ticks:{ color:'#7A6B5C' }, grid:{ color:'rgba(43,33,24,.08)' }, title:{display:true,text:'Chiffre d\'affaires (€)',color:'#7A6B5C'} },
-        y1:{ position:'right', ticks:{ color:'#B4473C' }, grid:{ display:false }, title:{display:true,text:'Cadeaux offerts (€)',color:'#B4473C'} }
+        x:{ ticks:{ color:cv('--muted'), font:{size:10} }, grid:{ display:false } },
+        y:{ position:'left', ticks:{ color:cv('--muted') }, grid:{ color:('rgba('+cv('--ink-rgb')+',.08)') }, title:{display:true,text:'Chiffre d\'affaires (€)',color:cv('--muted')} },
+        y1:{ position:'right', ticks:{ color:cv('--bad') }, grid:{ display:false }, title:{display:true,text:'Cadeaux offerts (€)',color:cv('--bad')} }
       }
     }
   });
@@ -536,13 +538,13 @@ function renderCompare(){
       {label:'2025',data:[d25.kpi_ca,d25.kpi_cout,d25.kpi_marge],backgroundColor:'#6FA6E8',borderRadius:6},
       {label:'2026',data:[d26.kpi_ca,d26.kpi_cout,d26.kpi_marge],backgroundColor:'#C9A456',borderRadius:6}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Comparaison 2025 vs 2026',color:'#8C6A2C'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Comparaison 2025 vs 2026',color:cv('--gold-lt')}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   destroyChart('chartCompareMarge');
   charts.chartCompareMarge = new Chart(document.getElementById('chartCompareMarge'),{
     type:'doughnut',
-    data:{labels:['CA 2025','CA 2026'],datasets:[{data:[d25.kpi_ca,d26.kpi_ca],backgroundColor:['#6FA6E8','#C9A456'],borderWidth:2,borderColor:'#FAF6EF'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Part de chaque année',color:'#8C6A2C'},legend:{position:'bottom'}}}
+    data:{labels:['CA 2025','CA 2026'],datasets:[{data:[d25.kpi_ca,d26.kpi_ca],backgroundColor:['#6FA6E8','#C9A456'],borderWidth:2,borderColor:cv('--surface')}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Part de chaque année',color:cv('--gold-lt')},legend:{position:'bottom'}}}
   });
   destroyChart('chartCompareMois');
   charts.chartCompareMois = new Chart(document.getElementById('chartCompareMois'),{
@@ -551,7 +553,7 @@ function renderCompare(){
       {label:'CA 2025',data:d25.mois.map(m=>m.ca),borderColor:'#6FA6E8',backgroundColor:'rgba(111,166,232,.2)',fill:false,tension:.3,pointRadius:5},
       {label:'CA 2026',data:d26.mois.map(m=>m.ca),borderColor:'#C9A456',backgroundColor:'rgba(201,164,86,.2)',fill:false,tension:.3,pointRadius:5}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA mensuel — 2025 vs 2026',color:'#8C6A2C'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'CA mensuel — 2025 vs 2026',color:cv('--gold-lt')}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' k€'}}}}
   });
   // Tableau comparatif
   const evol = (a,b) => {
@@ -607,8 +609,8 @@ function renderEvolutionList(filter=''){
     }
     const isSelected = selectedEvoClient && selectedEvoClient.client === c.client && selectedEvoClient.pays === c.pays;
     const btn = document.createElement('div');
-    btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(201,164,86,.25)':'rgba(43,33,24,.05)'};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#C9A456':'transparent'};transition:all .15s`;
-    btn.innerHTML = `<div style="font-weight:600;color:#C9A456;font-size:.92rem">${trendIcon} ${c.client}</div><div style="color:#7A6B5C;font-size:.78rem;margin-top:2px">${c.pays} • ${factures.length} fact. • ${fmtMoneyShort(c.ca)}</div>`;
+    btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(201,164,86,.25)':('rgba('+cv('--ink-rgb')+',.05)')};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#C9A456':'transparent'};transition:all .15s`;
+    btn.innerHTML = `<div style="font-weight:600;color:#C9A456;font-size:.92rem">${trendIcon} ${c.client}</div><div style="color:var(--muted);font-size:.78rem;margin-top:2px">${c.pays} • ${factures.length} fact. • ${fmtMoneyShort(c.ca)}</div>`;
     btn.addEventListener('click', () => {
       selectedEvoClient = c;
       renderEvolutionList(document.getElementById('search-evo-client').value);
@@ -620,7 +622,7 @@ function renderEvolutionList(filter=''){
 
 function renderEvolutionChart(){
   if(!selectedEvoClient){
-    document.getElementById('evoSelectedHeader').innerHTML = '<div style="color:#7A6B5C;font-size:.9rem">Sélectionne un client à gauche pour voir son évolution</div>';
+    document.getElementById('evoSelectedHeader').innerHTML = '<div style="color:var(--muted);font-size:.9rem">Sélectionne un client à gauche pour voir son évolution</div>';
     destroyChart('chartEvoClient');
     document.querySelector('#tableEvoClient tbody').innerHTML = '';
     return;
@@ -636,14 +638,14 @@ function renderEvolutionChart(){
 
   // Tendance globale
   let trendText = 'pas assez de données';
-  let trendColor = '#7A6B5C';
+  let trendColor = cv('--muted');
   let trendIcon = '➡️';
   if(factures.length >= 2){
     const first = factures[0].ca;
     const last = factures[factures.length-1].ca;
     const evol = ((last - first) / first * 100);
-    if(evol > 10){ trendText = `+${evol.toFixed(1)}% entre 1ère et dernière commande`; trendColor = '#2F8551'; trendIcon = '📈'; }
-    else if(evol < -10){ trendText = `${evol.toFixed(1)}% entre 1ère et dernière commande`; trendColor = '#B4473C'; trendIcon = '📉'; }
+    if(evol > 10){ trendText = `+${evol.toFixed(1)}% entre 1ère et dernière commande`; trendColor = cv('--good'); trendIcon = '📈'; }
+    else if(evol < -10){ trendText = `${evol.toFixed(1)}% entre 1ère et dernière commande`; trendColor = cv('--bad'); trendIcon = '📉'; }
     else { trendText = `${evol>=0?'+':''}${evol.toFixed(1)}% (stable)`; trendIcon = '➡️'; }
   } else if(factures.length === 1){
     trendText = 'Première commande — pas d\'historique';
@@ -659,7 +661,7 @@ function renderEvolutionChart(){
     <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:10px">
       <div>
         <div style="color:#C9A456;font-size:1.2rem;font-weight:bold">${c.client}</div>
-        <div style="color:#7A6B5C;font-size:.9rem">${c.pays} • ${factures.length} commande(s)</div>
+        <div style="color:var(--muted);font-size:.9rem">${c.pays} • ${factures.length} commande(s)</div>
       </div>
       <div style="text-align:right">
         <div style="font-size:1.6rem">${trendIcon}</div>
@@ -667,9 +669,9 @@ function renderEvolutionChart(){
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px">
-      <div><div style="color:#7A6B5C;font-size:.75rem">CA Total</div><div style="color:#C9A456;font-weight:bold">${fmtMoneyShort(totalCA)}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.75rem">Bénéfice</div><div style="color:#2F8551;font-weight:bold">${fmtMoneyShort(totalMarge)}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.75rem">CA moyen / commande</div><div style="color:#C9A456;font-weight:bold">${fmtMoneyShort(avgCA)}</div></div>
+      <div><div style="color:var(--muted);font-size:.75rem">CA Total</div><div style="color:#C9A456;font-weight:bold">${fmtMoneyShort(totalCA)}</div></div>
+      <div><div style="color:var(--muted);font-size:.75rem">Bénéfice</div><div style="color:var(--good);font-weight:bold">${fmtMoneyShort(totalMarge)}</div></div>
+      <div><div style="color:var(--muted);font-size:.75rem">CA moyen / commande</div><div style="color:#C9A456;font-weight:bold">${fmtMoneyShort(avgCA)}</div></div>
     </div>
   `;
 
@@ -680,12 +682,12 @@ function renderEvolutionChart(){
       labels:factures.map(f=>f.date),
       datasets:[
         {label:'CA par commande (€)',data:factures.map(f=>f.ca),borderColor:'#C9A456',backgroundColor:'rgba(201,164,86,.2)',fill:true,tension:.25,pointRadius:7,pointHoverRadius:10,pointBackgroundColor:'#C9A456'},
-        {label:'Bénéfice net (€)',data:factures.map(f=>f.marge),borderColor:'#2F8551',backgroundColor:'rgba(124,199,150,.15)',fill:false,tension:.25,pointRadius:5,pointBackgroundColor:'#2F8551',borderDash:[5,5]}
+        {label:'Bénéfice net (€)',data:factures.map(f=>f.marge),borderColor:cv('--good'),backgroundColor:'rgba(124,199,150,.15)',fill:false,tension:.25,pointRadius:5,pointBackgroundColor:cv('--good'),borderDash:[5,5]}
       ]
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      plugins:{title:{display:true,text:`Évolution des commandes — ${c.client}`,color:'#8C6A2C',font:{size:14}},legend:{position:'top'}},
+      plugins:{title:{display:true,text:`Évolution des commandes — ${c.client}`,color:cv('--gold-lt'),font:{size:14}},legend:{position:'top'}},
       scales:{y:{ticks:{callback:v=>(v/1000).toFixed(1)+' k€'}}}
     }
   });
@@ -695,12 +697,12 @@ function renderEvolutionChart(){
   tb.innerHTML = '';
   factures.forEach((f, i) => {
     let variation = '—';
-    let varColor = '#7A6B5C';
+    let varColor = cv('--muted');
     if(i > 0){
       const prev = factures[i-1].ca;
       const ev = ((f.ca - prev) / prev * 100);
-      if(ev > 0) { variation = `📈 +${ev.toFixed(1)}%`; varColor = '#2F8551'; }
-      else if(ev < 0) { variation = `📉 ${ev.toFixed(1)}%`; varColor = '#B4473C'; }
+      if(ev > 0) { variation = `📈 +${ev.toFixed(1)}%`; varColor = cv('--good'); }
+      else if(ev < 0) { variation = `📉 ${ev.toFixed(1)}%`; varColor = cv('--bad'); }
       else variation = '➡️ 0%';
     }
     tb.innerHTML += `<tr class="clickable" data-facture="${f.facture}"><td>${f.date}</td><td><strong>${f.facture}</strong></td><td class="text-right">${fmtNum(f.btl)}</td><td class="text-right amount">${fmtMoneyShort(f.ca)}</td><td class="text-right amount-positive">${fmtMoneyShort(f.marge)}</td><td class="text-right" style="color:${varColor};font-weight:600">${variation}</td></tr>`;
@@ -774,7 +776,7 @@ function renderCostsCadeaux(out){
       <tbody>
         ${CADEAUX_2ML_DETAIL.map(([n,o,t,b]) => `<tr><td>${n}</td><td class="text-right amount" style="white-space:nowrap">${e4(o)}</td><td class="text-right" style="white-space:nowrap;color:${NEWC};font-weight:600">${e4(t)}</td><td class="text-right" style="white-space:nowrap;color:${NEWC};font-weight:600">${e4(b)}</td></tr>`).join('')}
         <tr style="background:rgba(201,164,86,.12);font-weight:bold"><td><strong>Prix de revient / unité</strong></td><td class="text-right amount">${e4(CADEAUX_UNIT_COST['Échantillons 2ml'])}</td><td class="text-right" style="color:${NEWC}">${e4(CADEAUX_2ML_NEW_TRANSP)}</td><td class="text-right" style="color:${NEWC}">${e4(CADEAUX_2ML_NEW_BLACK)}</td></tr>
-        <tr><td colspan="2" style="color:#7A6B5C;font-size:.85rem">Moyenne nouveau (transparent + black) — utilisée pour le calcul des factures ci-dessous</td><td colspan="2" class="text-right" style="color:${NEWC};font-weight:bold">${e4(CADEAUX_UNIT_COST_NEW['Échantillons 2ml'])}</td></tr>
+        <tr><td colspan="2" style="color:var(--muted);font-size:.85rem">Moyenne nouveau (transparent + black) — utilisée pour le calcul des factures ci-dessous</td><td colspan="2" class="text-right" style="color:${NEWC};font-weight:bold">${e4(CADEAUX_UNIT_COST_NEW['Échantillons 2ml'])}</td></tr>
       </tbody></table>`;
   // Quantités offertes + coût ancien vs nouveau
   let totOld = 0, totNew = 0, rows = '';
@@ -791,7 +793,7 @@ function renderCostsCadeaux(out){
   Object.keys(testers).sort().forEach(coll => {
     const t = testers[coll]; totOld += t.cost; totNew += t.cost;
     const avg = t.qty ? (t.cost/t.qty).toFixed(4)+' € (moy.)' : '—';
-    rows += `<tr><td>🧪 <strong>Testeurs ${coll}</strong></td><td class="text-right">${fmtNum(t.qty)}</td><td class="text-right" style="color:#7A6B5C;font-size:.85rem">${avg}</td><td class="text-right amount-negative" style="font-weight:bold">${fmtMoney(t.cost)}</td><td class="text-right" style="color:#7A6B5C;font-size:.85rem">inchangé</td><td class="text-right" style="font-weight:bold;color:${NEWC}">${fmtMoney(t.cost)}</td></tr>`;
+    rows += `<tr><td>🧪 <strong>Testeurs ${coll}</strong></td><td class="text-right">${fmtNum(t.qty)}</td><td class="text-right" style="color:var(--muted);font-size:.85rem">${avg}</td><td class="text-right amount-negative" style="font-weight:bold">${fmtMoney(t.cost)}</td><td class="text-right" style="color:var(--muted);font-size:.85rem">inchangé</td><td class="text-right" style="font-weight:bold;color:${NEWC}">${fmtMoney(t.cost)}</td></tr>`;
   });
   const diff = totNew - totOld;
   html += `
@@ -802,7 +804,7 @@ function renderCostsCadeaux(out){
         <tr style="background:rgba(201,164,86,.12);font-weight:bold"><td colspan="3"><strong>TOTAL — ce que les cadeaux t'ont coûté</strong></td><td class="text-right amount-negative" style="font-size:1.05rem">${fmtMoney(totOld)}</td><td></td><td class="text-right" style="font-size:1.05rem;color:${NEWC}">${fmtMoney(totNew)}</td></tr>
       </tbody>
     </table>
-    ${qty['Box 2ml'] ? '' : `<div style="color:#7A6B5C;font-size:.82rem;margin-top:6px">📦 Box 2ml (0,98 €) : aucune box enregistrée dans les factures pour l'instant — elle sera comptée dès qu'une facture en contiendra (article « Box 2ml »).</div>`}
+    ${qty['Box 2ml'] ? '' : `<div style="color:var(--muted);font-size:.82rem;margin-top:6px">📦 Box 2ml (0,98 €) : aucune box enregistrée dans les factures pour l'instant — elle sera comptée dès qu'une facture en contiendra (article « Box 2ml »).</div>`}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:18px">
       <div class="kpi danger"><div class="kpi-label">Cadeaux (hors testeurs) — ancien</div><div class="kpi-value">${fmtMoney(giftsOld)}</div></div>
       <div class="kpi"><div class="kpi-label">Cadeaux (hors testeurs) — nouveau</div><div class="kpi-value" style="color:${NEWC}">${fmtMoney(giftsNew)}</div></div>
@@ -822,7 +824,7 @@ function renderCosts(){
     out.innerHTML = `
       <div class="warning-box">
         ⚠️ <strong>Prix de revient ${collName} pas encore renseignés.</strong><br>
-        <span style="font-size:.88rem;color:#B4473C">Les coûts de production pour cette collection seront ajoutés ultérieurement. Aucune marge n'est donc calculable pour le moment sur les ROYAL.</span>
+        <span style="font-size:.88rem;color:var(--bad)">Les coûts de production pour cette collection seront ajoutés ultérieurement. Aucune marge n'est donc calculable pour le moment sur les ROYAL.</span>
       </div>
       <div class="info-box">
         Pour mémoire : un carton ROYAL standard contient ${c.carton_size} bouteilles (${c.tester_info}) et se vend ${fmtMoney(c.standard_price_carton)} (${fmtMoney(c.standard_price_bottle)}/bouteille).
@@ -836,20 +838,20 @@ function renderCosts(){
     out.innerHTML = `
       <div class="info-box" style="background:rgba(111,166,232,.12);border-left:4px solid #6FA6E8">
         ℹ️ <strong>Prix de revient provisoire : ${c.total_fixed.toFixed(2)} €/bouteille</strong><br>
-        <span style="font-size:.88rem;color:#7A6B5C">À affiner avec le détail réel des composants, concentrés et production. En attendant, les marges affichées sont basées sur ce coût forfaitaire.</span>
+        <span style="font-size:.88rem;color:var(--muted)">À affiner avec le détail réel des composants, concentrés et production. En attendant, les marges affichées sont basées sur ce coût forfaitaire.</span>
       </div>
       <div style="background:rgba(201,164,86,.08);border-left:4px solid #C9A456;padding:14px;border-radius:6px;margin:18px 0">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
-          <div><div style="color:#7A6B5C;font-size:.75rem">Bouteilles / carton</div><div style="color:#C9A456;font-weight:bold">${c.carton_size}</div></div>
-          <div><div style="color:#7A6B5C;font-size:.75rem">Système</div><div style="color:#C9A456;font-weight:bold">${c.tester_info}</div></div>
-          <div><div style="color:#7A6B5C;font-size:.75rem">Prix vente carton</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
-          <div><div style="color:#7A6B5C;font-size:.75rem">Prix vente bouteille</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
+          <div><div style="color:var(--muted);font-size:.75rem">Bouteilles / carton</div><div style="color:#C9A456;font-weight:bold">${c.carton_size}</div></div>
+          <div><div style="color:var(--muted);font-size:.75rem">Système</div><div style="color:#C9A456;font-weight:bold">${c.tester_info}</div></div>
+          <div><div style="color:var(--muted);font-size:.75rem">Prix vente carton</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
+          <div><div style="color:var(--muted);font-size:.75rem">Prix vente bouteille</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
         </div>
       </div>
-      <div style="background:rgba(124,199,150,.12);border:1px solid #2F8551;padding:18px;border-radius:8px;margin-bottom:18px;text-align:center">
-        <div style="color:#2F8551;font-size:.95rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600">💎 Marge par carton (estimée)</div>
-        <div style="font-size:2.1rem;color:#2F8551;font-weight:bold;margin-top:6px">${fmtMoney(margeCarton)} (${margePct}%)</div>
-        <div style="color:#2F8551;font-size:.85rem;margin-top:6px">Vente ${fmtMoney(c.standard_price_carton)} − Coût ${fmtMoney(c.total_fixed * c.units_total_per_carton)} (${c.units_total_per_carton} btl × ${c.total_fixed}€, testeur inclus)</div>
+      <div style="background:rgba(124,199,150,.12);border:1px solid var(--good);padding:18px;border-radius:8px;margin-bottom:18px;text-align:center">
+        <div style="color:var(--good);font-size:.95rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600">💎 Marge par carton (estimée)</div>
+        <div style="font-size:2.1rem;color:var(--good);font-weight:bold;margin-top:6px">${fmtMoney(margeCarton)} (${margePct}%)</div>
+        <div style="color:var(--good);font-size:.85rem;margin-top:6px">Vente ${fmtMoney(c.standard_price_carton)} − Coût ${fmtMoney(c.total_fixed * c.units_total_per_carton)} (${c.units_total_per_carton} btl × ${c.total_fixed}€, testeur inclus)</div>
       </div>
       <h3 style="color:#C9A456;margin-bottom:10px">📋 Références ${collName}</h3>
       <table>
@@ -866,11 +868,11 @@ function renderCosts(){
   html += `
     <div style="background:rgba(201,164,86,.08);border-left:4px solid #C9A456;padding:14px;border-radius:6px;margin-bottom:18px">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
-        <div><div style="color:#7A6B5C;font-size:.75rem">Volume bouteille</div><div style="color:#C9A456;font-weight:bold">${c.volume_ml} ml</div></div>
-        <div><div style="color:#7A6B5C;font-size:.75rem">Bouteilles / carton</div><div style="color:#C9A456;font-weight:bold">${c.carton_size}</div></div>
-        <div><div style="color:#7A6B5C;font-size:.75rem">Système</div><div style="color:#C9A456;font-weight:bold">${c.tester_info}</div></div>
-        <div><div style="color:#7A6B5C;font-size:.75rem">Prix vente carton</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
-        <div><div style="color:#7A6B5C;font-size:.75rem">Prix vente bouteille</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
+        <div><div style="color:var(--muted);font-size:.75rem">Volume bouteille</div><div style="color:#C9A456;font-weight:bold">${c.volume_ml} ml</div></div>
+        <div><div style="color:var(--muted);font-size:.75rem">Bouteilles / carton</div><div style="color:#C9A456;font-weight:bold">${c.carton_size}</div></div>
+        <div><div style="color:var(--muted);font-size:.75rem">Système</div><div style="color:#C9A456;font-weight:bold">${c.tester_info}</div></div>
+        <div><div style="color:var(--muted);font-size:.75rem">Prix vente carton</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_carton)}</div></div>
+        <div><div style="color:var(--muted);font-size:.75rem">Prix vente bouteille</div><div style="color:#C9A456;font-weight:bold">${fmtMoney(c.standard_price_bottle)}</div></div>
       </div>
     </div>
   `;
@@ -883,7 +885,7 @@ function renderCosts(){
         <table>
           <thead><tr><th>Élément</th><th class="text-right">Prix d'origine</th><th class="text-right">En EUR</th></tr></thead>
           <tbody>
-            ${c.components.map(comp => `<tr><td>${comp.name}</td><td class="text-right" style="color:#7A6B5C;font-size:.85rem">${comp.price_orig}</td><td class="text-right amount">${comp.price_eur.toFixed(4)} €</td></tr>`).join('')}
+            ${c.components.map(comp => `<tr><td>${comp.name}</td><td class="text-right" style="color:var(--muted);font-size:.85rem">${comp.price_orig}</td><td class="text-right amount">${comp.price_eur.toFixed(4)} €</td></tr>`).join('')}
             <tr style="background:rgba(201,164,86,.12);font-weight:bold"><td colspan="2"><strong>TOTAL composants</strong></td><td class="text-right amount" style="font-size:1rem">${c.total_components.toFixed(4)} €</td></tr>
           </tbody>
         </table>
@@ -893,7 +895,7 @@ function renderCosts(){
         <table>
           <thead><tr><th>Étape</th><th class="text-right">Détail</th><th class="text-right">Coût €</th></tr></thead>
           <tbody>
-            ${c.production.map(p => `<tr><td>${p.name}</td><td class="text-right" style="color:#7A6B5C;font-size:.85rem">${p.detail}</td><td class="text-right amount">${p.price_eur.toFixed(4)} €</td></tr>`).join('')}
+            ${c.production.map(p => `<tr><td>${p.name}</td><td class="text-right" style="color:var(--muted);font-size:.85rem">${p.detail}</td><td class="text-right amount">${p.price_eur.toFixed(4)} €</td></tr>`).join('')}
             <tr style="background:rgba(201,164,86,.12);font-weight:bold"><td colspan="2"><strong>TOTAL production</strong></td><td class="text-right amount" style="font-size:1rem">${c.total_production.toFixed(4)} €</td></tr>
           </tbody>
         </table>
@@ -908,11 +910,11 @@ function renderCosts(){
   const min_total = Math.min(...c.refs.map(r => r.cost_per_bottle));
   const max_total = Math.max(...c.refs.map(r => r.cost_per_bottle));
   html += `
-    <div style="background:rgba(124,199,150,.12);border:1px solid #2F8551;padding:18px;border-radius:8px;margin-bottom:18px;text-align:center">
-      <div style="color:#2F8551;font-size:.95rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600">💎 Prix de revient par bouteille vendue (testeur${c.transport_eur ? ' + transport' : ''} inclus)</div>
-      <div style="font-size:2.1rem;color:#2F8551;font-weight:bold;margin-top:6px">${avg_total_cost.toFixed(4)} €</div>
-      <div style="color:#2F8551;font-size:.85rem;margin-top:6px">Coût moyen — varie de <strong>${min_total.toFixed(2)} €</strong> à <strong>${max_total.toFixed(2)} €</strong> selon la référence</div>
-      <div style="color:#7A6B5C;font-size:.75rem;margin-top:8px">Fabrication : ${avg_fab_cost.toFixed(4)} € (composants+production+concentré) × ${c.tester_ratio.toFixed(3)} (testeur offert amorti sur les btl vendues)${c.transport_eur ? ` + ${c.transport_eur.toFixed(2)} € transport/btl` : ''}</div>
+    <div style="background:rgba(124,199,150,.12);border:1px solid var(--good);padding:18px;border-radius:8px;margin-bottom:18px;text-align:center">
+      <div style="color:var(--good);font-size:.95rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600">💎 Prix de revient par bouteille vendue (testeur${c.transport_eur ? ' + transport' : ''} inclus)</div>
+      <div style="font-size:2.1rem;color:var(--good);font-weight:bold;margin-top:6px">${avg_total_cost.toFixed(4)} €</div>
+      <div style="color:var(--good);font-size:.85rem;margin-top:6px">Coût moyen — varie de <strong>${min_total.toFixed(2)} €</strong> à <strong>${max_total.toFixed(2)} €</strong> selon la référence</div>
+      <div style="color:var(--muted);font-size:.75rem;margin-top:8px">Fabrication : ${avg_fab_cost.toFixed(4)} € (composants+production+concentré) × ${c.tester_ratio.toFixed(3)} (testeur offert amorti sur les btl vendues)${c.transport_eur ? ` + ${c.transport_eur.toFixed(2)} € transport/btl` : ''}</div>
     </div>
   `;
 
@@ -946,7 +948,7 @@ function renderCosts(){
             <td class="text-right amount-negative" style="font-weight:bold">${r.cost_per_bottle.toFixed(4)} €</td>
             <td class="text-right amount-negative" style="font-weight:bold">${r.cost_per_carton_sold.toFixed(2)} €</td>
             <td class="text-right amount-positive" style="font-weight:bold">${r.margin_per_carton.toFixed(2)} €</td>
-            <td class="text-right" style="color:${r.margin_pct >= 60 ? '#2F8551' : r.margin_pct >= 50 ? '#C9A456' : '#B4473C'};font-weight:bold">${r.margin_pct} %</td>
+            <td class="text-right" style="color:${r.margin_pct >= 60 ? cv('--good') : r.margin_pct >= 50 ? '#C9A456' : cv('--bad')};font-weight:bold">${r.margin_pct} %</td>
           </tr>
         `).join('')}
       </tbody>
@@ -962,8 +964,8 @@ function renderCosts(){
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:18px">
       <div class="kpi"><div class="kpi-label">Coût moyen / bouteille</div><div class="kpi-value">${avg_cost.toFixed(2)} €</div></div>
       <div class="kpi success"><div class="kpi-label">Marge moyenne</div><div class="kpi-value">${avg_margin_pct.toFixed(1)} %</div></div>
-      <div class="kpi"><div class="kpi-label">⭐ Moins cher</div><div class="kpi-value" style="font-size:1rem">${cheapest.name}<br><span style="font-size:.85rem;color:#2F8551">${cheapest.cost_per_bottle.toFixed(2)} €</span></div></div>
-      <div class="kpi"><div class="kpi-label">⭐ Plus cher</div><div class="kpi-value" style="font-size:1rem">${expensive.name}<br><span style="font-size:.85rem;color:#B4473C">${expensive.cost_per_bottle.toFixed(2)} €</span></div></div>
+      <div class="kpi"><div class="kpi-label">⭐ Moins cher</div><div class="kpi-value" style="font-size:1rem">${cheapest.name}<br><span style="font-size:.85rem;color:var(--good)">${cheapest.cost_per_bottle.toFixed(2)} €</span></div></div>
+      <div class="kpi"><div class="kpi-label">⭐ Plus cher</div><div class="kpi-value" style="font-size:1rem">${expensive.name}<br><span style="font-size:.85rem;color:var(--bad)">${expensive.cost_per_bottle.toFixed(2)} €</span></div></div>
     </div>
   `;
 
@@ -980,11 +982,11 @@ function renderStock(){
 
   const COLL_ORDER = ['VIP', 'VIP BLACK', 'ROYAL', '50ML', 'BRUMES'];
   const statusColors = {
-    epuise: {bg:'rgba(43,33,24,.08)', border:'#6E655C', text:'⚫ Épuisé', color:'#7A6B5C'},
-    critical: {bg:'rgba(232,132,122,.15)', border:'#B4473C', text:'🔴 Critique', color:'#B4473C'},
-    low: {bg:'rgba(224,168,79,.12)', border:'#A86F12', text:'🟠 Faible', color:'#A86F12'},
-    medium: {bg:'rgba(201,164,86,.10)', border:'#C9A456', text:'🟡 Moyen', color:'#8C6A2C'},
-    ok: {bg:'rgba(124,199,150,.10)', border:'#2F8551', text:'🟢 OK', color:'#2F8551'},
+    epuise: {bg:('rgba('+cv('--ink-rgb')+',.08)'), border:'#6E655C', text:'⚫ Épuisé', color:cv('--muted')},
+    critical: {bg:'rgba(232,132,122,.15)', border:cv('--bad'), text:'🔴 Critique', color:cv('--bad')},
+    low: {bg:'rgba(224,168,79,.12)', border:cv('--warn'), text:'🟠 Faible', color:cv('--warn')},
+    medium: {bg:'rgba(201,164,86,.10)', border:'#C9A456', text:'🟡 Moyen', color:cv('--gold-lt')},
+    ok: {bg:'rgba(124,199,150,.10)', border:cv('--good'), text:'🟢 OK', color:cv('--good')},
   };
 
   // KPI globaux
@@ -1008,7 +1010,7 @@ function renderStock(){
       <div class="kpi danger"><div class="kpi-label">Réf. critiques</div><div class="kpi-value">${totalCritique}</div></div>
       <div class="kpi danger"><div class="kpi-label">Réf. épuisées</div><div class="kpi-value">${totalEpuise}</div></div>
     </div>
-    <div style="color:#7A6B5C;font-size:.78rem;margin-bottom:14px">*Bénéfice calculé hors ROYAL (coût non renseigné). CA potentiel calculé au prix de vente unitaire standard (VIP 16€, VIP BLACK 18€, ROYAL 9€, 50ML 13€, BRUMES 4€).</div>
+    <div style="color:var(--muted);font-size:.78rem;margin-bottom:14px">*Bénéfice calculé hors ROYAL (coût non renseigné). CA potentiel calculé au prix de vente unitaire standard (VIP 16€, VIP BLACK 18€, ROYAL 9€, 50ML 13€, BRUMES 4€).</div>
   `;
 
   let html = '';
@@ -1017,13 +1019,13 @@ function renderStock(){
     const s = stock[coll];
     const benefDisplay = s.has_cost ? fmtMoneyShort(s.total_benef_pot) : '—';
     html += `
-      <div style="background:rgba(43,33,24,.04);border-radius:8px;padding:18px;margin-bottom:18px">
+      <div style="background:rgba(var(--ink-rgb),.04);border-radius:8px;padding:18px;margin-bottom:18px">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:14px">
           <h3 style="color:#C9A456"><span class="${collClass(coll)}">${coll}</span></h3>
-          <div style="color:#7A6B5C;font-size:.95rem">
+          <div style="color:var(--muted);font-size:.95rem">
             <strong style="color:#C9A456">${fmtNum(s.total_qty)}</strong> btl •
             CA : <strong style="color:#C9A456">${fmtMoneyShort(s.total_ca_pot)}</strong> •
-            Bénéfice : <strong style="color:#2F8551">${benefDisplay}</strong>
+            Bénéfice : <strong style="color:var(--good)">${benefDisplay}</strong>
           </div>
         </div>
         <table>
@@ -1153,8 +1155,8 @@ function renderProduction(){
   COLL_ORDER.forEach(coll => {
     const c = costs[coll];
     if(!c || c.not_yet) return;
-    html += `<div style="background:rgba(43,33,24,.04);border-radius:8px;padding:18px;margin-bottom:16px">
-      <h3 style="color:#C9A456;margin-bottom:10px"><span class="${collClass(coll)}">${coll}</span> <span style="color:#7A6B5C;font-size:.85rem;font-weight:normal">(${c.volume_ml}ml • prix vente btl : ${c.standard_price_bottle}€)</span></h3>
+    html += `<div style="background:rgba(var(--ink-rgb),.04);border-radius:8px;padding:18px;margin-bottom:16px">
+      <h3 style="color:#C9A456;margin-bottom:10px"><span class="${collClass(coll)}">${coll}</span> <span style="color:var(--muted);font-size:.85rem;font-weight:normal">(${c.volume_ml}ml • prix vente btl : ${c.standard_price_bottle}€)</span></h3>
       <table>
         <thead><tr><th>Référence</th><th class="text-right">Stock actuel</th><th class="text-right">Quantité à produire</th><th class="text-right">Concentré nécessaire</th><th class="text-right">Coût estimé</th><th class="text-right">CA si vendu</th></tr></thead>
         <tbody>`;
@@ -1170,8 +1172,8 @@ function renderProduction(){
       html += `<tr>
         <td><strong>${r.name}</strong></td>
         <td class="text-right">${fmtNum(stockQty)}</td>
-        <td class="text-right"><input type="number" min="0" step="100" value="${qty}" data-prod-key="${key}" style="width:90px;padding:6px 10px;background:rgba(43,33,24,.08);border:1px solid rgba(43,33,24,.2);border-radius:6px;color:#2B2118;text-align:right;font-size:.95rem"></td>
-        <td class="text-right">${qty > 0 ? `<strong style="color:#C9A456">${concKg} kg</strong><br><span style="color:#7A6B5C;font-size:.78rem">${concEur} €</span>` : '—'}</td>
+        <td class="text-right"><input type="number" min="0" step="100" value="${qty}" data-prod-key="${key}" style="width:90px;padding:6px 10px;background:rgba(var(--ink-rgb),.08);border:1px solid rgba(var(--ink-rgb),.2);border-radius:6px;color:var(--ink);text-align:right;font-size:.95rem"></td>
+        <td class="text-right">${qty > 0 ? `<strong style="color:#C9A456">${concKg} kg</strong><br><span style="color:var(--muted);font-size:.78rem">${concEur} €</span>` : '—'}</td>
         <td class="text-right amount-negative">${qty > 0 ? fmtMoneyShort(totalCost) : '—'}</td>
         <td class="text-right amount">${qty > 0 ? fmtMoneyShort(caPot) : '—'}</td>
       </tr>`;
@@ -1233,7 +1235,7 @@ function updateProductionNeeds(){
     totalCostAll += data.total_cost;
     totalCaAll += data.total_ca;
 
-    html += `<div style="background:rgba(43,33,24,.04);border-radius:8px;padding:18px;margin-bottom:16px">
+    html += `<div style="background:rgba(var(--ink-rgb),.04);border-radius:8px;padding:18px;margin-bottom:16px">
       <h3 style="color:#C9A456;margin-bottom:12px"><span class="${collClass(coll)}">${coll}</span> — <strong>${fmtNum(N)}</strong> bouteilles à produire</h3>
       <div class="grid-2">
         <div>
@@ -1321,10 +1323,10 @@ function updateProductionNeeds(){
     // Recap collection
     const benefice = data.total_ca - data.total_cost;
     html += `<div style="margin-top:14px;padding:12px;background:rgba(201,164,86,.08);border-radius:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
-      <div><div style="color:#7A6B5C;font-size:.75rem">Main-d'œuvre</div><div style="color:#B4473C;font-weight:bold">${fmtMoneyShort(prodCost)}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.75rem">Coût TOTAL ${coll}</div><div style="color:#B4473C;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_cost)}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.75rem">CA potentiel</div><div style="color:#C9A456;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_ca)}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.75rem">Bénéfice</div><div style="color:#2F8551;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(benefice)}</div></div>
+      <div><div style="color:var(--muted);font-size:.75rem">Main-d'œuvre</div><div style="color:var(--bad);font-weight:bold">${fmtMoneyShort(prodCost)}</div></div>
+      <div><div style="color:var(--muted);font-size:.75rem">Coût TOTAL ${coll}</div><div style="color:var(--bad);font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_cost)}</div></div>
+      <div><div style="color:var(--muted);font-size:.75rem">CA potentiel</div><div style="color:#C9A456;font-weight:bold;font-size:1.1rem">${fmtMoneyShort(data.total_ca)}</div></div>
+      <div><div style="color:var(--muted);font-size:.75rem">Bénéfice</div><div style="color:var(--good);font-weight:bold;font-size:1.1rem">${fmtMoneyShort(benefice)}</div></div>
     </div></div>`;
   });
 
@@ -1336,10 +1338,10 @@ function updateProductionNeeds(){
   document.getElementById('prodSummary').innerHTML = `
     <h3 style="color:#C9A456;margin-bottom:10px">💼 Récap global de la production</h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
-      <div><div style="color:#7A6B5C;font-size:.78rem">Total bouteilles</div><div style="font-size:1.5rem;color:#C9A456;font-weight:bold">${fmtNum(totalBtlAll)}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.78rem">Investissement total</div><div style="font-size:1.5rem;color:#B4473C;font-weight:bold">${fmtMoneyShort(totalCostAll)}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.78rem">CA potentiel</div><div style="font-size:1.5rem;color:#C9A456;font-weight:bold">${fmtMoneyShort(totalCaAll)}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.78rem">💚 Bénéfice attendu</div><div style="font-size:1.5rem;color:#2F8551;font-weight:bold">${fmtMoneyShort(totalBenef)}</div></div>
+      <div><div style="color:var(--muted);font-size:.78rem">Total bouteilles</div><div style="font-size:1.5rem;color:#C9A456;font-weight:bold">${fmtNum(totalBtlAll)}</div></div>
+      <div><div style="color:var(--muted);font-size:.78rem">Investissement total</div><div style="font-size:1.5rem;color:var(--bad);font-weight:bold">${fmtMoneyShort(totalCostAll)}</div></div>
+      <div><div style="color:var(--muted);font-size:.78rem">CA potentiel</div><div style="font-size:1.5rem;color:#C9A456;font-weight:bold">${fmtMoneyShort(totalCaAll)}</div></div>
+      <div><div style="color:var(--muted);font-size:.78rem">💚 Bénéfice attendu</div><div style="font-size:1.5rem;color:var(--good);font-weight:bold">${fmtMoneyShort(totalBenef)}</div></div>
     </div>
   `;
 }
@@ -1379,7 +1381,7 @@ function renderAnticipation(){
 
   let html = '';
   if(overdue.length){
-    html += `<h3 style="color:#B4473C;margin-bottom:10px;margin-top:14px">🔔 Clients en retard sur leur commande habituelle (${overdue.length})</h3>`;
+    html += `<h3 style="color:var(--bad);margin-bottom:10px;margin-top:14px">🔔 Clients en retard sur leur commande habituelle (${overdue.length})</h3>`;
     html += renderPredCards(overdue, 'danger');
   }
   if(upcoming.length){
@@ -1387,11 +1389,11 @@ function renderAnticipation(){
     html += renderPredCards(upcoming, 'info');
   }
   if(inactive.length){
-    html += `<h3 style="color:#A86F12;margin-bottom:10px;margin-top:18px">😴 Clients inactifs > 6 mois (${inactive.length})</h3>`;
+    html += `<h3 style="color:var(--warn);margin-bottom:10px;margin-top:18px">😴 Clients inactifs > 6 mois (${inactive.length})</h3>`;
     html += renderPredCards(inactive, 'warning');
   }
   if(noHistory.length){
-    html += `<h3 style="color:#7A6B5C;margin-bottom:10px;margin-top:18px">🆕 Clients avec 1 seule commande (${noHistory.length})</h3>`;
+    html += `<h3 style="color:var(--muted);margin-bottom:10px;margin-top:18px">🆕 Clients avec 1 seule commande (${noHistory.length})</h3>`;
     html += renderPredCards(noHistory, 'newbie');
   }
   out.innerHTML = html;
@@ -1399,10 +1401,10 @@ function renderAnticipation(){
 
 function renderPredCards(preds, level){
   const colorMap = {
-    danger:{bg:'rgba(232,132,122,.10)',border:'#B4473C',accent:'#B4473C'},
+    danger:{bg:'rgba(232,132,122,.10)',border:cv('--bad'),accent:cv('--bad')},
     info:{bg:'rgba(111,166,232,.10)',border:'#6FA6E8',accent:'#6FA6E8'},
-    warning:{bg:'rgba(224,168,79,.10)',border:'#A86F12',accent:'#fcd34d'},
-    newbie:{bg:'rgba(43,33,24,.06)',border:'#7A6B5C',accent:'#6E655C'}
+    warning:{bg:'rgba(224,168,79,.10)',border:cv('--warn'),accent:'#fcd34d'},
+    newbie:{bg:('rgba('+cv('--ink-rgb')+',.06)'),border:cv('--muted'),accent:'#6E655C'}
   };
   const c = colorMap[level];
   return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px">' +
@@ -1411,7 +1413,7 @@ function renderPredCards(preds, level){
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
           <div>
             <div style="color:#C9A456;font-weight:bold;font-size:1rem">${p.client}</div>
-            <div style="color:#7A6B5C;font-size:.8rem">${p.pays} • ${p.n_factures} commande(s)</div>
+            <div style="color:var(--muted);font-size:.8rem">${p.pays} • ${p.n_factures} commande(s)</div>
           </div>
           <div style="text-align:right">
             <div style="color:${c.accent};font-size:.75rem;text-transform:uppercase">Confiance</div>
@@ -1419,12 +1421,12 @@ function renderPredCards(preds, level){
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;font-size:.85rem">
-          <div><span style="color:#7A6B5C">Dernière :</span><br><strong>${p.last_order}</strong> (il y a ${p.days_since_last}j)</div>
-          <div><span style="color:#7A6B5C">Prochaine prévue :</span><br><strong style="color:#C9A456">${p.predicted_date || '?'}</strong></div>
-          <div><span style="color:#7A6B5C">Intervalle moyen :</span><br><strong>${p.avg_interval ? p.avg_interval+' j' : 'N/A'}</strong></div>
-          <div><span style="color:#7A6B5C">CA attendu :</span><br><strong style="color:#2F8551">${fmtMoneyShort(p.predicted_ca)}</strong></div>
+          <div><span style="color:var(--muted)">Dernière :</span><br><strong>${p.last_order}</strong> (il y a ${p.days_since_last}j)</div>
+          <div><span style="color:var(--muted)">Prochaine prévue :</span><br><strong style="color:#C9A456">${p.predicted_date || '?'}</strong></div>
+          <div><span style="color:var(--muted)">Intervalle moyen :</span><br><strong>${p.avg_interval ? p.avg_interval+' j' : 'N/A'}</strong></div>
+          <div><span style="color:var(--muted)">CA attendu :</span><br><strong style="color:var(--good)">${fmtMoneyShort(p.predicted_ca)}</strong></div>
         </div>
-        ${p.top_refs.length ? `<div style="border-top:1px solid rgba(43,33,24,.1);padding-top:8px"><div style="color:#7A6B5C;font-size:.75rem;margin-bottom:4px">📦 À prévoir (top références) :</div>${p.top_refs.slice(0,3).map(r => `<div style="font-size:.8rem;display:flex;justify-content:space-between"><span><span class="${collClass(r.collection)}" style="font-size:.65rem">${r.collection}</span> ${r.reference}</span><span style="color:#C9A456">${r.cartons} cart.</span></div>`).join('')}</div>` : ''}
+        ${p.top_refs.length ? `<div style="border-top:1px solid rgba(var(--ink-rgb),.1);padding-top:8px"><div style="color:var(--muted);font-size:.75rem;margin-bottom:4px">📦 À prévoir (top références) :</div>${p.top_refs.slice(0,3).map(r => `<div style="font-size:.8rem;display:flex;justify-content:space-between"><span><span class="${collClass(r.collection)}" style="font-size:.65rem">${r.collection}</span> ${r.reference}</span><span style="color:#C9A456">${r.cartons} cart.</span></div>`).join('')}</div>` : ''}
       </div>
     `).join('') + '</div>';
 }
@@ -1453,40 +1455,40 @@ function renderObjectifs(){
     const evolution = dN1.kpi_ca > 0 ? ((d.kpi_ca - dN1.kpi_ca) / dN1.kpi_ca * 100) : 0;
     const projectionVsN1 = dN1.kpi_ca > 0 ? ((projectionAnnee - dN1.kpi_ca) / dN1.kpi_ca * 100) : 0;
     compHtml = `
-      <div style="background:rgba(43,33,24,.05);padding:16px;border-radius:8px;margin-bottom:16px">
+      <div style="background:rgba(var(--ink-rgb),.05);padding:16px;border-radius:8px;margin-bottom:16px">
         <h3 style="color:#C9A456;margin-bottom:10px">📅 Comparaison avec ${yearN1}</h3>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
-          <div><div style="color:#7A6B5C;font-size:.8rem">CA ${yearN1} (réf.)</div><div style="color:#C9A456;font-weight:bold;font-size:1.15rem">${fmtMoney(dN1.kpi_ca)}</div></div>
-          <div><div style="color:#7A6B5C;font-size:.8rem">CA ${year} (actuel)</div><div style="color:#C9A456;font-weight:bold;font-size:1.15rem">${fmtMoney(d.kpi_ca)}</div></div>
-          <div><div style="color:#7A6B5C;font-size:.8rem">Évolution actuelle</div><div style="color:${evolution>=0?'#2F8551':'#B4473C'};font-weight:bold;font-size:1.15rem">${evolution>=0?'+':''}${evolution.toFixed(1)}%</div></div>
-          <div><div style="color:#7A6B5C;font-size:.8rem">Évolution projetée</div><div style="color:${projectionVsN1>=0?'#2F8551':'#B4473C'};font-weight:bold;font-size:1.15rem">${projectionVsN1>=0?'+':''}${projectionVsN1.toFixed(1)}%</div></div>
+          <div><div style="color:var(--muted);font-size:.8rem">CA ${yearN1} (réf.)</div><div style="color:#C9A456;font-weight:bold;font-size:1.15rem">${fmtMoney(dN1.kpi_ca)}</div></div>
+          <div><div style="color:var(--muted);font-size:.8rem">CA ${year} (actuel)</div><div style="color:#C9A456;font-weight:bold;font-size:1.15rem">${fmtMoney(d.kpi_ca)}</div></div>
+          <div><div style="color:var(--muted);font-size:.8rem">Évolution actuelle</div><div style="color:${evolution>=0?cv('--good'):cv('--bad')};font-weight:bold;font-size:1.15rem">${evolution>=0?'+':''}${evolution.toFixed(1)}%</div></div>
+          <div><div style="color:var(--muted);font-size:.8rem">Évolution projetée</div><div style="color:${projectionVsN1>=0?cv('--good'):cv('--bad')};font-weight:bold;font-size:1.15rem">${projectionVsN1>=0?'+':''}${projectionVsN1.toFixed(1)}%</div></div>
         </div>
       </div>
     `;
   }
 
   // Status
-  let statusIcon = '🟢', statusColor = '#2F8551', statusText = 'Sur la bonne voie';
-  if(pctProjection < 80){ statusIcon = '🔴'; statusColor = '#B4473C'; statusText = 'En retard sur l\'objectif'; }
-  else if(pctProjection < 100){ statusIcon = '🟡'; statusColor = '#A86F12'; statusText = 'Légèrement en-dessous'; }
-  else if(pctProjection > 120){ statusIcon = '🚀'; statusColor = '#2F8551'; statusText = 'Au-dessus des prévisions !'; }
+  let statusIcon = '🟢', statusColor = cv('--good'), statusText = 'Sur la bonne voie';
+  if(pctProjection < 80){ statusIcon = '🔴'; statusColor = cv('--bad'); statusText = 'En retard sur l\'objectif'; }
+  else if(pctProjection < 100){ statusIcon = '🟡'; statusColor = cv('--warn'); statusText = 'Légèrement en-dessous'; }
+  else if(pctProjection > 120){ statusIcon = '🚀'; statusColor = cv('--good'); statusText = 'Au-dessus des prévisions !'; }
 
   let html = compHtml;
 
   // Bar de progression
   html += `
-    <div style="background:rgba(43,33,24,.05);padding:18px;border-radius:8px;margin-bottom:16px">
+    <div style="background:rgba(var(--ink-rgb),.05);padding:18px;border-radius:8px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap">
         <h3 style="color:#C9A456">🎯 Objectif ${year} : ${fmtMoney(cible)}</h3>
         <div style="color:${statusColor};font-weight:bold;font-size:1.05rem">${statusIcon} ${statusText}</div>
       </div>
-      <div style="background:rgba(43,33,24,.08);height:30px;border-radius:15px;overflow:hidden;position:relative;margin-bottom:10px">
-        <div style="background:linear-gradient(90deg,#C9A456 0%,#2F8551 100%);height:100%;width:${Math.min(pctObjectif,100)}%;border-radius:15px;transition:width .5s;display:flex;align-items:center;justify-content:center;color:#FAF6EF;font-weight:bold;font-size:.85rem">${pctObjectif.toFixed(1)}%</div>
-        ${pctProjection > pctObjectif ? `<div style="position:absolute;top:0;height:100%;width:2px;background:#2B2118;left:${Math.min(pctProjection,100)}%"><div style="position:absolute;top:-22px;left:-30px;color:#fff;font-size:.7rem">Projection ${pctProjection.toFixed(0)}%</div></div>`:''}
+      <div style="background:rgba(var(--ink-rgb),.08);height:30px;border-radius:15px;overflow:hidden;position:relative;margin-bottom:10px">
+        <div style="background:linear-gradient(90deg,#C9A456 0%,var(--good) 100%);height:100%;width:${Math.min(pctObjectif,100)}%;border-radius:15px;transition:width .5s;display:flex;align-items:center;justify-content:center;color:var(--surface);font-weight:bold;font-size:.85rem">${pctObjectif.toFixed(1)}%</div>
+        ${pctProjection > pctObjectif ? `<div style="position:absolute;top:0;height:100%;width:2px;background:var(--ink);left:${Math.min(pctProjection,100)}%"><div style="position:absolute;top:-22px;left:-30px;color:#fff;font-size:.7rem">Projection ${pctProjection.toFixed(0)}%</div></div>`:''}
       </div>
-      <div style="display:flex;justify-content:space-between;color:#7A6B5C;font-size:.85rem">
+      <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:.85rem">
         <span>CA actuel : <strong style="color:#C9A456">${fmtMoney(d.kpi_ca)}</strong></span>
-        <span>Reste à faire : <strong style="color:${cible-d.kpi_ca>0?'#B4473C':'#2F8551'}">${fmtMoney(Math.max(cible-d.kpi_ca,0))}</strong></span>
+        <span>Reste à faire : <strong style="color:${cible-d.kpi_ca>0?cv('--bad'):cv('--good')}">${fmtMoney(Math.max(cible-d.kpi_ca,0))}</strong></span>
       </div>
     </div>
   `;
@@ -1513,7 +1515,7 @@ function renderObjectifs(){
   d.mois.forEach(m => {
     cumul += m.ca;
     const pct = cible > 0 ? (cumul/cible*100) : 0;
-    html += `<tr style="${m.ca===0?'opacity:.4':''}"><td><strong>${m.mois}</strong></td><td class="text-right amount">${fmtMoneyShort(m.ca)}</td><td class="text-right">${fmtMoneyShort(cumul)}</td><td class="text-right" style="color:${pct>=100?'#2F8551':'#C9A456'}">${pct.toFixed(1)}%</td></tr>`;
+    html += `<tr style="${m.ca===0?'opacity:.4':''}"><td><strong>${m.mois}</strong></td><td class="text-right amount">${fmtMoneyShort(m.ca)}</td><td class="text-right">${fmtMoneyShort(cumul)}</td><td class="text-right" style="color:${pct>=100?cv('--good'):'#C9A456'}">${pct.toFixed(1)}%</td></tr>`;
   });
   html += '</tbody></table>';
 
@@ -1529,9 +1531,9 @@ function renderInsights(){
     return;
   }
   const colorMap = {
-    success:{bg:'rgba(124,199,150,.12)',border:'#2F8551'},
-    warning:{bg:'rgba(224,168,79,.12)',border:'#A86F12'},
-    danger:{bg:'rgba(232,132,122,.12)',border:'#B4473C'},
+    success:{bg:'rgba(124,199,150,.12)',border:cv('--good')},
+    warning:{bg:'rgba(224,168,79,.12)',border:cv('--warn')},
+    danger:{bg:'rgba(232,132,122,.12)',border:cv('--bad')},
     info:{bg:'rgba(111,166,232,.12)',border:'#6FA6E8'}
   };
   const html = d.insights.map(ins => {
@@ -1541,7 +1543,7 @@ function renderInsights(){
         <div style="font-size:1.8rem">${ins.icon}</div>
         <div style="flex:1">
           <div style="color:#C9A456;font-weight:bold;font-size:1rem;margin-bottom:4px">${ins.title}</div>
-          <div style="color:#2B2118;font-size:.9rem">${ins.desc}</div>
+          <div style="color:var(--ink);font-size:.9rem">${ins.desc}</div>
         </div>
       </div>
     `;
@@ -1582,7 +1584,7 @@ function renderCharges(filter=''){
       <td class="text-right">100,0 %</td>
     </tr>`;
   }
-  if(visibleCats.length===0){ rows = '<tr><td colspan="4" style="text-align:center;color:#7A6B5C">Aucune catégorie ne correspond à la recherche.</td></tr>'; }
+  if(visibleCats.length===0){ rows = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Aucune catégorie ne correspond à la recherche.</td></tr>'; }
   document.getElementById('tbody-charges').innerHTML = rows;
 
   const labels = data.order;
@@ -1596,8 +1598,8 @@ function renderCharges(filter=''){
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#7A6B5C' }, grid: { color: 'rgba(43,33,24,.08)' } },
-        y: { ticks: { color: '#2B2118', font: { size: 10 } }, grid: { display: false } }
+        x: { ticks: { color: cv('--muted') }, grid: { color: ('rgba('+cv('--ink-rgb')+',.08)') } },
+        y: { ticks: { color: cv('--ink'), font: { size: 10 } }, grid: { display: false } }
       }
     }
   });
@@ -1618,7 +1620,7 @@ function openChargesModal(cat){
   document.getElementById('chargesModalMeta').innerHTML = `Compte BRED ${currentYear === 'total' ? '2025 + 2026' : currentYear} — ${data.period}`;
   document.getElementById('chargesModalSummary').innerHTML = `
     <div class="modal-stat"><div class="modal-stat-label">Nb opérations</div><div class="modal-stat-value">${fmtNum(c.count)}</div></div>
-    <div class="modal-stat"><div class="modal-stat-label">Montant total</div><div class="modal-stat-value" style="color:#B4473C">${fmtMoney(c.total)}</div></div>
+    <div class="modal-stat"><div class="modal-stat-label">Montant total</div><div class="modal-stat-value" style="color:var(--bad)">${fmtMoney(c.total)}</div></div>
     <div class="modal-stat"><div class="modal-stat-label">% du total charges</div><div class="modal-stat-value">${fmtPct(pct)}</div></div>
   `;
   const tb = document.getElementById('chargesModalVendors');
@@ -1641,12 +1643,12 @@ function showChargesMonths(cat, vendorName){
   if(vendorName){
     const v = c.vendors.find(v => v.vendor === vendorName);
     months = (v && v.months) ? v.months : [];
-    titleEl.innerHTML = `Répartition mensuelle — <span style="color:#C9A456">${vendorName}</span> <a href="#" id="chargesMonthsBack" style="color:#7A6B5C;font-size:.8rem;margin-left:8px">🔙 Toute la catégorie</a>`;
+    titleEl.innerHTML = `Répartition mensuelle — <span style="color:#C9A456">${vendorName}</span> <a href="#" id="chargesMonthsBack" style="color:var(--muted);font-size:.8rem;margin-left:8px">🔙 Toute la catégorie</a>`;
     document.getElementById('chargesMonthsBack').addEventListener('click', e => { e.preventDefault(); showChargesMonths(cat, null); });
   } else {
     titleEl.textContent = 'Répartition mensuelle';
   }
-  if(months.length===0){ mb.innerHTML = '<tr><td colspan="2" style="text-align:center;color:#7A6B5C">Pas de détail mensuel disponible.</td></tr>'; return; }
+  if(months.length===0){ mb.innerHTML = '<tr><td colspan="2" style="text-align:center;color:var(--muted)">Pas de détail mensuel disponible.</td></tr>'; return; }
   months.forEach(m => {
     const mm = m.mois.split('-')[1];
     const yy = m.mois.split('-')[0];
@@ -1687,7 +1689,7 @@ function renderRevenus(filter=''){
       <td class="text-right">100,0 %</td>
     </tr>`;
   }
-  if(visibleCats.length===0){ rows = '<tr><td colspan="4" style="text-align:center;color:#7A6B5C">Aucune source ne correspond à la recherche.</td></tr>'; }
+  if(visibleCats.length===0){ rows = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Aucune source ne correspond à la recherche.</td></tr>'; }
   document.getElementById('tbody-revenus').innerHTML = rows;
 
   const labels = data.order;
@@ -1695,14 +1697,14 @@ function renderRevenus(filter=''){
   if(charts.revenus) charts.revenus.destroy();
   charts.revenus = new Chart(document.getElementById('chartRevenus'), {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Montant (€)', data: values, backgroundColor: '#2F8551' }] },
+    data: { labels, datasets: [{ label: 'Montant (€)', data: values, backgroundColor: cv('--good') }] },
     options: {
       indexAxis: 'y',
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#7A6B5C' }, grid: { color: 'rgba(43,33,24,.08)' } },
-        y: { ticks: { color: '#2B2118', font: { size: 10 } }, grid: { display: false } }
+        x: { ticks: { color: cv('--muted') }, grid: { color: ('rgba('+cv('--ink-rgb')+',.08)') } },
+        y: { ticks: { color: cv('--ink'), font: { size: 10 } }, grid: { display: false } }
       }
     }
   });
@@ -1719,7 +1721,7 @@ function openRevenusModal(cat){
   document.getElementById('revenusModalMeta').innerHTML = `Compte BRED ${currentYear === 'total' ? '2025 + 2026' : currentYear} — ${data.period}`;
   document.getElementById('revenusModalSummary').innerHTML = `
     <div class="modal-stat"><div class="modal-stat-label">Nb opérations</div><div class="modal-stat-value">${fmtNum(c.count)}</div></div>
-    <div class="modal-stat"><div class="modal-stat-label">Montant total</div><div class="modal-stat-value" style="color:#2F8551">${fmtMoney(c.total)}</div></div>
+    <div class="modal-stat"><div class="modal-stat-label">Montant total</div><div class="modal-stat-value" style="color:var(--good)">${fmtMoney(c.total)}</div></div>
     <div class="modal-stat"><div class="modal-stat-label">% du total revenus</div><div class="modal-stat-value">${fmtPct(pct)}</div></div>
   `;
   const tb = document.getElementById('revenusModalVendors');
@@ -1742,12 +1744,12 @@ function showRevenusMonths(cat, vendorName){
   if(vendorName){
     const v = c.vendors.find(v => v.vendor === vendorName);
     months = (v && v.months) ? v.months : [];
-    titleEl.innerHTML = `Répartition mensuelle — <span style="color:#C9A456">${vendorName}</span> <a href="#" id="revenusMonthsBack" style="color:#7A6B5C;font-size:.8rem;margin-left:8px">🔙 Toute la source</a>`;
+    titleEl.innerHTML = `Répartition mensuelle — <span style="color:#C9A456">${vendorName}</span> <a href="#" id="revenusMonthsBack" style="color:var(--muted);font-size:.8rem;margin-left:8px">🔙 Toute la source</a>`;
     document.getElementById('revenusMonthsBack').addEventListener('click', e => { e.preventDefault(); showRevenusMonths(cat, null); });
   } else {
     titleEl.textContent = 'Répartition mensuelle';
   }
-  if(months.length===0){ mb.innerHTML = '<tr><td colspan="2" style="text-align:center;color:#7A6B5C">Pas de détail mensuel disponible.</td></tr>'; return; }
+  if(months.length===0){ mb.innerHTML = '<tr><td colspan="2" style="text-align:center;color:var(--muted)">Pas de détail mensuel disponible.</td></tr>'; return; }
   months.forEach(m => {
     const mm = m.mois.split('-')[1];
     const yy = m.mois.split('-')[0];
@@ -1773,8 +1775,8 @@ function renderFournisseurs(){
   let rows = '';
   d.months.forEach(m => {
     m.lines.forEach((l,i) => {
-      const paidTag = l.paid ? ' <span style="color:#2F8551;font-weight:700">✅ Payé</span>' : '';
-      rows += `<tr${l.paid ? ' style="background:rgba(124,199,150,.08)"' : ''}><td>${i===0?m.name:''}</td><td>${i===0?m.status:''}</td><td>${l.label}${paidTag}</td><td class="text-right ${l.paid ? '' : 'amount-negative'}" style="${l.paid ? 'color:#2F8551' : ''}">${fmtMoney(l.amount)}</td></tr>`;
+      const paidTag = l.paid ? ' <span style="color:var(--good);font-weight:700">✅ Payé</span>' : '';
+      rows += `<tr${l.paid ? ' style="background:rgba(124,199,150,.08)"' : ''}><td>${i===0?m.name:''}</td><td>${i===0?m.status:''}</td><td>${l.label}${paidTag}</td><td class="text-right ${l.paid ? '' : 'amount-negative'}" style="${l.paid ? 'color:var(--good)' : ''}">${fmtMoney(l.amount)}</td></tr>`;
     });
     rows += `<tr style="font-weight:bold;border-top:1px solid rgba(201,164,86,.4)"><td colspan="3">TOTAL ${m.name}</td><td class="text-right amount-negative">${fmtMoney(m.total)}</td></tr>`;
   });
@@ -1803,14 +1805,14 @@ function renderChargesFixes(){
 
   let rows = '';
   d.charges.forEach(c => {
-    rows += `<tr><td>${c.label}</td><td class="text-right amount-negative">${fmtMoney(c.amount)}</td><td style="color:#7A6B5C;font-size:.85rem">${c.note}</td></tr>`;
+    rows += `<tr><td>${c.label}</td><td class="text-right amount-negative">${fmtMoney(c.amount)}</td><td style="color:var(--muted);font-size:.85rem">${c.note}</td></tr>`;
   });
   rows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td>TOTAL</td><td class="text-right amount-negative">${fmtMoney(totalCharges)}</td><td></td></tr>`;
   document.getElementById('tbody-chargesfixes').innerHTML = rows;
 
   let srows = '';
   d.salaires.forEach(s => {
-    srows += `<tr><td>${s.label}</td><td class="text-right amount-negative">${fmtMoney(s.amount)}</td><td style="color:#7A6B5C;font-size:.85rem">${s.note}</td></tr>`;
+    srows += `<tr><td>${s.label}</td><td class="text-right amount-negative">${fmtMoney(s.amount)}</td><td style="color:var(--muted);font-size:.85rem">${s.note}</td></tr>`;
   });
   srows += `<tr style="font-weight:bold;border-top:2px solid #C9A456"><td>TOTAL</td><td class="text-right amount-negative">${fmtMoney(totalSalaires)}</td><td></td></tr>`;
   document.getElementById('tbody-chargesfixes-salaires').innerHTML = srows;
@@ -1852,27 +1854,27 @@ function renderInventaire(filter=''){
     const items = f ? c.items.filter(it => it.label.toLowerCase().includes(f) || it.code.toLowerCase().includes(f)) : c.items;
     if(f && items.length === 0) return;
     html += `
-      <div style="background:rgba(43,33,24,.04);border-radius:8px;padding:18px;margin-bottom:18px">
+      <div style="background:rgba(var(--ink-rgb),.04);border-radius:8px;padding:18px;margin-bottom:18px">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:14px">
           <h3 style="color:#C9A456">${cat}</h3>
-          <div style="color:#7A6B5C;font-size:.95rem">
+          <div style="color:var(--muted);font-size:.95rem">
             <strong style="color:#C9A456">${fmtNum(c.total_conforme)}</strong> unités conformes
-            ${c.total_non_conforme > 0 ? ` • <span style="color:#B4473C"><strong>${fmtNum(c.total_non_conforme)}</strong> non conformes</span>` : ''}
+            ${c.total_non_conforme > 0 ? ` • <span style="color:var(--bad)"><strong>${fmtNum(c.total_non_conforme)}</strong> non conformes</span>` : ''}
             • ${c.count} référence${c.count>1?'s':''}
           </div>
         </div>
         <table>
           <thead>
-            <tr><th>#</th><th>Article</th><th style="color:#7A6B5C;font-size:.8rem">Code</th><th class="text-right">Stock conforme</th><th class="text-right">Non conforme</th></tr>
+            <tr><th>#</th><th>Article</th><th style="color:var(--muted);font-size:.8rem">Code</th><th class="text-right">Stock conforme</th><th class="text-right">Non conforme</th></tr>
           </thead>
           <tbody>
             ${items.map((it,i) => `
               <tr>
                 <td>${i+1}</td>
                 <td>${it.label}</td>
-                <td style="color:#7A6B5C;font-size:.8rem">${it.code}</td>
-                <td class="text-right" style="${it.conforme===0?'color:#7A6B5C':''}">${fmtNum(it.conforme)}</td>
-                <td class="text-right" style="${it.non_conforme>0?'color:#B4473C;font-weight:600':'color:#7A6B5C'}">${it.non_conforme>0?fmtNum(it.non_conforme):'—'}</td>
+                <td style="color:var(--muted);font-size:.8rem">${it.code}</td>
+                <td class="text-right" style="${it.conforme===0?'color:var(--muted)':''}">${fmtNum(it.conforme)}</td>
+                <td class="text-right" style="${it.non_conforme>0?'color:var(--bad);font-weight:600':'color:var(--muted)'}">${it.non_conforme>0?fmtNum(it.non_conforme):'—'}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -1965,10 +1967,10 @@ function renderSimulation(){
       totalCA += ca;
 
       const displayQty = simCartonMode ? (qtyBtl / info.size).toFixed(qtyBtl % info.size === 0 ? 0 : 1) : qtyBtl;
-      const statusColor = qtyBtl === 0 ? '#7A6B5C' : (feasible ? '#2F8551' : '#B4473C');
+      const statusColor = qtyBtl === 0 ? cv('--muted') : (feasible ? cv('--good') : cv('--bad'));
       const statusIcon = qtyBtl === 0 ? '—' : (feasible ? '✅' : '❌');
-      const afterColor = after < 0 ? '#B4473C' : (after < 50 ? '#A86F12' : '#2F8551');
-      const stockColor = it.qty <= 0 ? '#B4473C' : (it.qty < 50 ? '#A86F12' : '#2B2118');
+      const afterColor = after < 0 ? cv('--bad') : (after < 50 ? cv('--warn') : cv('--good'));
+      const stockColor = it.qty <= 0 ? cv('--bad') : (it.qty < 50 ? cv('--warn') : cv('--ink'));
 
       rows += `<tr>
         <td><strong>${it.reference}</strong></td>
@@ -1977,26 +1979,26 @@ function renderSimulation(){
           <input type="number" min="0" step="${simCartonMode ? 1 : 1}" value="${displayQty}"
                  data-key="${key}" data-coll="${coll}" data-size="${info.size}"
                  class="sim-input"
-                 style="width:100px;padding:6px 8px;border-radius:6px;border:1px solid #6E655C;background:#EFE6D8;color:#2B2118;text-align:right;font-weight:600">
+                 style="width:100px;padding:6px 8px;border-radius:6px;border:1px solid #6E655C;background:var(--cream);color:var(--ink);text-align:right;font-weight:600">
         </td>
-        <td class="text-right" style="color:#7A6B5C;font-size:.85rem">${tester > 0 ? '+' + tester : '—'}</td>
+        <td class="text-right" style="color:var(--muted);font-size:.85rem">${tester > 0 ? '+' + tester : '—'}</td>
         <td class="text-right" style="color:${afterColor};font-weight:600">${qtyBtl === 0 ? '—' : fmtNum(after)}</td>
         <td class="text-right amount">${qtyBtl === 0 ? '—' : fmtMoney(ca)}</td>
         <td class="text-center" style="font-size:1.1rem;color:${statusColor}">${statusIcon}</td>
       </tr>`;
     });
 
-    const collStatus = collKO > 0 ? `<span style="color:#B4473C">⚠️ ${collKO} ref(s) en rupture</span>` : (collQty > 0 ? '<span style="color:#2F8551">✅ Faisable</span>' : '<span style="color:#7A6B5C">Aucune saisie</span>');
+    const collStatus = collKO > 0 ? `<span style="color:var(--bad)">⚠️ ${collKO} ref(s) en rupture</span>` : (collQty > 0 ? '<span style="color:var(--good)">✅ Faisable</span>' : '<span style="color:var(--muted)">Aucune saisie</span>');
     html += `
-      <div style="background:rgba(43,33,24,.04);border-radius:8px;padding:18px;margin-bottom:16px">
+      <div style="background:rgba(var(--ink-rgb),.04);border-radius:8px;padding:18px;margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px">
           <h3 style="color:#C9A456;margin:0">
             <span class="${collClass(coll)}">${coll}</span>
-            <span style="color:#7A6B5C;font-size:.85rem;font-weight:normal">
+            <span style="color:var(--muted);font-size:.85rem;font-weight:normal">
               (${info.price_btl}€/btl • carton de ${info.size}+1 à ${info.price_carton}€)
             </span>
           </h3>
-          <div style="font-size:.95rem">${collStatus} <span style="color:#7A6B5C;margin-left:14px">${fmtNum(collQty)} btl • ${fmtMoney(collCA)}</span></div>
+          <div style="font-size:.95rem">${collStatus} <span style="color:var(--muted);margin-left:14px">${fmtNum(collQty)} btl • ${fmtMoney(collCA)}</span></div>
         </div>
         <table>
           <thead><tr>
@@ -2015,16 +2017,16 @@ function renderSimulation(){
   });
 
   // Sommaire global en haut
-  const summaryColor = refsKO > 0 ? '#B4473C' : (totalBtl > 0 ? '#2F8551' : '#7A6B5C');
+  const summaryColor = refsKO > 0 ? cv('--bad') : (totalBtl > 0 ? cv('--good') : cv('--muted'));
   const summaryMsg = refsKO > 0
     ? `❌ ${refsKO} référence(s) en rupture — produire avant`
     : (totalBtl > 0 ? `✅ Commande entièrement faisable avec le stock actuel` : 'Aucune référence saisie');
   document.getElementById('simSummary').innerHTML = `
     <div style="background:linear-gradient(135deg,rgba(201,164,86,.08),rgba(201,164,86,.02));border:1px solid ${summaryColor};border-radius:10px;padding:18px;margin-bottom:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
-      <div><div style="color:#7A6B5C;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Statut</div><div style="font-size:1.05rem;color:${summaryColor};font-weight:bold;margin-top:4px">${summaryMsg}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Total bouteilles</div><div style="font-size:1.6rem;color:#C9A456;font-weight:bold">${fmtNum(totalBtl)}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">CA estimé (prix standard)</div><div style="font-size:1.6rem;color:#2F8551;font-weight:bold">${fmtMoney(totalCA)}</div></div>
-      <div><div style="color:#7A6B5C;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Réfs OK / KO</div><div style="font-size:1.6rem;font-weight:bold"><span style="color:#2F8551">${refsOK}</span> <span style="color:#7A6B5C">/</span> <span style="color:#B4473C">${refsKO}</span></div></div>
+      <div><div style="color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Statut</div><div style="font-size:1.05rem;color:${summaryColor};font-weight:bold;margin-top:4px">${summaryMsg}</div></div>
+      <div><div style="color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Total bouteilles</div><div style="font-size:1.6rem;color:#C9A456;font-weight:bold">${fmtNum(totalBtl)}</div></div>
+      <div><div style="color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">CA estimé (prix standard)</div><div style="font-size:1.6rem;color:var(--good);font-weight:bold">${fmtMoney(totalCA)}</div></div>
+      <div><div style="color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.6px">Réfs OK / KO</div><div style="font-size:1.6rem;font-weight:bold"><span style="color:var(--good)">${refsOK}</span> <span style="color:var(--muted)">/</span> <span style="color:var(--bad)">${refsKO}</span></div></div>
     </div>
   `;
   document.getElementById('simContent').innerHTML = html;
