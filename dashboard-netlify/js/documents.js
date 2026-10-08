@@ -742,4 +742,6 @@
   // Démarrage : applique la vue société mémorisée et les factures créées dans ce navigateur.
   sync();
   renderList();
+  // Accès en lecture pour le journal de bord (js/journal.js).
+  window.EJ_DOCS = {list:() => docs.slice(), calc:docCalc, payState, echeancier, TYPES};
 })();

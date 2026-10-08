@@ -19,8 +19,10 @@
 <div class="sb-block"><div class="sb-label">Année</div>
 <div class="sb-seg year-switcher" role="group" aria-label="Année"><button class="year-btn" data-year="2025">2025</button><button class="year-btn" data-year="2026">2026</button><button class="year-btn active" data-year="total">Total</button></div></div>
 <nav class="sb-nav" aria-label="Rubriques">
+<div class="sb-group">Accueil</div>
+<button class="tab active" data-tab="journal" data-group="accueil">Journal de bord</button>
 <div class="sb-group">Ventes</div>
-<button class="tab active" data-tab="overview" data-group="ventes">Vue d'ensemble</button>
+<button class="tab" data-tab="overview" data-group="ventes">Vue d'ensemble</button>
 <button class="tab" data-tab="clients" data-group="ventes">Clients</button>
 <button class="tab" data-tab="pays" data-group="ventes">Pays</button>
 <button class="tab" data-tab="mois" data-group="ventes">Mois</button>
@@ -72,7 +74,34 @@
 
 
 
-<div id="overview" class="section active">
+<div id="journal" class="section active">
+<h2>Journal de bord</h2>
+<div class="j-top"><div><div class="j-date" id="jDate"></div><div class="j-resume" id="jResume"></div></div></div>
+<div class="j-grid">
+<div class="j-col">
+<div class="j-card"><div class="j-h">À traiter<button type="button" class="j-mini" id="jReset" title="Réafficher les rappels marqués comme faits">Tout réafficher</button></div>
+<p class="j-sub">Calculé à partir des données : paiements clients, devis à relancer, fournisseurs, stock, inventaire, salons. Clique sur un rappel pour ouvrir la page concernée.</p>
+<ul class="j-list" id="jAuto"></ul></div>
+<div class="j-card"><div class="j-h">Mes tâches</div>
+<form id="jTodoForm" class="j-form"><input name="txt" placeholder="Ex. Relancer Gazzaz pour la commande de novembre" required><select name="cat"><option value="client">Client</option><option value="paiement">Paiement</option><option value="fournisseur">Fournisseur</option><option value="stock">Stock</option><option value="admin">Admin</option><option value="autre">Autre</option></select><input name="due" type="date" title="Échéance"><button type="submit" class="doc-btn primary">Ajouter</button></form>
+<ul class="j-list" id="jTodos"></ul></div>
+<div class="j-card"><div class="j-h">Routine</div>
+<div class="j-routine" id="jRoutine"></div>
+<form id="jRoutineForm" class="j-form"><input name="txt" placeholder="Ajouter une tâche récurrente" required><select name="freq"><option value="jour">Chaque jour</option><option value="semaine">Chaque semaine</option><option value="mois">Chaque mois</option></select><button type="submit" class="doc-btn">Ajouter</button></form></div>
+</div>
+<div class="j-col">
+<div class="j-card"><div class="j-h">Journal</div>
+<form id="jNoteForm" class="j-form j-note-form"><textarea name="txt" rows="3" placeholder="Appels, rendez-vous, décisions, commandes reçues…" required></textarea><button type="submit" class="doc-btn primary">Noter</button></form>
+<ul class="j-notes" id="jNotes"></ul></div>
+<div class="j-card"><div class="j-h">Actualités de la parfumerie<button type="button" class="j-mini" id="jNewsRefresh" title="Recharger">Actualiser</button></div>
+<div class="j-feeds" id="jFeeds"></div>
+<ul class="j-news" id="jNews"></ul>
+<div class="j-sites"><span>Presse spécialisée :</span><span id="jSites"></span></div></div>
+</div>
+</div>
+</div>
+
+<div id="overview" class="section">
 <h2>Vue d'ensemble</h2>
 <div class="grid-2">
 <div class="chart-container"><canvas id="chartCollections"></canvas></div>
@@ -482,6 +511,7 @@
 <script src="js/documents.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/salons.js"></script>
+<script src="js/journal.js"></script>
 <div id="docPrint"></div>
 </body>
 </html>

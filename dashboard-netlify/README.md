@@ -19,6 +19,7 @@ Lancer en local : `cd dashboard-netlify && python3 -m http.server 8000` puis htt
 | `simulateur-offres/` | Simulateur d'offres (paliers de remise et cadeaux), affiché dans son onglet |
 | `data/salons.js`, `js/salons.js` | Calendrier des salons de la parfumerie par année (onglet Commercial › Calendrier des salons) : prochain salon, filtres, export agenda (.ics), ajout de salons gardé dans le navigateur. Dates à mettre à jour dans `data/salons.js`. |
 | `data/clients.js` | Carnet d'adresses des clients (pays, adresse, n° TVA) pour pré-remplir les documents ; complétable dans Devis & Factures › Coordonnées › Adresses clients |
+| `js/journal.js` | Page d'accueil « Journal de bord » : rappels automatiques (paiements clients, devis à relancer, fournisseurs, stock, inventaire mensuel, salons), routine jour / semaine / mois, tâches, notes et actualités de la parfumerie (Google Actualités via rss2json) ; saisies gardées dans le navigateur |
 | `img/` | Logo et marbre noir (visuels VIP Black du catalogue) |
 | `data/ventes.js` | `ALL` : ventes 2025 / 2026 / total, prix de revient, stock |
 | `data/charges.js` | `CHARGES_DATA` : charges par fournisseur et par mois |
