@@ -95,7 +95,9 @@
   const TYPES = {
     devis:{label:'Devis', fr:'DEVIS', en:'QUOTATION', statuts:['Brouillon','Envoyé','Accepté','Refusé','Converti']},
     proforma:{label:'Proforma', fr:'FACTURE PROFORMA', en:'PROFORMA', statuts:['Brouillon','Envoyée','Acompte reçu','Convertie']},
-    facture:{label:'Facture', fr:'FACTURE', en:'INVOICE', statuts:['À encaisser','Payée']}
+    facture:{label:'Facture', fr:'FACTURE', en:'INVOICE', statuts:['À encaisser','Payée']},
+    avoir:{label:'Avoir', fr:'AVOIR', en:'CREDIT NOTE', statuts:['Émis','Remboursé','Imputé sur une facture']},
+    bl:{label:'Bon de livraison', fr:'BON DE LIVRAISON', en:'DELIVERY NOTE', statuts:['Préparé','Expédié','Livré']}
   };
   const UE = ['Allemagne','Autriche','Belgique','Bulgarie','Chypre','Croatie','Danemark','Espagne','Estonie','Finlande','Grèce','Hongrie','Irlande','Italie','Lettonie','Lituanie','Luxembourg','Malte','Pays-Bas','Pologne','Portugal','Roumanie','Slovaquie','Slovénie','Suède','Tchéquie','République tchèque'];
   const EAU = ['Émirats Arabes Unis','Emirats Arabes Unis','EAU','United Arab Emirates','UAE'];
@@ -123,14 +125,15 @@
   // NB  : factures et proformas dans la même série NB2026xxx (comme la proforma NB2026012), devis NBDV2026-xxx.
   function nextNumero(s, type, iso){
     const year = (iso || todayIso()).slice(0, 4);
-    const seq = (s === 'BSD' && type === 'facture') ? 'EJ' + year : (s === 'NB' && type !== 'devis') ? 'NB' + year : null;
+    // Avoirs : série continue propre (AV / NBAV). Bons de livraison : BL / NBBL, hors numérotation des factures.
+    const seq = type === 'avoir' ? (s === 'NB' ? 'NBAV' : 'AV') + year : (s === 'BSD' && type === 'facture') ? 'EJ' + year : (s === 'NB' && (type === 'facture' || type === 'proforma')) ? 'NB' + year : null;
     if(seq){
       const re = new RegExp('^' + seq + '(\\d{3})$');
       let max = 0;
       [...BASE_NUMS].concat(NUMEROS_PAPIER).concat(docs.map(d => d.numero)).forEach(n => { const m = re.exec(n || ''); if(m) max = Math.max(max, +m[1]); });
       return seq + pad(max + 1, 3);
     }
-    const pre = (s === 'NB' ? 'NBDV' : type === 'devis' ? 'DV' : 'PF') + year + '-';
+    const pre = (type === 'bl' ? (s === 'NB' ? 'NBBL' : 'BL') : s === 'NB' ? 'NBDV' : type === 'devis' ? 'DV' : 'PF') + year + '-';
     let max = 0;
     docs.filter(d => String(d.numero).startsWith(pre)).forEach(d => { max = Math.max(max, parseInt(String(d.numero).slice(pre.length), 10) || 0); });
     return pre + pad(max + 1, 3);
@@ -170,6 +173,12 @@
   // La valeur douane des testeurs et sa déduction s'annulent : elles ne sont pas reportées dans les chiffres.
   function toInvoice(d){
     const k = docCalc(d);
+    // Avoir : une ligne AVOIR négative (le CA baisse ; le coût n'est pas modifié, la marchandise n'est pas réintégrée au stock).
+    if(d.type === 'avoir'){
+      const ca = -r2(k.ht);
+      return {facture:d.numero, date:isoToFr(d.date), client:d.client.trim(), pays:d.pays.trim(), btl:0, ca, cout:0, marge:ca, societe:d.societe,
+        lines:[{collection:'AVOIR', reference:'Avoir' + (d.source ? ' sur ' + d.source : ''), mode:'service', cartons:0, btl:0, testers:0, prix:ca, ca, cout:0, marge:ca}]};
+    }
     const lines = k.rows.filter(r => num(r.src.qty) > 0).map(r => {
       const l = r.src;
       return {collection:l.collection, reference:l.reference || COLL[l.collection].fr, mode:isSvc(l) ? (l.collection === 'TRANSPORT' ? 'transport' : 'service') : l.mode,
@@ -222,7 +231,7 @@
   }
 
   /* ---------- Intégration aux chiffres ---------- */
-  const localInvoices = () => docs.filter(d => d.type === 'facture' && !BASE_NUMS.has(d.numero) && d.client && d.date).map(toInvoice);
+  const localInvoices = () => docs.filter(d => (d.type === 'facture' || d.type === 'avoir') && !BASE_NUMS.has(d.numero) && d.client && d.date).map(toInvoice);
   function sync(){ SOC.setLocal(localInvoices()); SOC.apply(); }
 
   /* ---------- Liste ---------- */
@@ -241,7 +250,8 @@
     $('docList').innerHTML = list.map(d => {
       const k = docCalc(d), t = TYPES[d.type];
       const conv = d.type === 'devis' ? `<button class="doc-btn small" data-act="convert" data-to="proforma" data-id="${d.id}">→ Proforma</button><button class="doc-btn small" data-act="convert" data-to="facture" data-id="${d.id}">→ Facture</button>`
-        : d.type === 'proforma' ? `<button class="doc-btn small" data-act="convert" data-to="facture" data-id="${d.id}">→ Facture</button>` : '';
+        : d.type === 'proforma' ? `<button class="doc-btn small" data-act="convert" data-to="facture" data-id="${d.id}">→ Facture</button>`
+        : d.type === 'facture' ? `<button class="doc-btn small" data-act="convert" data-to="bl" data-id="${d.id}">→ Bon de livraison</button><button class="doc-btn small" data-act="convert" data-to="avoir" data-id="${d.id}">→ Avoir</button>` : '';
       return `<tr>
         <td><span class="doc-soc doc-soc-${d.societe}">${d.societe === 'NB' ? 'NB' : 'BSD'}</span></td>
         <td><span class="doc-type doc-type-${d.type}">${t.label}</span></td>
@@ -296,7 +306,7 @@
         <label>Type<select data-f="type">${Object.keys(TYPES).map(k => opt(k, d.type, TYPES[k].label)).join('')}</select></label>
         <label>Numéro<input data-f="numero" value="${esc(d.numero)}"></label>
         <label>Date<input type="date" data-f="date" value="${esc(d.date)}"></label>
-        ${d.type === 'facture' ? `<label>Échéance<input type="date" data-f="echeance" value="${esc(d.echeance)}"></label>` : `<label>Valable jusqu'au<input type="date" data-f="validite" value="${esc(d.validite)}"></label>`}
+        ${d.type === 'facture' ? `<label>Échéance<input type="date" data-f="echeance" value="${esc(d.echeance)}"></label>` : (d.type === 'avoir' || d.type === 'bl') ? `<label>${d.type === 'avoir' ? "Facture d'origine" : 'Facture liée'}<input data-f="source" value="${esc(d.source || '')}" placeholder="EJ2026…"></label>` : `<label>Valable jusqu'au<input type="date" data-f="validite" value="${esc(d.validite)}"></label>`}
         <label>Statut<select data-f="statut">${t.statuts.map(s => opt(s, d.statut)).join('')}</select></label>
         <label>Langue du document<select data-f="langue">${opt('fr', d.langue, 'Français')}${opt('en', d.langue, 'English')}</select></label>
       </div>
@@ -525,7 +535,7 @@
     const i = docs.findIndex(x => x.id === d.id);
     if(i >= 0) docs[i] = d; else docs.push(d);
     saveDocs(); closeEditor();
-    if(d.type === 'facture' || i >= 0) sync();
+    if(d.type === 'facture' || d.type === 'avoir' || i >= 0) sync();
     renderList();
     return d;
   }
@@ -534,14 +544,15 @@
     const d = clone(s), date = todayIso(), S = soc(s.societe);
     Object.assign(d, {id:newId(), type:to, numero:nextNumero(s.societe, to, date), date,
       validite:addDaysIso(date, +S.validite || 30), echeance:addDaysIso(date, +S.echeance || 30), statut:TYPES[to].statuts[0], source:s.numero});
-    s.statut = s.type === 'devis' ? 'Converti' : 'Convertie'; saveDocs();
+    if(s.type === 'devis' || s.type === 'proforma'){ s.statut = s.type === 'devis' ? 'Converti' : 'Convertie'; saveDocs(); }
+    if(to === 'avoir' || to === 'bl') d.paiement = [];
     openEditor(d);
   }
 
   /* ---------- Document imprimable (mise en page des factures BSD / NB) ---------- */
   const T = {
-    fr:{date:'Date', due:'Échéance', valid:"Valable jusqu'au", from:'Réf.', bill:'Adresse de facturation', to:'Destinataire', ml:'Contenance', ean:'Code EAN', unit:'Prix unitaire', bpb:'Flacons / carton', tpb:'Testeur / carton', ppb:'Prix carton', qty:'Cartons', total:'Total', testers:'TESTEURS', sub:'Total', other:'Désignation', q:'Quantité', gross:'Total', disc:'Remise', discT:'Remise testeurs', ht:'Total HT', vat:'TVA', exo:'0 %', net:{devis:'Total devis', proforma:'Total proforma', facture:'Total facture'}, gifts:'Offert avec la commande', pay:'Conditions de paiement', bank:'Coordonnées bancaires', sign:'Bon pour accord — date, signature et cachet', units:'fl.', vatno:'N° TVA', late:"En cas de retard de paiement : pénalités au taux de trois fois le taux d'intérêt légal et indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce). Pas d'escompte pour paiement anticipé.", pro:'Facture proforma : document sans valeur comptable, ne constitue pas une facture.', tnote:'Testeurs offerts, valorisés pour la douane uniquement et déduits dans la remise.'},
-    en:{date:'Date', due:'Due date', valid:'Valid until', from:'Ref.', bill:'Invoicing address', to:'Customer', ml:'Contents', ean:'EAN codes', unit:'Unit price', bpb:'Bottles per box', tpb:'Tester per box', ppb:'Price per box', qty:'Box ordered', total:'Total', testers:'TESTERS', sub:'Total', other:'Description', q:'Quantity', gross:'Total', disc:'Discount', discT:'Discount (testers)', ht:'Total excl. VAT', vat:'VAT', exo:'0%', net:{devis:'Total quotation', proforma:'Total proforma', facture:'Total invoice'}, gifts:'Offered with the order', pay:'Payment terms', bank:'Banking details', sign:'Approved — date, signature and company stamp', units:'btl', vatno:'VAT / company no.', late:'Late payment: penalties at three times the French legal interest rate and a fixed recovery fee of €40 (article L441-10 of the French Commercial Code).', pro:'Proforma invoice — not a tax invoice.', tnote:'Testers are free of charge, valued for customs purposes only and deducted in the discount.'}
+    fr:{date:'Date', due:'Échéance', valid:"Valable jusqu'au", from:'Réf.', bill:'Adresse de facturation', to:'Destinataire', ml:'Contenance', ean:'Code EAN', unit:'Prix unitaire', bpb:'Flacons / carton', tpb:'Testeur / carton', ppb:'Prix carton', qty:'Cartons', total:'Total', testers:'TESTEURS', sub:'Total', other:'Désignation', q:'Quantité', gross:'Total', disc:'Remise', discT:'Remise testeurs', ht:'Total HT', vat:'TVA', exo:'0 %', net:{devis:'Total devis', proforma:'Total proforma', facture:'Total facture', avoir:"Montant de l'avoir"}, avoirOn:'Avoir sur la facture', blRecu:'Marchandise reçue en bon état — date, nom, signature et cachet', colis:'Colis / cartons', fl:'Flacons', tst:'Testeurs', ref:'Référence', coll:'Collection', gifts:'Offert avec la commande', pay:'Conditions de paiement', bank:'Coordonnées bancaires', sign:'Bon pour accord — date, signature et cachet', units:'fl.', vatno:'N° TVA', late:"En cas de retard de paiement : pénalités au taux de trois fois le taux d'intérêt légal et indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce). Pas d'escompte pour paiement anticipé.", pro:'Facture proforma : document sans valeur comptable, ne constitue pas une facture.', tnote:'Testeurs offerts, valorisés pour la douane uniquement et déduits dans la remise.'},
+    en:{date:'Date', due:'Due date', valid:'Valid until', from:'Ref.', bill:'Invoicing address', to:'Customer', ml:'Contents', ean:'EAN codes', unit:'Unit price', bpb:'Bottles per box', tpb:'Tester per box', ppb:'Price per box', qty:'Box ordered', total:'Total', testers:'TESTERS', sub:'Total', other:'Description', q:'Quantity', gross:'Total', disc:'Discount', discT:'Discount (testers)', ht:'Total excl. VAT', vat:'VAT', exo:'0%', net:{devis:'Total quotation', proforma:'Total proforma', facture:'Total invoice', avoir:'Credit amount'}, avoirOn:'Credit note for invoice', blRecu:'Goods received in good condition — date, name, signature and stamp', colis:'Boxes', fl:'Bottles', tst:'Testers', ref:'Reference', coll:'Collection', gifts:'Offered with the order', pay:'Payment terms', bank:'Banking details', sign:'Approved — date, signature and company stamp', units:'btl', vatno:'VAT / company no.', late:'Late payment: penalties at three times the French legal interest rate and a fixed recovery fee of €40 (article L441-10 of the French Commercial Code).', pro:'Proforma invoice — not a tax invoice.', tnote:'Testers are free of charge, valued for customs purposes only and deducted in the discount.'}
   };
   function docHtml(d){
     const k = docCalc(d), S = soc(d.societe), lg = d.langue === 'en' ? 'en' : 'fr', L = T[lg];
@@ -564,7 +575,8 @@
     }).join('');
     const otherTable = others.length ? `<table class="pd-table"><thead><tr><th>${L.other}</th><th class="c">${L.q}</th><th class="r">${L.unit}</th><th class="r">${L.total}</th></tr></thead><tbody>${others.map(r => `<tr><td>${esc(r.src.reference || COLL[r.src.collection][lg])}</td><td class="c">${esc(r.src.qty)}</td><td class="r">${money(num(r.src.prix))}</td><td class="r">${money(r.ca)}</td></tr>`).join('')}</tbody></table>` : '';
     const cad = CADEAUX.filter(a => num((d.cadeaux || {})[a]) > 0).map(a => `${lg === 'en' ? CADEAUX_EN[a] : a} : ${Math.round(num(d.cadeaux[a]))}`);
-    const dates = d.type === 'facture'
+    if(d.type === 'bl') return blHtml(d, k, S, lg, L);
+    const dates = (d.type === 'avoir') ? `<div><span>${L.date}</span>${esc(isoToFr(d.date))}</div>` : d.type === 'facture'
       ? `<div><span>${L.date}</span>${esc(isoToFr(d.date))}</div><div><span>${L.due}</span>${esc(isoToFr(d.echeance))}</div>`
       : `<div><span>${L.date}</span>${esc(isoToFr(d.date))}</div><div><span>${L.valid}</span>${esc(isoToFr(d.validite))}</div>`;
     const emitter = d.societe === 'NB'
@@ -576,6 +588,7 @@
     if(d.conditions) mentions.push(esc(d.conditions));
     if(d.type === 'facture' && d.societe === 'BSD') mentions.push(L.late);
     if(d.type === 'proforma') mentions.push(L.pro);
+    if(d.type === 'avoir' && d.source) mentions.unshift(`${L.avoirOn} ${esc(d.source)}.`);
     const ech = echeancier(d, k);
     const payBlock = ech.length ? `<div class="pd-pay"><strong>${L.pay}</strong><table><tbody>${ech.map(r => `<tr><td>${String(r.pct).replace('.', ',')} %</td><td>${esc(quandTxt(r, lg))}${r.due && r.quand !== 'date' ? ` (${esc(isoToFr(r.due))})` : ''}</td><td class="r">${money(r.montant)}</td></tr>`).join('')}</tbody></table></div>` : '';
     const bank = S.iban ? `<div class="pd-bank"><strong>${L.bank}</strong><br>${esc(S.banque)}<br>IBAN : ${esc(S.iban)}${S.bic ? '<br>BIC : ' + esc(S.bic) : ''}</div>` : '';
@@ -606,6 +619,20 @@
       <div class="pd-mentions">${mentions.map(m => `<p>${m}</p>`).join('')}</div>
       <div class="pd-legal">${legal.filter(Boolean).map(esc).join(' · ')}</div>
     </div>`;
+  }
+  // Bon de livraison : quantités sans prix, à signer à la réception.
+  function blHtml(d, k, S, lg, L){
+    const rows = k.rows.filter(r => num(r.src.qty) > 0 && !isSvc(r.src));
+    const colis = sum(rows, r => r.cartons || 0);
+    return `<div class="pd pd-${d.societe}">
+      <div class="pd-head"><div class="pd-brand"><img src="img/logo.png" alt=""><div class="pd-em"><div class="pd-co">${esc(S.nom)}</div>${esc([S.adresse, S.cp_ville, S.pays].filter(Boolean).join(', '))}</div></div>
+        <div class="pd-title"><h1>${TYPES.bl[lg]}</h1><div class="pd-num">N° ${esc(d.numero)}</div><div class="pd-dates"><div><span>${L.date}</span>${esc(isoToFr(d.date))}</div></div>${d.source ? `<div class="pd-ref">${L.from} ${esc(d.source)}</div>` : ''}</div></div>
+      <div class="pd-client"><div class="pd-label">${L.to}</div><strong>${esc(d.client)}</strong><br>${esc(d.adresse).replace(/\n/g, '<br>')}${d.adresse ? '<br>' : ''}${esc(d.pays)}</div>
+      <table class="pd-table"><thead><tr><th>${L.coll}</th><th>${L.ref}</th><th class="c">${L.ml}</th><th class="c">${L.ean}</th><th class="c">${L.colis}</th><th class="c">${L.fl}</th><th class="c">${L.tst}</th></tr></thead>
+        <tbody>${rows.map(r => `<tr><td>${esc(COLL[r.src.collection][lg])}</td><td>${esc(String(r.src.reference).toUpperCase())}</td><td class="c">${mlOf(r.src)}</td><td class="c">${esc(fmtEan(r.src.ean))}</td><td class="c">${r.cartons || '—'}</td><td class="c">${r.btl}</td><td class="c">${r.testers || 0}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><td colspan="4" class="r">${L.total}</td><td class="c">${colis}</td><td class="c">${sum(rows, r => r.btl)}</td><td class="c">${sum(rows, r => r.testers || 0)}</td></tr></tfoot></table>
+      <div class="pd-sign"><div>${L.blRecu}</div></div>
+      <div class="pd-legal">${esc(S.nom)}</div></div>`;
   }
   function showDoc(id){
     const d = docs.find(x => x.id === id); if(!d) return;
@@ -699,7 +726,7 @@
       const msg = d.type === 'facture' ? `Supprimer la facture ${d.numero} ?\nLa numérotation des factures doit rester continue : en principe on établit un avoir plutôt que de supprimer.` : `Supprimer ${TYPES[d.type].label.toLowerCase()} ${d.numero} ?`;
       if(!confirm(msg)) return;
       docs = docs.filter(x => x.id !== id); saveDocs();
-      if(d.type === 'facture') sync();
+      if(d.type === 'facture' || d.type === 'avoir') sync();
       renderList();
     }
     else if(act === 'settings') openSettings($('docNewSoc').value);
@@ -743,5 +770,12 @@
   sync();
   renderList();
   // Accès en lecture pour le journal de bord (js/journal.js).
-  window.EJ_DOCS = {list:() => docs.slice(), calc:docCalc, payState, echeancier, TYPES};
+  // Marque une échéance (i) ou toute la facture (i = -1) comme payée — utilisé par la page Créances clients.
+  function setRecu(id, i, val){
+    const d = docs.find(x => x.id === id); if(!d) return;
+    if(i >= 0 && d.paiement && d.paiement[i]) d.paiement[i].recu = !!val;
+    if(i < 0 || (d.paiement || []).every(r => r.recu)) d.statut = val ? 'Payée' : 'À encaisser';
+    saveDocs(); renderList();
+  }
+  window.EJ_DOCS = {list:() => docs.slice(), calc:docCalc, payState, echeancier, TYPES, setRecu, soc};
 })();

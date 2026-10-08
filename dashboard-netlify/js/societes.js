@@ -167,6 +167,9 @@
     get view(){ return view; },
     setLocal(list){ local = list || []; },
     apply, exportData,
+    // Indicateurs d'une société (ou du groupe) sans changer la vue affichée : {2025:{kpi_ca…}, 2026:{…}, total:{…}}
+    statsFor:v => R.rebuildAll(setsFor(v)['2025'], setsFor(v)['2026'], todayUTC()),
+    depenses:v => DEP[v],
     baseNumbers:() => new Set(BASE['2025'].factures.concat(BASE['2026'].factures).map(f => f.facture).concat(INTRA.map(f => f.facture)))
   };
 })();

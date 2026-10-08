@@ -14,9 +14,10 @@
     ['.j-card', ':scope > .j-h', b => /Routine|Journal$/.test(titre(b))],
     ['.eq-mission', ':scope > .eq-mh', b => b.previousElementSibling && b.previousElementSibling.classList.contains('eq-mission')],
     ['#stockContent > div', ':scope > div:first-child', () => true],
-    ['.sl-mois', ':scope > .sl-mois-t', b => !b.querySelector('.sl-avenir, .sl-encours')]
+    ['.sl-mois', ':scope > .sl-mois-t', b => !b.querySelector('.sl-avenir, .sl-encours')],
+    ['.gx-month', ':scope > .gx-mh', b => { let n = 0, x = b; while((x = x.previousElementSibling)) if(x.classList.contains('gx-month')) n++; return n >= 2; }]
   ];
-  function titre(b){ const h = b.querySelector(':scope > .j-h, :scope > .eq-mh h3, :scope > div:first-child, :scope > .sl-mois-t'); return h ? (h.firstChild && h.firstChild.nodeType === 3 ? h.firstChild.textContent : h.textContent).trim().slice(0, 40) : ''; }
+  function titre(b){ const h = b.querySelector(':scope > .j-h, :scope > .eq-mh h3, :scope > div:first-child, :scope > .sl-mois-t, :scope > .gx-mh'); return h ? (h.firstChild && h.firstChild.nodeType === 3 ? h.firstChild.textContent : h.textContent).trim().slice(0, 40) : ''; }
   const cle = b => { const s = b.closest('.section'); return (s ? s.id : '') + '|' + titre(b); };
   function estPlie(b){ const k = cle(b); return k in etat ? etat[k] : (mobile() && b._defaut); }
   function poser(b){ b.classList.toggle('plie', !!estPlie(b)); }

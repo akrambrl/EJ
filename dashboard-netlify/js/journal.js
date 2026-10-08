@@ -34,7 +34,7 @@
     {id:'r11', freq:'mois', txt:'Envoyer les pièces au comptable'}
   ];
   const FREQ = {jour:'Chaque jour', semaine:'Chaque semaine', mois:'Chaque mois'};
-  const CATS = {client:'Client', paiement:'Paiement', fournisseur:'Fournisseur', stock:'Stock', admin:'Admin', salon:'Salon', autre:'Autre'};
+  const CATS = {client:'Client', paiement:'Paiement', fournisseur:'Fournisseur', stock:'Stock', admin:'Admin', salon:'Salon', logistique:'Logistique', conformite:'Conformité', autre:'Autre'};
 
   function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e) { return {}; } }
   let J = load();
@@ -104,6 +104,8 @@
       const n = days(s.debut), fin = days(s.fin || s.debut);
       if(fin >= 0 && n <= 45) add({key:`salon:${s.nom}:${s.debut}`, cat:'salon', prio:s.prio ? 2 : 1, tab:'salons', txt:`${n <= 0 ? 'En cours' : 'Salon dans ' + n + ' j'} : ${s.nom} (${s.ville})`, sub:s.prio ? 'marché prioritaire — préparer rendez-vous et échantillons' : (s.note || '')});
     });
+    // 6. Pages de gestion : échéances fiscales, conformité, commandes, expéditions, prospects, créances, trésorerie
+    if(window.EJ_GESTION) try { window.EJ_GESTION.rappels().forEach(add); } catch(e) { console.warn(e); }
     return R.sort((a, b) => b.prio - a.prio);
   }
 

@@ -22,6 +22,9 @@ Lancer en local : `cd dashboard-netlify && python3 -m http.server 8000` puis htt
 | `js/journal.js` | Page d'accueil « Journal de bord » : rappels automatiques (paiements clients, devis à relancer, fournisseurs, stock, inventaire mensuel, salons), routine jour / semaine / mois, tâches, notes et actualités de la parfumerie avec visuels : parfums de niche (marques suivies modifiables), nouveautés (Now Smell This, Nez, Bois de Jasmin), marché, Moyen-Orient… (Google Actualités et flux RSS via rss2json) ; saisies gardées dans le navigateur |
 | `data/equipe.js`, `js/equipe.js` | Rubrique « Équipe » : un espace par salarié (Nassim, Mounir, Natali) avec ses missions, ses actions, et selon la mission : clients à relancer, nouveaux clients, devis en cours, projets parfums et flacons par étapes, stratégie par pays, salons, commandes à valider, stock à répartir, journal des décisions. Missions modifiables dans la page ; suivi gardé dans le navigateur (export / import JSON) |
 | `js/plier.js` | Blocs repliables (appui sur le titre ; « Tout replier / déplier » par page), état gardé dans le navigateur ; sur mobile : blocs longs repliés par défaut, encadrés réduits à 2 lignes, 4 rappels visibles dans le journal |
+| `js/registre.js` | Petits tableaux modifiables (registres) utilisés par les pages de gestion, gardés dans le navigateur (clés `ej_reg_…`), export CSV |
+| `js/gestion.js` | Pages Trésorerie (prévision 6 mois, comptes, taux, import de relevés CSV), Créances clients (balance âgée, relances), Échéances fiscales (TVA, DSN, IS, CFE, comptes annuels, Émirats), Résultat & impôts, Objectifs & budget (objectifs, budget des charges, commissions), Fiches clients, Prospects, Approvisionnement (mois de stock, commandes fournisseurs), Expéditions, Conformité produits (CPNP, DIP, IFRA, FDS, enregistrements pays, lots) ; rappels pour le journal |
+| `js/cloud.js`, `data/config-cloud.js` | Partage des saisies entre les membres de l'équipe via Supabase (connexion, envoi et réception automatiques). Mise en place : `PARTAGE-SUPABASE.md` à la racine |
 | `img/` | Logo et marbre noir (visuels VIP Black du catalogue) |
 | `data/ventes.js` | `ALL` : ventes 2025 / 2026 / total, prix de revient, stock |
 | `data/charges.js` | `CHARGES_DATA` : charges par fournisseur et par mois |
@@ -73,3 +76,14 @@ python3 outils/construire_netlify.py        # crée netlify-deploy/index.html (u
 ```
 Glisser le dossier `netlify-deploy/` (ou un ZIP de `index.html`) sur https://app.netlify.com/drop.
 Le fichier contient toutes les données confidentielles : activer une protection par mot de passe sur le site.
+
+## Mise en ligne protégée par mot de passe
+
+```bash
+python3 outils/construire_netlify.py --mot-de-passe "le mot de passe"     # ou variable EJ_MOT_DE_PASSE
+```
+
+Le fichier `netlify-deploy/index.html` est alors entièrement chiffré (AES-256-GCM, clé dérivée du mot de passe) : sans le mot de passe,
+il ne contient aucune donnée lisible. Le navigateur le déchiffre après saisie du mot de passe (« Se souvenir de cet appareil » possible,
+« Verrouiller cet appareil » en bas du menu). Ne jamais enregistrer le mot de passe dans le dépôt.
+

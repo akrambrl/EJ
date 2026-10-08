@@ -40,12 +40,22 @@
 <button class="tab" data-tab="production" data-group="produits">Production</button>
 <button class="tab" data-tab="inventaire" data-group="produits">Inventaire</button>
 <button class="tab" data-tab="cadeaux" data-group="produits">Cadeaux offerts</button>
+<button class="tab" data-tab="appro" data-group="produits">Approvisionnement</button>
+<button class="tab" data-tab="expeditions" data-group="produits">Expéditions</button>
+<button class="tab" data-tab="conformite" data-group="produits">Conformité produits</button>
 <div class="sb-group">Finances</div>
+<button class="tab" data-tab="tresorerie" data-group="finances">Trésorerie</button>
+<button class="tab" data-tab="creances" data-group="finances">Créances clients</button>
+<button class="tab" data-tab="fiscal" data-group="finances">Échéances fiscales</button>
+<button class="tab" data-tab="resultat" data-group="finances">Résultat &amp; impôts</button>
+<button class="tab" data-tab="objectifs" data-group="finances">Objectifs &amp; budget</button>
 <button class="tab" data-tab="fournisseurs" data-group="finances">Factures fournisseurs</button>
 <button class="tab" data-tab="virements" data-group="finances">Virements attendus</button>
 <button class="tab" data-tab="chargesfixes" data-group="finances">Charges fixes</button>
 <div class="sb-group">Commercial</div>
 <button class="tab" data-tab="documents" data-group="commercial">Devis &amp; factures</button>
+<button class="tab" data-tab="crm" data-group="commercial">Fiches clients</button>
+<button class="tab" data-tab="prospects" data-group="commercial">Prospects</button>
 <button class="tab" data-tab="simulateur" data-group="commercial">Simulateur d'offres</button>
 <button class="tab" data-tab="simulation" data-group="commercial">Simulation commande</button>
 <button class="tab" data-tab="salons" data-group="commercial">Calendrier des salons</button>
@@ -111,6 +121,17 @@
 <div id="equipe-nassim" class="section eq-space"></div>
 <div id="equipe-mounir" class="section eq-space"></div>
 <div id="equipe-natali" class="section eq-space"></div>
+
+<div id="tresorerie" class="section"><h2>Trésorerie prévisionnelle</h2><div id="tresorerie-body" class="gx"></div></div>
+<div id="creances" class="section"><h2>Créances clients</h2><div id="creances-body" class="gx"></div></div>
+<div id="fiscal" class="section"><h2>Échéances fiscales et administratives</h2><div id="fiscal-body" class="gx"></div></div>
+<div id="resultat" class="section"><h2>Résultat et impôts estimés</h2><div id="resultat-body" class="gx"></div></div>
+<div id="objectifs" class="section"><h2>Objectifs et budget</h2><div id="objectifs-body" class="gx"></div></div>
+<div id="crm" class="section"><h2>Fiches clients</h2><div id="crm-body" class="gx"></div></div>
+<div id="prospects" class="section"><h2>Prospects</h2><div id="prospects-body" class="gx"></div></div>
+<div id="appro" class="section"><h2>Approvisionnement</h2><div id="appro-body" class="gx"></div></div>
+<div id="expeditions" class="section"><h2>Expéditions</h2><div id="expeditions-body" class="gx"></div></div>
+<div id="conformite" class="section"><h2>Conformité produits</h2><div id="conformite-body" class="gx"></div></div>
 
 <div id="overview" class="section">
 <h2>Vue d'ensemble</h2>
@@ -400,7 +421,7 @@
 <button class="doc-btn primary" data-act="new" data-type="proforma">+ Nouvelle proforma</button>
 <button class="doc-btn primary" data-act="new" data-type="facture">+ Nouvelle facture</button>
 <select id="docFilterSoc"><option value="all">Les 2 sociétés</option><option value="BSD">BSD</option><option value="NB">NB Evolution</option></select>
-<select id="docFilter"><option value="all">Tous les documents</option><option value="devis">Devis</option><option value="proforma">Proformas</option><option value="facture">Factures</option></select>
+<select id="docFilter"><option value="all">Tous les documents</option><option value="devis">Devis</option><option value="proforma">Proformas</option><option value="facture">Factures</option><option value="avoir">Avoirs</option><option value="bl">Bons de livraison</option></select>
 <input type="text" class="search-box" id="docSearch" placeholder="🔍 N°, client, pays…">
 </div>
 <div class="controls doc-tools">
@@ -516,6 +537,8 @@
 <script src="data/clients.js"></script>
 <script src="data/equipe.js"></script>
 <script src="data/salons.js"></script>
+<script src="data/config-cloud.js"></script>
+<script src="js/cloud.js"></script>
 <script src="js/mobile.js"></script>
 <script src="js/app.js"></script>
 <script src="js/rebuild.js"></script>
@@ -523,6 +546,8 @@
 <script src="js/documents.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/salons.js"></script>
+<script src="js/registre.js"></script>
+<script src="js/gestion.js"></script>
 <script src="js/journal.js"></script>
 <script src="js/equipe.js"></script>
 <script src="js/plier.js"></script>
