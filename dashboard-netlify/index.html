@@ -42,6 +42,7 @@
 <button class="tab" data-tab="documents" data-group="commercial">Devis &amp; factures</button>
 <button class="tab" data-tab="simulateur" data-group="commercial">Simulateur d'offres</button>
 <button class="tab" data-tab="simulation" data-group="commercial">Simulation commande</button>
+<button class="tab" data-tab="salons" data-group="commercial">Calendrier des salons</button>
 </nav>
 <div class="sb-foot">Paris</div>
 </aside>
@@ -382,6 +383,33 @@
 <iframe class="sim-frame" src="simulateur-offres/index.html" loading="lazy" title="Simulateur d'offres"></iframe>
 </div>
 
+<div id="salons" class="section">
+<h2>Calendrier des salons</h2>
+<div class="info-box">★ Marchés de la société (Moyen-Orient, Russie, niche). Dates relevées en octobre 2026, à revérifier sur le site du salon avant de réserver.</div>
+<div class="sl-next-wrap" id="slNext"></div>
+<div class="sl-bar">
+<div class="seg" id="slYears"></div>
+<div class="seg sl-filtres" id="slFiltres"><button type="button" data-f="tous">Tous</button><button type="button" data-f="prio">★ Prioritaires</button><button type="button" data-f="beaute">Beauté</button><button type="button" data-f="niche">Niche</button><button type="button" data-f="packaging">Packaging</button><button type="button" data-f="ingredients">Matières premières</button></div>
+</div>
+<p class="sl-resume" id="slResume"></p>
+<div class="sl-grid" id="slGrid"></div>
+<details class="sl-add"><summary>Ajouter un salon</summary>
+<form id="slForm" class="sl-form">
+<label>Nom<input name="nom" required></label>
+<label>Ville<input name="ville"></label>
+<label>Pays<input name="pays"></label>
+<label>Début<input name="debut" type="date" required></label>
+<label>Fin<input name="fin" type="date"></label>
+<label>Catégorie<select name="cat"><option value="beaute">Beauté &amp; cosmétique</option><option value="niche">Parfumerie de niche</option><option value="packaging">Packaging</option><option value="ingredients">Matières premières</option><option value="congres">Congrès</option><option value="autre">Autre</option></select></label>
+<label>Site<input name="site" type="url" placeholder="https://"></label>
+<label class="sl-wide">Note<input name="note"></label>
+<label class="sl-check"><input name="prio" type="checkbox"> Prioritaire</label>
+<button type="submit" class="doc-btn primary">Ajouter</button>
+</form>
+<p class="sl-resume">Les salons ajoutés ici restent dans ce navigateur.</p>
+</details>
+</div>
+
 <!-- Modal pour les détails de facture -->
 <div class="modal-overlay" id="modalOverlay">
 <div class="modal">
@@ -445,12 +473,14 @@
 <script src="data/inventaire.js"></script>
 <script src="data/intragroupe.js"></script>
 <script src="data/depenses-nb.js"></script>
+<script src="data/salons.js"></script>
 <script src="js/mobile.js"></script>
 <script src="js/app.js"></script>
 <script src="js/rebuild.js"></script>
 <script src="js/societes.js"></script>
 <script src="js/documents.js"></script>
 <script src="js/nav.js"></script>
+<script src="js/salons.js"></script>
 <div id="docPrint"></div>
 </body>
 </html>

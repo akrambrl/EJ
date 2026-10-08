@@ -451,3 +451,59 @@ body:not(.menu-masque) .sb-toggle span:nth-child(3){transform:translateY(-6px) r
 }
 .kpis-top .kpi-label{white-space:normal;overflow:visible;line-height:1.35;min-height:2.7em}
 .doc-lines select.doc-format{margin-top:4px;min-width:112px}
+
+/* ===================== Calendrier des salons ===================== */
+.sl-next-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:6px 0 20px}
+.sl-next{border:1px solid var(--hair);padding:18px 20px;background:linear-gradient(135deg,rgba(201,164,86,.10),rgba(201,164,86,.02))}
+.sl-next-t{font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
+.sl-next-n{font-family:var(--serif);font-size:1.6rem;font-weight:500;color:var(--ink);margin:6px 0 2px;line-height:1.15}
+.sl-next-d{font-size:.78rem;color:var(--muted);letter-spacing:.04em}
+.sl-next-c{font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--gold-lt);margin-top:8px}
+.sl-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:8px}
+.sl-filtres{flex-wrap:wrap}
+.sl-resume{font-size:.74rem;color:var(--muted);letter-spacing:.06em;margin:6px 0 16px}
+.sl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.sl-mois{border:1px solid var(--line);background:var(--surface);padding:14px 14px 10px;min-height:90px}
+.sl-mois.sl-courant{border-color:var(--gold);box-shadow:0 0 0 1px rgba(201,164,86,.25) inset}
+.sl-mois.sl-vide{opacity:.55}
+.sl-mois-t{font-family:var(--serif);font-size:1.3rem;font-style:italic;color:var(--ink);display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--hair);padding-bottom:6px;margin-bottom:8px}
+.sl-mois-t span{font-family:"Montserrat",sans-serif;font-style:normal;font-size:.7rem;letter-spacing:.2em;color:var(--gold)}
+.sl-rien{color:#5d554c;font-size:.8rem}
+.sl-item{padding:9px 0 9px 10px;border-left:1px solid var(--line);margin-bottom:8px}
+.sl-item.is-prio{border-left-color:var(--gold)}
+.sl-item.sl-passe{opacity:.45}
+.sl-item.sl-encours{border-left:2px solid var(--good);background:rgba(124,199,150,.06)}
+.sl-date{font-size:.62rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.sl-nom{font-family:var(--serif);font-size:1.12rem;font-weight:600;color:var(--ink);line-height:1.2;margin:2px 0}
+.sl-nom a{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
+.sl-nom a:hover{border-bottom-color:var(--gold)}
+.sl-lieu{font-size:.74rem;color:var(--muted)}
+.sl-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.sl-cat,.sl-badge{font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--line);color:var(--muted)}
+.sl-cat-niche{color:#D7B6E0;border-color:rgba(215,182,224,.35)}
+.sl-cat-packaging{color:#9FC3D9;border-color:rgba(159,195,217,.35)}
+.sl-cat-ingredients{color:#A9CF9A;border-color:rgba(169,207,154,.35)}
+.sl-cat-congres{color:#E6B98F;border-color:rgba(230,185,143,.35)}
+.sl-prio{color:#14110D;background:var(--gold-grad);border-color:transparent}
+.sl-a_confirmer{color:var(--warn);border-color:rgba(224,168,79,.45)}
+.sl-reporte{color:var(--bad);border-color:rgba(232,132,122,.45)}
+.sl-note{font-size:.72rem;color:#8F8476;margin-top:5px;line-height:1.4}
+.sl-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.sl-dans{font-family:var(--serif);font-style:italic;font-size:.92rem;color:var(--gold-lt)}
+.sl-encours .sl-dans{color:var(--good)}
+.sl-ics,.sl-del{background:none;border:none;border-bottom:1px solid var(--hair);color:var(--muted);font-family:inherit;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;padding:1px 0;cursor:pointer}
+.sl-ics:hover,.sl-del:hover{color:var(--gold);border-bottom-color:var(--gold)}
+.sl-add{margin-top:22px;border:1px solid var(--line);padding:12px 16px}
+.sl-add summary{cursor:pointer;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.sl-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:14px;align-items:end}
+.sl-form label{display:flex;flex-direction:column;gap:4px;font-size:.62rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.sl-form input,.sl-form select{background:var(--paper);border:1px solid var(--line);color:var(--ink);padding:8px;font-family:inherit;font-size:.82rem}
+.sl-form .sl-wide{grid-column:span 2}
+.sl-form .sl-check{flex-direction:row;align-items:center;gap:8px}
+@media(max-width:599px){
+  .sl-grid{grid-template-columns:1fr}
+  .sl-mois.sl-vide{display:none}
+  .sl-next-n{font-size:1.35rem}
+  .sl-filtres button{flex:1 1 30%}
+  .sl-form .sl-wide{grid-column:auto}
+}
