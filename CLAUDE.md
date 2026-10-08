@@ -7,3 +7,4 @@
 - `outils/` : `rebuild_dashboard.py` (recalcul des agrégats), `exporter_json.py`, `construire_intragroupe.py` (factures BSD → NB depuis les registres).
 - `donnees_sources/` : registres de factures, tarifs, catalogue, stock, relevés de charges. Voir son README pour les écarts connus avec le dashboard.
 - Fichier Netlify : `python3 outils/construire_netlify.py --mot-de-passe …` (page chiffrée). Partage en ligne entre salariés : `PARTAGE-SUPABASE.md`.
+- `site/` : version en ligne (Vercel) = dashboard chiffré. Après chaque modification : `EJ_MOT_DE_PASSE='…' python3 outils/construire_netlify.py site`, puis commit + push (Vercel redéploie). Ne jamais y mettre de version non chiffrée ni le code d'accès.
