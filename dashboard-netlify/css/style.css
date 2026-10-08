@@ -507,3 +507,15 @@ body:not(.menu-masque) .sb-toggle span:nth-child(3){transform:translateY(-6px) r
   .sl-filtres button{flex:1 1 30%}
   .sl-form .sl-wide{grid-column:auto}
 }
+
+/* Conditions de paiement et adresses clients (onglet Devis & Factures) */
+.pd-pay{border-left:2px solid #C9A456;padding:6px 10px;margin-bottom:10px;background:#FCF6EE}
+.pd-pay table{width:100%;border-collapse:collapse;margin-top:3px}
+.pd-pay td{padding:1px 6px 1px 0;border:none;font-size:11px}
+.pd-pay td.r{text-align:right;white-space:nowrap}
+.doc-pay select{min-width:150px}
+.doc-pay input[type=checkbox]{width:auto;accent-color:var(--gold)}
+.doc-warn{color:var(--warn)}
+.doc-clients td{vertical-align:top}
+.doc-clients textarea{min-width:260px;resize:vertical}
+.doc-clients tr.doc-missing td:first-child{color:var(--warn)}

@@ -18,6 +18,7 @@ Lancer en local : `cd dashboard-netlify && python3 -m http.server 8000` puis htt
 | `data/depenses-nb.js` | Dépenses de NB Evolution (vide pour l'instant, même format que celles de BSD) |
 | `simulateur-offres/` | Simulateur d'offres (paliers de remise et cadeaux), affiché dans son onglet |
 | `data/salons.js`, `js/salons.js` | Calendrier des salons de la parfumerie par année (onglet Commercial › Calendrier des salons) : prochain salon, filtres, export agenda (.ics), ajout de salons gardé dans le navigateur. Dates à mettre à jour dans `data/salons.js`. |
+| `data/clients.js` | Carnet d'adresses des clients (pays, adresse, n° TVA) pour pré-remplir les documents ; complétable dans Devis & Factures › Coordonnées › Adresses clients |
 | `img/` | Logo et marbre noir (visuels VIP Black du catalogue) |
 | `data/ventes.js` | `ALL` : ventes 2025 / 2026 / total, prix de revient, stock |
 | `data/charges.js` | `CHARGES_DATA` : charges par fournisseur et par mois |

@@ -80,6 +80,13 @@
   docs.forEach(d => { if(!d.societe) d.societe = 'BSD'; if(!d.langue) d.langue = 'fr'; if(d.prixTesteur == null) d.prixTesteur = 0; });
   const saveDocs = () => store(DOC_KEY, docs);
   const saveSett = () => store(SET_KEY, SETT);
+  // Carnet d'adresses : data/clients.js, complété par les saisies faites dans ce navigateur (non vides).
+  const CLIENTS_BASE = typeof CLIENTS !== 'undefined' ? CLIENTS : {};
+  function clientInfo(name){
+    const o = Object.assign({}, CLIENTS_BASE[name] || {});
+    Object.entries(SETT.clients[name] || {}).forEach(([k, v]) => { if(v) o[k] = v; });
+    return o;
+  }
   const eanOf = (col, ref, fmt) => (col === 'BRUMES' && fmt === '265')
     ? (SETT.ean['BRUMES265|' + ref] || SOC.EAN_BRUMES_265[ref] || '')
     : (SETT.ean[col + '|' + ref] || ((SOC.EAN[col] || {})[ref]) || '');
@@ -179,6 +186,41 @@
     return inv;
   }
 
+  /* ---------- Conditions de paiement (acompte, solde, échéancier) ---------- */
+  // d.paiement = [{pct, quand, jours, date, recu}] ; quand : commande, expedition, livraison, jours, date.
+  const QUAND = {
+    fr:{commande:'À la commande', expedition:'Avant expédition', livraison:'À la livraison', jours:n => `À ${n} jours date de facture`, date:dt => `Le ${dt}`},
+    en:{commande:'Upon order', expedition:'Before shipment', livraison:'Upon delivery', jours:n => `${n} days from invoice date`, date:dt => `On ${dt}`}
+  };
+  const PRESETS = {
+    '100c':{l:'100 % à la commande', p:[[100,'commande']]},
+    '50e':{l:'50 % à la commande, 50 % avant expédition', p:[[50,'commande'],[50,'expedition']]},
+    '30e':{l:'30 % à la commande, 70 % avant expédition', p:[[30,'commande'],[70,'expedition']]},
+    '50l':{l:'50 % à la commande, 50 % à la livraison', p:[[50,'commande'],[50,'livraison']]},
+    '50j':{l:'50 % à la commande, 50 % à 30 jours', p:[[50,'commande'],[50,'jours',30]]},
+    '30j':{l:'100 % à 30 jours', p:[[100,'jours',30]]},
+    '60j':{l:'100 % à 60 jours', p:[[100,'jours',60]]},
+    '3x':{l:'3 fois : 40 % à la commande, 30 % à 30 j, 30 % à 60 j', p:[[40,'commande'],[30,'jours',30],[30,'jours',60]]}
+  };
+  const presetRows = k => PRESETS[k].p.map(([pct, quand, jours]) => ({pct, quand, jours:jours || 30, date:'', recu:false}));
+  const presetOf = d => { const p = d.paiement || []; return Object.keys(PRESETS).find(k => { const q = PRESETS[k].p; return q.length === p.length && q.every((r, i) => num(p[i].pct) === r[0] && p[i].quand === r[1] && (r[1] !== 'jours' || num(p[i].jours) === r[2])); }) || (p.length ? 'perso' : ''); };
+  function echeancier(d, k){
+    const p = d.paiement || []; if(!p.length) return [];
+    const total = (k || docCalc(d)).ttc; let reste = total;
+    return p.map((r, i) => {
+      const m = i === p.length - 1 && Math.abs(sum(p, x => num(x.pct)) - 100) < 0.001 ? r2(reste) : r2(total * num(r.pct) / 100);
+      reste -= m;
+      const due = r.quand === 'commande' ? d.date : r.quand === 'jours' ? addDaysIso(d.date, num(r.jours)) : r.quand === 'date' ? r.date : '';
+      return Object.assign({}, r, {montant:m, due});
+    });
+  }
+  const quandTxt = (r, lg) => { const Q = QUAND[lg]; return r.quand === 'jours' ? Q.jours(num(r.jours)) : r.quand === 'date' ? Q.date(isoToFr(r.date)) : Q[r.quand]; };
+  function payState(d){
+    const e = echeancier(d); if(!e.length) return null;
+    const recu = r2(sum(e.filter(r => r.recu), r => r.montant)), total = r2(sum(e, r => r.montant));
+    return {recu, total, reste:r2(total - recu), e};
+  }
+
   /* ---------- Intégration aux chiffres ---------- */
   const localInvoices = () => docs.filter(d => d.type === 'facture' && !BASE_NUMS.has(d.numero) && d.client && d.date).map(toInvoice);
   function sync(){ SOC.setLocal(localInvoices()); SOC.apply(); }
@@ -187,6 +229,11 @@
   const $ = id => document.getElementById(id);
   let filterType = 'all', filterSoc = 'all', filterText = '';
   function statusClass(s){ return /pay|accept|acompte|conver/i.test(s || '') ? 'ok' : /refus/i.test(s || '') ? 'ko' : ''; }
+  function payCell(d){
+    const s = payState(d); if(!s) return '';
+    const txt = d.paiement.map(r => r.pct + ' %').join(' / ');
+    return `<div class="doc-sub">${esc(txt)}${s.recu ? ` · reçu ${money(s.recu)}` : ''}${s.recu && s.reste > 0.005 ? ` · reste ${money(s.reste)}` : ''}${s.recu && s.reste <= 0.005 ? ' · soldé' : ''}</div>`;
+  }
   function renderList(){
     const q = filterText.toLowerCase();
     const list = docs.filter(d => (filterType === 'all' || d.type === filterType) && (filterSoc === 'all' || d.societe === filterSoc) && (!q || (d.numero + ' ' + d.client + ' ' + d.pays).toLowerCase().includes(q)))
@@ -202,7 +249,7 @@
         <td>${esc(isoToFr(d.date))}</td>
         <td>${esc(d.client)}<div class="doc-sub">${esc(d.pays)}${d.societe === 'BSD' && SOC.isIntra(d) ? ' · vente interne au groupe' : ''}</div></td>
         <td class="text-right">${money(k.ht)}</td>
-        <td><span class="doc-status ${statusClass(d.statut)}">${esc(d.statut || '')}</span></td>
+        <td><span class="doc-status ${statusClass(d.statut)}">${esc(d.statut || '')}</span>${payCell(d)}</td>
         <td class="doc-actions"><button class="doc-btn small" data-act="view" data-id="${d.id}">Voir / PDF</button><button class="doc-btn small" data-act="edit" data-id="${d.id}">Modifier</button>${conv}<button class="doc-btn small" data-act="dup" data-id="${d.id}">Dupliquer</button><button class="doc-btn small danger" data-act="del" data-id="${d.id}">Supprimer</button></td>
       </tr>`;
     }).join('') || `<tr><td colspan="8" class="text-center" style="padding:28px;color:var(--muted)">Aucun document pour l'instant. Choisis la société puis « Nouveau devis », « Nouvelle proforma » ou « Nouvelle facture ».</td></tr>`;
@@ -240,7 +287,7 @@
   function renderEditor(){
     const d = cur, t = TYPES[d.type];
     $('docEdTitle').textContent = (docs.some(x => x.id === d.id) ? 'Modifier — ' : 'Nouveau — ') + t.label + ' ' + (d.societe === 'NB' ? 'NB Evolution' : 'BSD');
-    const clients = [...new Set(BASE_FACT.map(f => f.client).concat(docs.map(x => x.client)).concat(Object.keys(SETT.clients)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+    const clients = [...new Set(BASE_FACT.map(f => f.client).concat(docs.map(x => x.client)).concat(Object.keys(SETT.clients)).concat(Object.keys(CLIENTS_BASE)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
     const paysList = [...new Set(BASE_FACT.map(f => f.pays).concat(UE).concat(['France', 'Émirats Arabes Unis', 'Israël']))].sort((a, b) => a.localeCompare(b, 'fr'));
     const opt = (v, c, lbl) => `<option value="${esc(v)}"${String(v) === String(c) ? ' selected' : ''}>${esc(lbl || v)}</option>`;
     $('docEdBody').innerHTML = `
@@ -282,12 +329,37 @@
             ${CADEAUX.map(a => `<label>${esc(a)}<input type="number" min="0" step="1" data-cad="${esc(a)}" value="${esc((d.cadeaux || {})[a] || '')}" placeholder="0"></label>`).join('')}
           </div>
           <p class="doc-sub">Les testeurs apparaissent sur le document à leur valeur douane, puis sont déduits automatiquement dans la remise : ils restent gratuits et n'entrent pas dans le CA.</p>
-          <label class="doc-full">Conditions / mentions<textarea data-f="conditions" rows="2">${esc(d.conditions)}</textarea></label>
+          <label class="doc-full">Autres conditions / mentions<textarea data-f="conditions" rows="2">${esc(d.conditions)}</textarea></label>
           <label class="doc-full">Notes internes (non imprimées)<textarea data-f="notes" rows="2">${esc(d.notes)}</textarea></label>
         </div>
         <div class="doc-totals" id="docTotals"></div>
-      </div>`;
+      </div>
+      <h3 class="doc-h3">Conditions de paiement</h3>
+      <div class="doc-grid"><label class="span2">Facilités accordées au client<select data-pay="preset">
+        <option value="">Aucune précision (conditions générales)</option>
+        ${Object.keys(PRESETS).map(k => opt(k, presetOf(d), PRESETS[k].l)).join('')}
+        <option value="perso"${presetOf(d) === 'perso' ? ' selected' : ''}>Personnalisé…</option>
+      </select></label></div>
+      <div id="docPay"></div>`;
+    renderPay();
     updateTotals();
+  }
+  function renderPay(){
+    const box = $('docPay'); if(!box || !cur) return;
+    const e = echeancier(cur), tot = sum(cur.paiement || [], r => num(r.pct));
+    const qopt = (v, c, l) => `<option value="${v}"${v === c ? ' selected' : ''}>${l}</option>`;
+    box.innerHTML = !e.length ? '' : `<div class="doc-table-wrap"><table class="doc-lines doc-pay">
+      <thead><tr><th class="text-right">%</th><th>Quand</th><th></th><th class="text-right">Montant</th><th>Échéance</th><th>Reçu</th><th></th></tr></thead>
+      <tbody>${e.map((r, i) => `<tr data-p="${i}">
+        <td><input class="num" type="number" min="0" max="100" step="1" data-pf="pct" value="${esc(r.pct)}"></td>
+        <td><select data-pf="quand">${qopt('commande', r.quand, 'À la commande')}${qopt('expedition', r.quand, 'Avant expédition')}${qopt('livraison', r.quand, 'À la livraison')}${qopt('jours', r.quand, 'À X jours')}${qopt('date', r.quand, 'À une date')}</select></td>
+        <td>${r.quand === 'jours' ? `<input class="num" type="number" min="0" step="1" data-pf="jours" value="${esc(r.jours)}"> j` : r.quand === 'date' ? `<input type="date" data-pf="date" value="${esc(r.date)}">` : ''}</td>
+        <td class="text-right">${money(r.montant)}</td>
+        <td>${r.due ? esc(isoToFr(r.due)) : '—'}</td>
+        <td><input type="checkbox" data-pf="recu"${r.recu ? ' checked' : ''} title="Paiement reçu"></td>
+        <td><button class="doc-x" data-act="delpay" title="Supprimer">×</button></td></tr>`).join('')}</tbody></table></div>
+      <div class="doc-row-actions"><button class="doc-btn" data-act="addpay">+ Ajouter une échéance</button>
+      <span class="doc-sub${Math.abs(tot - 100) > 0.001 ? ' doc-warn' : ''}">Total : ${String(r2(tot)).replace('.', ',')} %${Math.abs(tot - 100) > 0.001 ? ' — le total doit faire 100 %' : ''} · l'échéancier est imprimé sur le document ; « Reçu » est interne.</span></div>`;
   }
   function lineRow(l, i){
     const svc = isSvc(l), k = lineCalc(l);
@@ -312,6 +384,7 @@
   }
   function updateTotals(){
     const k = docCalc(cur);
+    if(cur.paiement && cur.paiement.length) echeancier(cur, k).forEach((r, i) => { const tr = document.querySelector(`#docPay tr[data-p="${i}"]`); if(tr){ tr.children[3].textContent = money(r.montant); tr.children[4].textContent = r.due ? isoToFr(r.due) : '—'; } });
     cur.lines.forEach((l, i) => { const td = document.querySelector(`#docEdBody tr[data-i="${i}"] [data-total]`); if(td) td.textContent = money(lineCalc(l).ca); });
     const pc = purchaseCost(cur), cout = pc != null ? pc : k.cout;
     const marge = k.ht - cout;
@@ -335,7 +408,22 @@
   function setRef(l, ref){ l.reference = ref; if(!isSvc(l)) l.ean = eanOf(l.collection, ref, l.format); }
   function onEdInput(e){
     if(!cur) return;
-    const el = e.target, f = el.dataset.f, lf = el.dataset.l, cad = el.dataset.cad;
+    const el = e.target, f = el.dataset.f, lf = el.dataset.l, cad = el.dataset.cad, pay = el.dataset.pay, pf = el.dataset.pf;
+    if(pay === 'preset'){
+      if(e.type !== 'change') return;
+      cur.paiement = el.value === '' ? [] : el.value === 'perso' ? ((cur.paiement && cur.paiement.length) ? cur.paiement : presetRows('50e')) : presetRows(el.value);
+      // Les conditions par défaut (« paiement à réception… ») contrediraient l'échéancier : on les retire.
+      if(cur.paiement.length && cur.conditions === soc(cur.societe).conditions){ cur.conditions = ''; const t = $('docEdBody').querySelector('[data-f="conditions"]'); if(t) t.value = ''; }
+      renderPay(); return;
+    }
+    if(pf){
+      const r = cur.paiement[+el.closest('tr').dataset.p];
+      if(pf === 'recu') r.recu = el.checked;
+      else if(pf === 'quand' || pf === 'date'){ if(e.type !== 'change') return; r[pf] = el.value; }
+      else r[pf] = num(el.value);
+      if(e.type === 'change'){ renderPay(); const s = $('docEdBody').querySelector('[data-pay="preset"]'); if(s) s.value = presetOf(cur) || ''; }
+      return;
+    }
     if(f){
       const v = el.value;
       if(f === 'societe' || f === 'type'){
@@ -346,9 +434,10 @@
         renderEditor(); return;
       }
       cur[f] = ['remisePct','remiseMontant','prixTesteur'].includes(f) ? num(v) : v;
+      if(f === 'date' && e.type === 'change') renderPay();
       if(f === 'date' && e.type === 'change' && !docs.some(x => x.id === cur.id)){ cur.numero = nextNumero(cur.societe, cur.type, v); $('docEdBody').querySelector('[data-f="numero"]').value = cur.numero; }
       if(f === 'client' && e.type === 'change'){
-        const c = SETT.clients[v] || {};
+        const c = clientInfo(v);
         if(!cur.pays && (c.pays || LAST_PAYS[v])) cur.pays = c.pays || LAST_PAYS[v];
         if(!cur.adresse && c.adresse) cur.adresse = c.adresse;
         if(!cur.tvaClient && c.tvaClient) cur.tvaClient = c.tvaClient;
@@ -415,6 +504,7 @@
     if(!d.pays.trim()) err.push('le pays');
     if(!d.lines.some(l => num(l.qty) > 0)) err.push('au moins une ligne avec une quantité');
     if(err.length) return 'Il manque ' + err.join(', ') + '.';
+    if((d.paiement || []).length && Math.abs(sum(d.paiement, r => num(r.pct)) - 100) > 0.001 && !confirm("L'échéancier de paiement ne fait pas 100 %. Continuer ?")) return 'cancel';
     if(docs.some(x => x.id !== d.id && x.numero === d.numero)) return `Le numéro ${d.numero} existe déjà.`;
     if(d.type === 'facture' && BASE_NUMS.has(d.numero) && !docs.some(x => x.id === d.id)) return `Le numéro ${d.numero} est déjà utilisé par une facture existante.`;
     const bad = d.lines.filter(l => PARFUMS.includes(l.collection) && l.reference && !REFS[l.collection].includes(l.reference));
@@ -450,8 +540,8 @@
 
   /* ---------- Document imprimable (mise en page des factures BSD / NB) ---------- */
   const T = {
-    fr:{date:'Date', due:'Échéance', valid:"Valable jusqu'au", from:'Réf.', bill:'Adresse de facturation', to:'Destinataire', ml:'Contenance', ean:'Code EAN', unit:'Prix unitaire', bpb:'Flacons / carton', tpb:'Testeur / carton', ppb:'Prix carton', qty:'Cartons', total:'Total', testers:'TESTEURS', sub:'Total', other:'Désignation', q:'Quantité', gross:'Total', disc:'Remise', discT:'Remise testeurs', ht:'Total HT', vat:'TVA', exo:'0 %', net:{devis:'Total devis', proforma:'Total proforma', facture:'Total facture'}, gifts:'Offert avec la commande', bank:'Coordonnées bancaires', sign:'Bon pour accord — date, signature et cachet', units:'fl.', vatno:'N° TVA', late:"En cas de retard de paiement : pénalités au taux de trois fois le taux d'intérêt légal et indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce). Pas d'escompte pour paiement anticipé.", pro:'Facture proforma : document sans valeur comptable, ne constitue pas une facture.', tnote:'Testeurs offerts, valorisés pour la douane uniquement et déduits dans la remise.'},
-    en:{date:'Date', due:'Due date', valid:'Valid until', from:'Ref.', bill:'Invoicing address', to:'Customer', ml:'Contents', ean:'EAN codes', unit:'Unit price', bpb:'Bottles per box', tpb:'Tester per box', ppb:'Price per box', qty:'Box ordered', total:'Total', testers:'TESTERS', sub:'Total', other:'Description', q:'Quantity', gross:'Total', disc:'Discount', discT:'Discount (testers)', ht:'Total excl. VAT', vat:'VAT', exo:'0%', net:{devis:'Total quotation', proforma:'Total proforma', facture:'Total invoice'}, gifts:'Offered with the order', bank:'Banking details', sign:'Approved — date, signature and company stamp', units:'btl', vatno:'VAT / company no.', late:'Late payment: penalties at three times the French legal interest rate and a fixed recovery fee of €40 (article L441-10 of the French Commercial Code).', pro:'Proforma invoice — not a tax invoice.', tnote:'Testers are free of charge, valued for customs purposes only and deducted in the discount.'}
+    fr:{date:'Date', due:'Échéance', valid:"Valable jusqu'au", from:'Réf.', bill:'Adresse de facturation', to:'Destinataire', ml:'Contenance', ean:'Code EAN', unit:'Prix unitaire', bpb:'Flacons / carton', tpb:'Testeur / carton', ppb:'Prix carton', qty:'Cartons', total:'Total', testers:'TESTEURS', sub:'Total', other:'Désignation', q:'Quantité', gross:'Total', disc:'Remise', discT:'Remise testeurs', ht:'Total HT', vat:'TVA', exo:'0 %', net:{devis:'Total devis', proforma:'Total proforma', facture:'Total facture'}, gifts:'Offert avec la commande', pay:'Conditions de paiement', bank:'Coordonnées bancaires', sign:'Bon pour accord — date, signature et cachet', units:'fl.', vatno:'N° TVA', late:"En cas de retard de paiement : pénalités au taux de trois fois le taux d'intérêt légal et indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce). Pas d'escompte pour paiement anticipé.", pro:'Facture proforma : document sans valeur comptable, ne constitue pas une facture.', tnote:'Testeurs offerts, valorisés pour la douane uniquement et déduits dans la remise.'},
+    en:{date:'Date', due:'Due date', valid:'Valid until', from:'Ref.', bill:'Invoicing address', to:'Customer', ml:'Contents', ean:'EAN codes', unit:'Unit price', bpb:'Bottles per box', tpb:'Tester per box', ppb:'Price per box', qty:'Box ordered', total:'Total', testers:'TESTERS', sub:'Total', other:'Description', q:'Quantity', gross:'Total', disc:'Discount', discT:'Discount (testers)', ht:'Total excl. VAT', vat:'VAT', exo:'0%', net:{devis:'Total quotation', proforma:'Total proforma', facture:'Total invoice'}, gifts:'Offered with the order', pay:'Payment terms', bank:'Banking details', sign:'Approved — date, signature and company stamp', units:'btl', vatno:'VAT / company no.', late:'Late payment: penalties at three times the French legal interest rate and a fixed recovery fee of €40 (article L441-10 of the French Commercial Code).', pro:'Proforma invoice — not a tax invoice.', tnote:'Testers are free of charge, valued for customs purposes only and deducted in the discount.'}
   };
   function docHtml(d){
     const k = docCalc(d), S = soc(d.societe), lg = d.langue === 'en' ? 'en' : 'fr', L = T[lg];
@@ -486,6 +576,8 @@
     if(d.conditions) mentions.push(esc(d.conditions));
     if(d.type === 'facture' && d.societe === 'BSD') mentions.push(L.late);
     if(d.type === 'proforma') mentions.push(L.pro);
+    const ech = echeancier(d, k);
+    const payBlock = ech.length ? `<div class="pd-pay"><strong>${L.pay}</strong><table><tbody>${ech.map(r => `<tr><td>${String(r.pct).replace('.', ',')} %</td><td>${esc(quandTxt(r, lg))}${r.due && r.quand !== 'date' ? ` (${esc(isoToFr(r.due))})` : ''}</td><td class="r">${money(r.montant)}</td></tr>`).join('')}</tbody></table></div>` : '';
     const bank = S.iban ? `<div class="pd-bank"><strong>${L.bank}</strong><br>${esc(S.banque)}<br>IBAN : ${esc(S.iban)}${S.bic ? '<br>BIC : ' + esc(S.bic) : ''}</div>` : '';
     const legal = d.societe === 'NB'
       ? [S.nom + (S.sousTitre ? ' – ' + S.sousTitre.toUpperCase() : ''), [S.adresse, S.cp_ville, S.pays].filter(Boolean).join(', '), S.email && 'Mail : ' + S.email, S.portable && 'Port : ' + S.portable, S.licence && 'License number : ' + S.licence]
@@ -502,7 +594,7 @@
       <div class="pd-client"><div class="pd-label">${d.type === 'devis' ? L.to : L.bill}</div><strong>${esc(d.client)}</strong><br>${esc(d.adresse).replace(/\n/g, '<br>')}${d.adresse ? '<br>' : ''}${esc(d.pays)}${d.tvaClient ? `<br>${L.vatno} : ${esc(d.tvaClient)}` : ''}</div>
       ${tables}${otherTable}
       <div class="pd-foot">
-        <div class="pd-left">${cad.length ? `<div class="pd-gift"><strong>${L.gifts}</strong><br>${cad.map(esc).join(' · ')}</div>` : ''}${bank}</div>
+        <div class="pd-left">${payBlock}${cad.length ? `<div class="pd-gift"><strong>${L.gifts}</strong><br>${cad.map(esc).join(' · ')}</div>` : ''}${bank}</div>
         <div class="pd-tot">
           <div><span>${L.gross}</span><span>${money(k.brut)}</span></div>
           ${discRows}
@@ -538,12 +630,29 @@
   let setSoc = 'BSD';
   function openSettings(code){
     setSoc = code || setSoc;
+    $('docSetTitle').textContent = setSoc === 'CLIENTS' ? 'Adresses clients' : 'Coordonnées des sociétés';
+    $('docSetSub').textContent = setSoc === 'CLIENTS' ? "Pré-remplies dans les devis, proformas et factures. Les registres de factures ne contiennent pas les adresses : à compléter (ou dans data/clients.js pour tout le monde)." : "Elles apparaissent en en-tête et en pied de chaque document. Pense à renseigner l'IBAN.";
+    const tabs = `<div class="doc-row-actions">${['BSD','NB'].map(c => `<button class="doc-btn${c === setSoc ? ' primary' : ''}" data-act="sswitch" data-soc="${c}">${SOC.SOCIETES[c].label}</button>`).join('')}<button class="doc-btn${setSoc === 'CLIENTS' ? ' primary' : ''}" data-act="sswitch" data-soc="CLIENTS">Adresses clients</button></div>`;
+    if(setSoc === 'CLIENTS'){
+      const names = [...new Set(BASE_FACT.map(f => f.client).concat(docs.map(x => x.client)).concat(Object.keys(SETT.clients)).concat(Object.keys(CLIENTS_BASE)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+      const manque = names.filter(n => !clientInfo(n).adresse).length;
+      $('docSetBody').innerHTML = tabs + `<p class="doc-sub" style="margin:4px 0 10px">${names.length} clients · ${manque} sans adresse</p><div class="doc-table-wrap"><table class="doc-lines doc-clients"><thead><tr><th>Client</th><th>Pays</th><th>Adresse</th><th>N° TVA / société</th></tr></thead><tbody>${names.map(n => { const c = clientInfo(n); return `<tr data-client="${esc(n)}"${c.adresse ? '' : ' class="doc-missing"'}><td>${esc(n)}</td><td><input data-c="pays" value="${esc(c.pays || LAST_PAYS[n] || '')}"></td><td><textarea data-c="adresse" rows="2">${esc(c.adresse || '')}</textarea></td><td><input data-c="tvaClient" value="${esc(c.tvaClient || '')}"></td></tr>`; }).join('')}</tbody></table></div>`;
+      $('docSettings').classList.add('active'); return;
+    }
     const S = soc(setSoc);
-    $('docSetBody').innerHTML = `<div class="doc-row-actions">${['BSD','NB'].map(c => `<button class="doc-btn${c === setSoc ? ' primary' : ''}" data-act="sswitch" data-soc="${c}">${SOC.SOCIETES[c].label}</button>`).join('')}</div>
+    $('docSetBody').innerHTML = tabs + `
       <div class="doc-grid">${SET_FIELDS.map(([k, l]) => `<label${k === 'conditions' || k === 'nom' ? ' class="span2"' : ''}>${l}<input data-s="${k}" value="${esc(S[k])}"></label>`).join('')}</div>`;
     $('docSettings').classList.add('active');
   }
   function saveSettings(close){
+    if(setSoc === 'CLIENTS'){
+      document.querySelectorAll('#docSetBody tr[data-client]').forEach(tr => {
+        const n = tr.dataset.client, o = {}; tr.querySelectorAll('[data-c]').forEach(i => { o[i.dataset.c] = i.value.trim(); });
+        const b = CLIENTS_BASE[n] || {};
+        if(o.adresse || o.tvaClient || (o.pays && o.pays !== (b.pays || LAST_PAYS[n] || '')) || SETT.clients[n]) SETT.clients[n] = o;
+      });
+      saveSett(); if(close) $('docSettings').classList.remove('active'); return;
+    }
     const o = {}; document.querySelectorAll('#docSetBody [data-s]').forEach(i => { o[i.dataset.s] = i.value.trim(); });
     SETT.societes[setSoc] = o; saveSett();
     if(close) $('docSettings').classList.remove('active');
@@ -612,6 +721,8 @@
     if(act === 'addline'){ const last = cur.lines[cur.lines.length - 1]; cur.lines.push(newLine(last && PARFUMS.includes(last.collection) ? last.collection : 'VIP', cur.pays)); renderEditor(); }
     else if(act === 'delline'){ cur.lines.splice(+b.closest('tr').dataset.i, 1); if(!cur.lines.length) cur.lines.push(newLine('VIP', cur.pays)); renderEditor(); }
     else if(act === 'sim') applySimulator();
+    else if(act === 'addpay'){ const p = cur.paiement || (cur.paiement = []); const reste = Math.max(0, 100 - sum(p, r => num(r.pct))); p.push({pct:reste, quand:'expedition', jours:30, date:'', recu:false}); renderPay(); $('docEdBody').querySelector('[data-pay="preset"]').value = presetOf(cur) || ''; }
+    else if(act === 'delpay'){ cur.paiement.splice(+b.closest('tr').dataset.p, 1); renderPay(); $('docEdBody').querySelector('[data-pay="preset"]').value = presetOf(cur) || ''; }
     else if(act === 'save') saveCurrent();
     else if(act === 'saveview'){ const d = saveCurrent(); if(d) showDoc(d.id); }
     else if(act === 'close'){ if(confirm('Fermer sans enregistrer ?')) closeEditor(); }
