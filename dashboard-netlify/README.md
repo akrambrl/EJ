@@ -12,7 +12,7 @@ Lancer en local : `cd dashboard-netlify && python3 -m http.server 8000` puis htt
 | `js/app.js` | Code des onglets d'origine : graphiques, simulation, production… |
 | `js/rebuild.js` | Recalcul de tous les agrégats (portage exact de `outils/rebuild_dashboard.py`) |
 | `js/societes.js` | Deux sociétés (BSD, NB Evolution) : vues Groupe / BSD / NB, coordonnées, codes EAN |
-| `js/nav.js`, `js/mobile.js` | Navigation par rubriques (Ventes, Produits, Finances, Commercial) et graphiques adaptés au mobile |
+| `js/nav.js`, `js/mobile.js` | Menu latéral masquable (société, année, rubriques Ventes / Produits / Finances / Commercial) et graphiques adaptés au mobile |
 | `js/documents.js` | Onglet « Devis & Factures » : devis, proformas, factures des deux sociétés, PDF |
 | `data/intragroupe.js` | 18 factures BSD → NB Evolution (ventes internes), générées par `outils/construire_intragroupe.py` |
 | `data/depenses-nb.js` | Dépenses de NB Evolution (vide pour l'instant, même format que celles de BSD) |

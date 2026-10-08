@@ -392,3 +392,61 @@ tr.clickable:hover td{background:rgba(201,164,86,.07)}
 .kpis-top{grid-template-columns:1.7fr repeat(6,minmax(0,1fr))}
 @media(max-width:1100px){.kpis-top{grid-template-columns:repeat(4,minmax(0,1fr))}.kpis-top .kpi-main{grid-column:span 2}}
 @media(max-width:700px){.kpis-top .kpi-main{grid-column:auto}}
+
+/* ===================== Menu latéral ===================== */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;z-index:900;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#3a3127 transparent;
+  background:linear-gradient(180deg,rgba(11,10,9,.80),rgba(11,10,9,.97) 45%),url(../img/marbre.jpg) 70% top/auto 420px no-repeat,#0B0A09;
+  border-right:1px solid var(--hair);display:flex;flex-direction:column;padding:28px 20px 20px;transition:transform .3s ease}
+.main{margin-left:260px;min-width:0;transition:margin-left .3s ease}
+body.menu-masque .sidebar{transform:translateX(-100%)}
+body.menu-masque .main{margin-left:0}
+.sb-brand{text-align:center;padding-bottom:20px;border-bottom:1px solid var(--hair);margin-bottom:20px}
+.sb-brand .logo{width:96px;height:auto;filter:brightness(1.35) saturate(1.1)}
+.sb-maison{display:block;font-size:.55rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-top:10px}
+.sb-block{margin-bottom:16px}
+.sb-label{font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:#8F8476;margin-bottom:8px}
+.sb-seg{display:flex;border:1px solid var(--hair);background:rgba(11,10,9,.5)}
+.sb-seg button{flex:1;border:none;background:none;padding:8px 4px;font-family:inherit;font-size:.64rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#CDBFA8;cursor:pointer;transition:color .15s}
+.sb-seg button:hover{color:#F6EEDF}
+.sb-seg button + button{border-left:1px solid var(--hair)}
+.sb-seg-col{flex-direction:column}
+.sb-seg-col button{text-align:left;padding:9px 12px}
+.sb-seg-col button + button{border-left:none;border-top:1px solid var(--hair)}
+.sb-seg button.active{background:var(--gold-grad);color:#14110D}
+.sb-nav{flex:1;margin-top:4px}
+.sb-group{font-family:var(--serif);font-size:1.25rem;font-style:italic;font-weight:500;color:#F6EEDF;margin:16px 0 6px;padding-top:14px;border-top:1px solid rgba(201,164,86,.14)}
+.sb-group:first-child{border-top:none;margin-top:6px;padding-top:0}
+.sidebar .tab{display:block;width:100%;text-align:left;padding:7px 0 7px 14px;margin:0;border:none;border-left:1px solid rgba(201,164,86,.12);background:none;color:#A3968A;
+  font-family:inherit;font-size:.64rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:color .15s,border-color .15s}
+.sidebar .tab:hover{color:#F2E8D8;border-left-color:var(--hair)}
+.sidebar .tab.active{color:var(--gold);border-left:1px solid var(--gold);border-bottom:none;font-weight:600}
+.sidebar .tab[hidden]{display:block}
+.sb-foot{font-family:var(--serif);letter-spacing:.5em;text-transform:uppercase;font-size:.8rem;color:#6E655C;text-align:center;padding-top:18px}
+.sb-overlay{display:none}
+
+/* En-tête de page : bouton du menu, rappel des filtres, titre */
+.topbar{display:flex;align-items:center;justify-content:flex-start;gap:20px;flex-wrap:nowrap;max-width:none;margin:0;padding:30px 32px 26px}
+.topbar .brand-name{font-size:2.2rem}
+.sb-toggle{width:42px;height:42px;flex:none;border:1px solid var(--hair);background:rgba(11,10,9,.55);cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;transition:border-color .15s}
+.sb-toggle span{display:block;width:17px;height:1px;background:var(--gold);transition:transform .25s,opacity .25s}
+.sb-toggle:hover{border-color:var(--gold)}
+body:not(.menu-masque) .sb-toggle span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+body:not(.menu-masque) .sb-toggle span:nth-child(2){opacity:0}
+body:not(.menu-masque) .sb-toggle span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.page{max-width:1400px;margin:0;padding:0 32px 24px}
+.kpis-top{margin-top:22px}
+
+@media(max-width:899px){
+  .sidebar{transform:translateX(-100%);width:min(300px,86vw);box-shadow:0 0 50px rgba(0,0,0,.7)}
+  body.menu-ouvert .sidebar{transform:none}
+  .main,body.menu-masque .main{margin-left:0}
+  .sb-overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:850;opacity:0;pointer-events:none;transition:opacity .3s}
+  body.menu-ouvert .sb-overlay{opacity:1;pointer-events:auto}
+  body:not(.menu-ouvert) .sb-toggle span:nth-child(1),body:not(.menu-ouvert) .sb-toggle span:nth-child(3){transform:none}
+  body:not(.menu-ouvert) .sb-toggle span:nth-child(2){opacity:1}
+  .topbar{padding:18px 16px 14px;gap:14px}
+  .topbar .brand-name{font-size:1.6rem}
+  .page{padding:0 16px 16px}
+  .kpis-top{margin-top:12px}
+}
+.kpis-top .kpi-label{white-space:normal;overflow:visible;line-height:1.35;min-height:2.7em}

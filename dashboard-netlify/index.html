@@ -12,16 +12,44 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<aside class="sidebar" id="sidebar" aria-label="Menu">
+<div class="sb-brand"><img class="logo" src="img/logo.png" alt="Parfums Emmanuelle Jane Paris"><span class="sb-maison">Maison Emmanuelle Jane</span></div>
+<div class="sb-block"><div class="sb-label">Société</div>
+<div class="sb-seg sb-seg-col soc-switcher" role="group" aria-label="Société"><button class="soc-btn active" data-soc="groupe">Groupe</button><button class="soc-btn" data-soc="BSD">BSD · France</button><button class="soc-btn" data-soc="NB">NB Evolution · Dubaï</button></div></div>
+<div class="sb-block"><div class="sb-label">Année</div>
+<div class="sb-seg year-switcher" role="group" aria-label="Année"><button class="year-btn" data-year="2025">2025</button><button class="year-btn" data-year="2026">2026</button><button class="year-btn active" data-year="total">Total</button></div></div>
+<nav class="sb-nav" aria-label="Rubriques">
+<div class="sb-group">Ventes</div>
+<button class="tab active" data-tab="overview" data-group="ventes">Vue d'ensemble</button>
+<button class="tab" data-tab="clients" data-group="ventes">Clients</button>
+<button class="tab" data-tab="pays" data-group="ventes">Pays</button>
+<button class="tab" data-tab="mois" data-group="ventes">Mois</button>
+<button class="tab" data-tab="refs" data-group="ventes">Références</button>
+<button class="tab" data-tab="factures" data-group="ventes">Factures</button>
+<button class="tab" data-tab="evolution" data-group="ventes">Évolution clients</button>
+<button class="tab" data-tab="compare" data-group="ventes">2025 vs 2026</button>
+<div class="sb-group">Produits</div>
+<button class="tab" data-tab="stock" data-group="produits">Stock</button>
+<button class="tab" data-tab="costs" data-group="produits">Prix de revient</button>
+<button class="tab" data-tab="production" data-group="produits">Production</button>
+<button class="tab" data-tab="inventaire" data-group="produits">Inventaire</button>
+<button class="tab" data-tab="cadeaux" data-group="produits">Cadeaux offerts</button>
+<div class="sb-group">Finances</div>
+<button class="tab" data-tab="fournisseurs" data-group="finances">Factures fournisseurs</button>
+<button class="tab" data-tab="virements" data-group="finances">Virements attendus</button>
+<button class="tab" data-tab="chargesfixes" data-group="finances">Charges fixes</button>
+<div class="sb-group">Commercial</div>
+<button class="tab" data-tab="documents" data-group="commercial">Devis &amp; factures</button>
+<button class="tab" data-tab="simulateur" data-group="commercial">Simulateur d'offres</button>
+<button class="tab" data-tab="simulation" data-group="commercial">Simulation commande</button>
+</nav>
+<div class="sb-foot">Paris</div>
+</aside>
+<div class="sb-overlay" id="sbOverlay"></div>
+<div class="main">
 <header class="topbar">
-<div class="brand"><img class="logo" src="img/logo.png" alt="Parfums Emmanuelle Jane Paris"><div class="brand-txt"><span class="brand-sub">Maison Emmanuelle Jane · Paris</span><span class="brand-name">Tableau de bord</span></div></div>
-<div class="filters">
-<div class="seg soc-switcher" role="group" aria-label="Société">
-<button class="soc-btn active" data-soc="groupe">Groupe</button><button class="soc-btn" data-soc="BSD">BSD</button><button class="soc-btn" data-soc="NB">NB Evolution</button>
-</div>
-<div class="seg year-switcher" role="group" aria-label="Année">
-<button class="year-btn" data-year="2025">2025</button><button class="year-btn" data-year="2026">2026</button><button class="year-btn active" data-year="total">Total</button>
-</div>
-</div>
+<button class="sb-toggle" id="sbToggle" aria-label="Afficher ou masquer le menu" aria-controls="sidebar"><span></span><span></span><span></span></button>
+<div class="brand-txt"><span class="brand-sub" id="ctxLine">Groupe · 2025 + 2026</span><span class="brand-name" id="pageTitle">Vue d'ensemble</span></div>
 </header>
 <div class="page">
 
@@ -41,10 +69,7 @@
 <p>Le prix de revient de la collection ROYAL est provisoirement fixé à 4,50 € la bouteille (à affiner) : les bénéfices ROYAL sont indicatifs.</p>
 </details>
 
-<nav class="nav" aria-label="Rubriques">
-<div class="nav-groups"><button class="nav-group active" data-group="ventes">Ventes</button><button class="nav-group" data-group="produits">Produits</button><button class="nav-group" data-group="finances">Finances</button><button class="nav-group" data-group="commercial">Commercial</button></div>
-<div class="tabs"><button class="tab active" data-tab="overview" data-group="ventes">Vue d'ensemble</button><button class="tab" data-tab="clients" data-group="ventes">Clients</button><button class="tab" data-tab="pays" data-group="ventes">Pays</button><button class="tab" data-tab="mois" data-group="ventes">Mois</button><button class="tab" data-tab="refs" data-group="ventes">Références</button><button class="tab" data-tab="factures" data-group="ventes">Factures</button><button class="tab" data-tab="evolution" data-group="ventes">Évolution clients</button><button class="tab" data-tab="compare" data-group="ventes">2025 vs 2026</button><button class="tab" data-tab="stock" data-group="produits">Stock</button><button class="tab" data-tab="costs" data-group="produits">Prix de revient</button><button class="tab" data-tab="production" data-group="produits">Production</button><button class="tab" data-tab="inventaire" data-group="produits">Inventaire</button><button class="tab" data-tab="cadeaux" data-group="produits">Cadeaux offerts</button><button class="tab" data-tab="fournisseurs" data-group="finances">Factures fournisseurs</button><button class="tab" data-tab="virements" data-group="finances">Virements attendus</button><button class="tab" data-tab="chargesfixes" data-group="finances">Charges fixes</button><button class="tab" data-tab="documents" data-group="commercial">Devis &amp; factures</button><button class="tab" data-tab="simulateur" data-group="commercial">Simulateur d'offres</button><button class="tab" data-tab="simulation" data-group="commercial">Simulation commande</button></div>
-</nav>
+
 
 <div id="overview" class="section active">
 <h2>Vue d'ensemble</h2>
@@ -409,6 +434,7 @@
 
 <div class="footer">EMMANUELLE JANE PARIS<br>Tableau de bord généré pour Mounir — *ROYAL : prix de revient provisoire 4,50 €/btl, à affiner</div>
 </div><!-- /.page -->
+</div><!-- /.main -->
 
 <script src="data/ventes.js"></script>
 <script src="data/charges.js"></script>
