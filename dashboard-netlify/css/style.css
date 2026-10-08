@@ -450,3 +450,4 @@ body:not(.menu-masque) .sb-toggle span:nth-child(3){transform:translateY(-6px) r
   .kpis-top{margin-top:12px}
 }
 .kpis-top .kpi-label{white-space:normal;overflow:visible;line-height:1.35;min-height:2.7em}
+.doc-lines select.doc-format{margin-top:4px;min-width:112px}

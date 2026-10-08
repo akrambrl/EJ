@@ -80,7 +80,10 @@
   docs.forEach(d => { if(!d.societe) d.societe = 'BSD'; if(!d.langue) d.langue = 'fr'; if(d.prixTesteur == null) d.prixTesteur = 0; });
   const saveDocs = () => store(DOC_KEY, docs);
   const saveSett = () => store(SET_KEY, SETT);
-  const eanOf = (col, ref) => SETT.ean[col + '|' + ref] || ((SOC.EAN[col] || {})[ref]) || '';
+  const eanOf = (col, ref, fmt) => (col === 'BRUMES' && fmt === '265')
+    ? (SETT.ean['BRUMES265|' + ref] || SOC.EAN_BRUMES_265[ref] || '')
+    : (SETT.ean[col + '|' + ref] || ((SOC.EAN[col] || {})[ref]) || '');
+  const mlOf = l => l.collection === 'BRUMES' ? (l.format === '265' ? '265 ml' : '250 ml') : COLL[l.collection].ml;
 
   const TYPES = {
     devis:{label:'Devis', fr:'DEVIS', en:'QUOTATION', statuts:['Brouillon','Envoyé','Accepté','Refusé','Converti']},
@@ -293,7 +296,7 @@
       <td><select data-l="collection">${COLLECTIONS.map(c => `<option value="${c}"${c === l.collection ? ' selected' : ''}>${esc(COLL[c].court)}</option>`).join('')}</select></td>
       <td><input data-l="reference" value="${esc(l.reference)}" ${svc ? 'placeholder="Désignation"' : `list="docRefs-${l.collection.replace(/\s/g, '')}" placeholder="Référence"`}></td>
       <td>${svc ? '' : `<input class="ean${eanBad ? ' bad' : ''}" data-l="ean" value="${esc(l.ean)}" placeholder="à saisir" title="${eanBad ? 'Code EAN-13 invalide (clé de contrôle)' : 'Code EAN-13'}">`}</td>
-      <td>${svc ? '<span class="doc-sub">forfait</span>' : `<select data-l="mode"><option value="carton"${l.mode === 'carton' ? ' selected' : ''}>Carton</option><option value="unite"${l.mode === 'unite' ? ' selected' : ''}>À l'unité</option></select>`}</td>
+      <td>${svc ? '<span class="doc-sub">forfait</span>' : `<select data-l="mode"><option value="carton"${l.mode === 'carton' ? ' selected' : ''}>Carton</option><option value="unite"${l.mode === 'unite' ? ' selected' : ''}>À l'unité</option></select>`}${l.collection === 'BRUMES' ? `<select data-l="format" class="doc-format"><option value="250"${l.format !== '265' ? ' selected' : ''}>250 ml</option><option value="265"${l.format === '265' ? ' selected' : ''}>265 ml</option></select>` : ''}</td>
       <td><input class="num" type="number" min="0" step="1" data-l="qty" value="${esc(l.qty)}"></td>
       <td>${!svc && l.mode === 'carton' ? `<input class="num" type="number" min="1" step="1" data-l="perCarton" value="${esc(l.perCarton)}">` : ''}</td>
       <td>${svc ? '' : `<input class="num" type="number" min="0" step="1" data-l="testers" value="${esc(l.testers)}">`}</td>
@@ -329,7 +332,7 @@
       </div>`;
   }
 
-  function setRef(l, ref){ l.reference = ref; if(!isSvc(l)) l.ean = eanOf(l.collection, ref); }
+  function setRef(l, ref){ l.reference = ref; if(!isSvc(l)) l.ean = eanOf(l.collection, ref, l.format); }
   function onEdInput(e){
     if(!cur) return;
     const el = e.target, f = el.dataset.f, lf = el.dataset.l, cad = el.dataset.cad;
@@ -368,6 +371,10 @@
         if(e.type !== 'change') return;
         l.mode = el.value; l.prix = priceDefault(l.collection, l.mode); l.autoT = true; l.testers = testerAuto(l.collection, l.mode, l.qty, cur.pays); renderEditor(); return;
       }
+      if(lf === 'format'){
+        if(e.type !== 'change') return;
+        l.format = el.value; l.ean = eanOf(l.collection, l.reference, l.format); renderEditor(); return;
+      }
       if(lf === 'reference'){
         setRef(l, el.value);
         const ei = el.closest('tr').querySelector('[data-l="ean"]'); if(ei){ ei.value = l.ean; ei.classList.toggle('bad', !!l.ean && !SOC.eanOk(l.ean)); }
@@ -376,7 +383,7 @@
       if(lf === 'ean'){
         l.ean = el.value.replace(/\s/g, '');
         el.classList.toggle('bad', !!l.ean && !SOC.eanOk(l.ean));
-        if(e.type === 'change' && l.reference && SOC.eanOk(l.ean)){ SETT.ean[l.collection + '|' + l.reference] = l.ean; saveSett(); }
+        if(e.type === 'change' && l.reference && SOC.eanOk(l.ean)){ SETT.ean[(l.collection === 'BRUMES' && l.format === '265' ? 'BRUMES265' : l.collection) + '|' + l.reference] = l.ean; saveSett(); }
         return;
       }
       l[lf] = num(el.value);
@@ -455,7 +462,7 @@
         const l = r.src, carton = l.mode === 'carton';
         const unit = carton ? num(l.prix) / (num(l.perCarton) || 1) : num(l.prix);
         const tpc = carton && num(l.qty) ? Math.round(r.testers / num(l.qty) * 100) / 100 : (r.testers || '—');
-        return `<tr><td>${esc(String(l.reference).toUpperCase())}</td><td class="c">${COLL[c].ml}</td><td class="c">${esc(fmtEan(l.ean))}</td><td class="r">${money(unit)}</td>
+        return `<tr><td>${esc(String(l.reference).toUpperCase())}</td><td class="c">${mlOf(l)}</td><td class="c">${esc(fmtEan(l.ean))}</td><td class="r">${money(unit)}</td>
           <td class="c">${carton ? esc(l.perCarton) : '—'}</td><td class="c">${tpc}</td>
           <td class="r">${carton ? money(num(l.prix)) : '—'}</td><td class="c">${carton ? esc(l.qty) : esc(l.qty) + ' ' + L.units}</td><td class="r">${money(r.ca)}</td></tr>`;
       }).join('');

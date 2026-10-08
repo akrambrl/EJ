@@ -35,12 +35,17 @@
   /* ---------- Codes EAN (relevés sur les factures BSD EJ2026029 et NB proforma NB2026012) ---------- */
   const EAN = {
     'VIP':{'Moon':'3760120371455','Dream Catcher':'3760120371462','Caftan':'3760120371820','Grey':'3760120370786','Red':'3760120370236','Oud Vanille':'3760120370519','Silver':'3760120370182','Regatus':'3760120371448','Elixir':'3760120371431','Piège':'3760120371516','Pure':'3760120370915','Rivière Noire':'3760120372131','Oud Berry':'3760120372124','Éclat de Vanille':'3760120372780'},
-    'VIP BLACK':{'Harmonie':'3760120373091','Velours Rose':'3760120373183','Cuir Rouge':'3760120373114','Jour Doré':'3760120373138','Terre Noble':'3760120373145','Miel Royal':'3760120373176'},
-    '50ML':{"L'Éloge d'Orient":'3760120372667','Bora Bora':'3760120372643','Golden Caramel':'3760120372650','Exotic Oud':'3760120372674','Santal Wood':'3760120372636'},
+    'VIP BLACK':{'Éclat Vert':'3760120373084','Cœur de Sable':'3760120373107','Sublime':'3760120373121','Ciel Blanc':'3760120373152','Jardin Royal':'3760120373169','Harmonie':'3760120373091','Velours Rose':'3760120373183','Cuir Rouge':'3760120373114','Jour Doré':'3760120373138','Terre Noble':'3760120373145','Miel Royal':'3760120373176'},
+    '50ML':{'Blais':'3760120372940','Vétiver':'3760120372964','Wild Cherry':'3760120372957',"L'Éloge d'Orient":'3760120372667','Bora Bora':'3760120372643','Golden Caramel':'3760120372650','Exotic Oud':'3760120372674','Santal Wood':'3760120372636'},
     'BRUMES':{'Butterfly Bloom':'3760120372858','Coco Shine':'3760120372803',"Comme l'Air":'3760120372889','Dolce Vita':'3760120372797','Fleur Sauvage':'3760120372872','Flower Bomb':'3760120372827','Gold Crush':'3760120372896','Last Night':'3760120372865','Love Moment':'3760120372810','Lovely Body':'3760120372841','Night Kiss':'3760120372834',"Fruit d'Amour":'3760120372933','Vanilla Desire':'3760120372919','Rose Pétale':'3760120372902'},
     'ROYAL':{'Milano Men':'3760120370274','Milano Women':'3760120370281','Uomo':'3760120370045','Milano Ultra':'3760120371721','Milano Renaissance':'3760120371714','Uomo Alternance':'3760120371707'}
     // Caramelia : le code imprimé sur la proforma NB2026012 (3760120372826) n'est pas un EAN-13 valide → à vérifier.
   };
+  // Brumes à l'ancien format 265 ml (proforma EJ2025026 du 10/07/2025) : codes EAN différents du format 250 ml.
+  // Vanilla Desire, Caramelia, Fruit d'Amour et Rose Pétale n'y figurent pas.
+  const EAN_BRUMES_265 = {'Butterfly Bloom':'3760120371240','Coco Shine':'3760120371653',"Comme l'Air":'3760120371943','Dolce Vita':'3760120371578','Fleur Sauvage':'3760120371936',
+    'Flower Bomb':'3760120370700','Gold Crush':'3760120371905','Last Night':'3760120371929','Love Moment':'3760120370830','Lovely Body':'3760120371912','Night Kiss':'3760120371233'};
+  // Sources : factures EJ2026029 et NB2026012, proforma EJ2025026, planches d'étiquettes VIP Black 90 ml et 50 ml (20/05/2026).
   const eanOk = e => /^\d{13}$/.test(e) && (10 - [...e.slice(0, 12)].reduce((s, x, i) => s + (+x) * (i % 2 ? 3 : 1), 0) % 10) % 10 === +e[12];
 
   /* ---------- Données de base ---------- */
@@ -158,7 +163,7 @@
   document.querySelectorAll('.soc-btn').forEach(b => b.addEventListener('click', () => apply(b.dataset.soc)));
 
   window.EJ_SOC = {
-    SOCIETES, EAN, eanOk, isIntra, isNBNum, INTRA, BASE,
+    SOCIETES, EAN, EAN_BRUMES_265, eanOk, isIntra, isNBNum, INTRA, BASE,
     get view(){ return view; },
     setLocal(list){ local = list || []; },
     apply, exportData,

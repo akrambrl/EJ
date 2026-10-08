@@ -15,7 +15,8 @@ Le guide d'origine est dans [`dashboard-netlify/CLAUDE.md`](../dashboard-netlify
 | `CATALOGUE_REFERENCES.md` | Orthographe officielle des références par collection | noms des `lines[].reference` |
 | `Recap_Charges_2026.xlsx` | Relevé BRED 2026 (02/01 → 10/07/2026) classé par catégorie | `dashboard-netlify/data/charges.js` 2026 |
 | `Catalogue_EJ.pdf` | Catalogue commercial (40 pages, Gotham / Proxima Nova, crème / or / noir) | Références : voir « Catalogue vs dashboard » ; charte reprise par le dashboard |
-| `modeles_factures/` | Factures réelles servant de modèle : BSD EJ2026029 (Arzum), proforma NB2026012 (Oud House) | Mise en page, coordonnées, banques et codes EAN des documents |
+| `modeles_factures/` | Factures réelles servant de modèle : BSD EJ2026029 (Arzum), proforma NB2026012 (Oud House), proforma BSD EJ2025026 (NPJ Trading, photo) | Mise en page, coordonnées, banques et codes EAN des documents |
+| `etiquettes/` | Planches d'étiquettes VIP Black 90 ml (11 réf.) et 50 ml (6 réf.) du 20/05/2026 : noms, notes, ingrédients, codes-barres | Codes EAN de `dashboard-netlify/js/societes.js` |
 | `LISEZ-MOI.txt` | Mode d'emploi du dossier d'origine | — |
 
 ## Écarts constatés (07/10/2026) — non corrigés
@@ -66,3 +67,24 @@ est « Lot de brumes (vente en lot) » (facture EJ2026030), qui n'est pas un pro
 - **Testeurs BRUMES de la proforma NB2026012** : 15 références × 3 cartons, mais 42 testeurs comptés (45 attendus).
 - **50 ml** : facturé 10 flacons à 130 € le carton sur EJ2026029, contre 11 flacons à 143 € dans les règles tarifaires
   (le nombre de flacons par carton est modifiable sur chaque ligne).
+
+## Étiquettes et proforma EJ2025026 (08/10/2026)
+
+- **Tous les produits** des planches d'étiquettes (VIP Black 90 ml : 11 ; 50 ml : 6) et de la proforma EJ2025026
+  (VIP : 13 ; Brumes : 11 ; Royal : 6) sont dans le dashboard, avec la même orthographe (les étiquettes écrivent
+  « COEUR DE SABLE », sans accent sur le E final, comme le dashboard).
+- **Codes EAN** : 8 codes ajoutés grâce aux étiquettes (Éclat Vert, Cœur de Sable, Sublime, Ciel Blanc, Jardin Royal,
+  Blais, Vétiver, Wild Cherry), tous valides. Les 54 références ont maintenant un code, sauf Caramelia (cf. plus haut).
+- **Brumes : deux formats, deux codes EAN.** La proforma 2025 liste les brumes en **265 ml** avec des codes
+  3 760 120 37x xxx différents de ceux du format **250 ml** (proforma NB2026012). L'inventaire contient bien des
+  flacons des deux formats. Dans « Devis & Factures », chaque ligne de brume a un choix 250 ml / 265 ml qui met
+  le bon code. Codes 265 ml connus pour 11 brumes (pas Vanilla Desire, Caramelia, Fruit d'Amour, Rose Pétale).
+- **EJ2025026 (NPJ Trading, 10/07/2025)** : mêmes quantités que la facture du dashboard (4 cartons par référence),
+  mais la proforma est au tarif **18 € / 4,90 € / 10,80 €** (VIP / Brumes / Royal) = **17 688,40 €**, alors que le
+  dashboard et le registre comptent le tarif standard 16 € / 4 € / 9 € = **15 176,00 €** (écart 2 512,40 €).
+  Par ailleurs, `REVENUE_DATA` ne montre que 874 € reçus de NPJ en 2025. À vérifier : montant réellement facturé
+  et encaissé.
+- **Concentration** : le catalogue présente Harmonie et Miel Royal comme des « Extrait de Parfum », mais leurs
+  étiquettes indiquent « EAU DE PARFUM » (comme les 9 autres VIP Black). Les 50 ml sont bien « Extrait de Parfum ».
+- **Contenance en onces** : les étiquettes 90 ml portent « 3.16 » ; 90 ml correspondent à 3,04 fl oz US
+  (3,17 fl oz impériales). Les 50 ml ont été corrigées de 1.69 à 1.70 fl oz (en rouge sur la planche).
