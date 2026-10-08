@@ -25,6 +25,8 @@ Lancer en local : `cd dashboard-netlify && python3 -m http.server 8000` puis htt
 | `js/registre.js` | Petits tableaux modifiables (registres) utilisés par les pages de gestion, gardés dans le navigateur (clés `ej_reg_…`), export CSV |
 | `js/gestion.js` | Pages Trésorerie (prévision 6 mois, comptes, taux, import de relevés CSV), Créances clients (balance âgée, relances), Échéances fiscales (TVA, DSN, IS, CFE, comptes annuels, Émirats), Résultat & impôts, Objectifs & budget (objectifs, budget des charges, commissions), Fiches clients, Prospects, Approvisionnement (mois de stock, commandes fournisseurs), Expéditions, Conformité produits (CPNP, DIP, IFRA, FDS, enregistrements pays, lots) ; rappels pour le journal |
 | `js/cloud.js`, `data/config-cloud.js` | Partage des saisies entre les membres de l'équipe via Supabase (connexion, envoi et réception automatiques). Mise en place : `PARTAGE-SUPABASE.md` à la racine |
+| `js/theme.js` | Mode clair (beige, par défaut) / mode sombre : bouton soleil-lune dans l'en-tête, choix gardé sur l'appareil (`ej_theme`) ; couleurs dans les variables CSS (`:root` et `[data-theme="dark"]`) |
+| `js/assistant.js` | Assistant (bouton doré en bas à droite) : réponses directes calculées sur les données (stock, factures, CA, clients, salons, créances, échéances, trésorerie, impôts, fournisseurs…) ; mode IA Claude facultatif avec une clé API Anthropic gardée dans le navigateur (modèle `claude-opus-5-5`, SDK `@anthropic-ai/sdk` via jsDelivr, outil `consulter_donnees`) |
 | `img/` | Logo et marbre noir (visuels VIP Black du catalogue) |
 | `data/ventes.js` | `ALL` : ventes 2025 / 2026 / total, prix de revient, stock |
 | `data/charges.js` | `CHARGES_DATA` : charges par fournisseur et par mois |

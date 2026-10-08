@@ -522,5 +522,5 @@
     try { const P = previsions('groupe'), neg = P.rows.find(r => r.fin < 0); if(neg && R.comptes.rows().some(x => x.solde !== '' && x.solde != null)) out.push({key:'treso:' + neg.m, cat:'paiement', prio:3, tab:'tresorerie', txt:`Trésorerie négative prévue en ${moisNom(neg.m)}`, sub:money(neg.fin)}); } catch(e) {}
     return out;
   }
-  window.EJ_GESTION = {rappels, show};
+  window.EJ_GESTION = {rappels, show, creances:creancesToutes, previsions, resultat, echeances:echeancesToutes, couverture, fournisseursDus, registres:R};
 })();
