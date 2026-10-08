@@ -3,12 +3,13 @@
      stock, inventaire du mois, salons proches). Cocher « Fait » masque le rappel (mémorisé dans le navigateur).
    - Routine quotidienne / hebdomadaire / mensuelle : cases remises à zéro à chaque période.
    - Mes tâches et notes du journal : saisies libres.
-   - Actualités : flux Google News (parfumerie, marché, Moyen-Orient, international, la marque) via rss2json, en cache 3 h.
+   - Actualités : parfums de niche (marques suivies), nouveautés avec visuels (Now Smell This, Nez, Bois de Jasmin),
+     parfumerie, marché, Moyen-Orient, international, la marque — Google Actualités et flux RSS via rss2json, en cache 3 h.
    Tout est gardé dans le localStorage du navigateur (clé 'ej_journal_v1'). */
 (function(){
   const root = document.getElementById('journal');
   if(!root) return;
-  const KEY = 'ej_journal_v1', NEWS_KEY = 'ej_actus_cache_v1';
+  const KEY = 'ej_journal_v1', NEWS_KEY = 'ej_actus_cache_v2';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money = n => (n || 0).toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
   const pad = n => String(n).padStart(2, '0');
@@ -158,52 +159,101 @@
   });
 
   /* ---------- Actualités ---------- */
+  // Marques suivies (modifiables dans la page) : parfums de niche et maisons orientales.
+  // Un nom ambigu (Creed, Initio…) est précisé (« Creed fragrance ») pour éviter les articles hors sujet.
+  const MARQUES_DEFAUT = ['REEF Perfumes','Amouage','Kilian Paris','Parfums Crivelli','Lattafa','Xerjoff','Parfums de Marly','Maison Francis Kurkdjian','Initio Parfums','Nishane','Creed fragrance','Roja Parfums','Byredo','Frédéric Malle','Kayali fragrance','Armaf','Rasasi','Ajmal Perfumes','Afnan Perfumes','Swiss Arabian','Arabian Oud','Maison Alhambra'];
+  const marques = () => (J.marques && J.marques.length ? J.marques : MARQUES_DEFAUT);
+  const q = s => /\s/.test(s) ? '"' + s + '"' : s;
   const FEEDS = {
-    parfumerie:{l:'Parfumerie', q:'parfumerie OR "parfum de niche" OR "nouveau parfum"', lg:'fr'},
-    marche:{l:'Marché & industrie', q:'"industrie du parfum" OR "marché du parfum" OR Firmenich OR Givaudan OR IFF OR Symrise', lg:'fr'},
-    orient:{l:'Moyen-Orient', q:'(perfume OR fragrance OR oud) (Dubai OR "Saudi Arabia" OR GCC OR "Middle East")', lg:'en'},
-    monde:{l:'International', q:'"fragrance industry" OR "niche fragrance" OR "perfume brand"', lg:'en'},
-    marque:{l:'Emmanuelle Jane', q:'"Emmanuelle Jane"', lg:'fr'}
+    niche:{l:'Parfums de niche', q:() => marques().map(q).join(' OR '), lg:'en', filtre:true, paquets:7, rss:['https://nstperfume.com/feed/']},
+    nouveautes:{l:'Nouveautés', rss:['https://nstperfume.com/feed/','https://mag.bynez.com/feed/','https://boisdejasmin.com/feed']},
+    parfumerie:{l:'Parfumerie', q:() => 'parfumerie OR "parfum de niche" OR "nouveau parfum"', lg:'fr'},
+    marche:{l:'Marché & industrie', q:() => '"industrie du parfum" OR "marché du parfum" OR Firmenich OR Givaudan OR IFF OR Symrise', lg:'fr', rss:['https://www.premiumbeautynews.com/spip.php?page=backend']},
+    orient:{l:'Moyen-Orient', q:() => '(perfume OR fragrance OR oud) (Dubai OR "Saudi Arabia" OR GCC OR "Middle East")', lg:'en'},
+    monde:{l:'International', q:() => '"fragrance industry" OR "niche fragrance" OR "perfume brand"', lg:'en'},
+    marque:{l:'Emmanuelle Jane', q:() => '"Emmanuelle Jane"', lg:'fr'}
   };
-  const SITES = [['Premium Beauty News','https://www.premiumbeautynews.com/fr/'],['Nez, la revue','https://mag.bynez.com/'],['CosmeticOfficine','https://www.cosmeticofficine.com/'],['FashionNetwork Beauté','https://fr.fashionnetwork.com/news/Beaute/'],['Cosmetics Business','https://cosmeticsbusiness.com/'],['BeautyMatter','https://beautymatter.com/'],['Fragrantica News','https://www.fragrantica.com/news/']];
-  let feed = 'parfumerie';
-  function gnews(f){
+  const SITES = [['Premium Beauty News','https://www.premiumbeautynews.com/fr/'],['Nez, la revue','https://mag.bynez.com/'],['Now Smell This','https://nstperfume.com/'],['Fragrantica','https://www.fragrantica.com/news/'],['CosmeticOfficine','https://www.cosmeticofficine.com/'],['FashionNetwork Beauté','https://fr.fashionnetwork.com/news/Beaute/'],['Cosmetics Business','https://cosmeticsbusiness.com/'],['BeautyMatter','https://beautymatter.com/']];
+  let feed = 'niche';
+  function gnews(f, query){
     const F = FEEDS[f], loc = F.lg === 'en' ? 'hl=en-US&gl=US&ceid=US:en' : 'hl=fr&gl=FR&ceid=FR:fr';
-    return 'https://news.google.com/rss/search?q=' + encodeURIComponent(F.q + ' when:30d') + '&' + loc;
+    return 'https://news.google.com/rss/search?q=' + encodeURIComponent((query || F.q()) + ' when:30d') + '&' + loc;
+  }
+  // Une requête trop longue fait ignorer le filtre de date : les marques sont envoyées par paquets.
+  function sources(f){
+    const F = FEEDS[f]; let g = [];
+    if(F.paquets){ const m = marques(); for(let i = 0; i < m.length; i += F.paquets) g.push(gnews(f, m.slice(i, i + F.paquets).map(q).join(' OR '))); }
+    else if(F.q) g = [gnews(f)];
+    return g.concat(F.rss || []);
   }
   function cache(){ try { return JSON.parse(localStorage.getItem(NEWS_KEY)) || {}; } catch(e) { return {}; } }
+  // Visuel : image du flux (vignette, pièce jointe ou première image de l'article), sinon une vignette avec la marque citée.
+  function imageOf(i){
+    const c = String(i.content || '') + String(i.description || ''), m = c.match(/<img[^>]+src=["']([^"']+)["']/i);
+    const u = i.thumbnail || (i.enclosure && /image|jpe?g|png|webp/i.test((i.enclosure.type || '') + (i.enclosure.link || '')) && i.enclosure.link) || (m && m[1]) || '';
+    return /^https:\/\//.test(u) && !/feedburner|pixel|gravatar|emoji/i.test(u) ? u : '';
+  }
+  function parts(i){
+    const t = String(i.title || '').replace(/&amp;/g, '&'), m = t.match(/^(.*) - ([^-]{2,60})$/), host = (String(i.link).match(/^https?:\/\/(?:www\.)?([^/]+)/) || [])[1] || '';
+    const gn = /news\.google\./.test(host);
+    return {titre:gn && m ? m[1] : t, src:gn ? (m ? m[2] : 'Google Actualités') : ({'nstperfume.com':'Now Smell This','mag.bynez.com':'Nez','boisdejasmin.com':'Bois de Jasmin','premiumbeautynews.com':'Premium Beauty News'}[host] || i.author || host)};
+  }
+  const baseMarque = b => b.replace(/^(Parfums|Maison) (?!Francis|Alhambra|de )/, '').replace(/ (Perfumes|Parfums|Paris|fragrance|perfume|parfum)$/i, '');
+  function marqueDans(titre){ const t = titre.toLowerCase(); return marques().map(baseMarque).find(b => t.includes(b.toLowerCase())); }
+  const PARFUM_RE = /perfum|parfum|fragran|scent|eau de|oud|cologne|niche/i;
+  function visuel(i, p, big){
+    const img = imageOf(i);
+    if(img) return `<div class="j-vis${big ? ' j-vis-big' : ''}"><img src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('j-vis-txt');this.remove()"><span>${esc(marqueDans(p.titre) || p.src)}</span></div>`;
+    return `<div class="j-vis j-vis-txt${big ? ' j-vis-big' : ''}"><span>${esc(marqueDans(p.titre) || p.src || 'Parfum')}</span></div>`;
+  }
   function showNews(items){
     const box = root.querySelector('#jNews');
     if(!items || !items.length){ box.innerHTML = `<li class="j-empty">${feed === 'marque' ? 'Aucun article récent ne cite la marque.' : 'Aucun article trouvé.'}</li>`; return; }
-    box.innerHTML = items.slice(0, 8).map(i => {
-      const m = String(i.title).match(/^(.*) - ([^-]+)$/), titre = m ? m[1] : i.title, src = m ? m[2] : (i.author || '');
-      const d = i.pubDate ? new Date(i.pubDate.replace(' ', 'T') + 'Z') : null;
-      return `<li><a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(titre)}</a><div class="j-sub">${esc(src)}${d && !isNaN(d) ? ' · ' + d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) : ''}</div></li>`;
+    box.innerHTML = items.slice(0, 9).map((i, n) => {
+      const p = parts(i), d = i.pubDate ? new Date(String(i.pubDate).replace(' ', 'T') + 'Z') : null;
+      const meta = `<div class="j-sub">${esc(p.src)}${d && !isNaN(d) ? ' · ' + d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) : ''}</div>`;
+      return `<li class="${n === 0 ? 'j-news-une' : 'j-news-item'}"><a href="${esc(i.link)}" target="_blank" rel="noopener">${visuel(i, p, n === 0)}<div class="j-news-t"><span class="j-news-h">${esc(p.titre)}</span>${meta}</div></a></li>`;
     }).join('');
   }
+  const rss2json = u => fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(u)).then(r => r.json()).then(d => { if(d.status !== 'ok') throw new Error(d.message); return d.items || []; });
   function loadNews(force){
     root.querySelectorAll('#jFeeds button').forEach(b => b.classList.toggle('active', b.dataset.feed === feed));
+    root.querySelector('#jMarquesBox').hidden = feed !== 'niche';
     const C = cache(), c = C[feed];
     if(c && !force && Date.now() - c.t < 3 * 3600e3){ showNews(c.items); return; }
     const box = root.querySelector('#jNews'); box.innerHTML = '<li class="j-empty">Chargement des actualités…</li>';
     const f = feed;
-    fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(gnews(f)))
-      .then(r => r.json()).then(d => {
-        if(d.status !== 'ok') throw new Error(d.message || 'flux indisponible');
-        const items = (d.items || []).sort((a, b) => String(b.pubDate).localeCompare(String(a.pubDate)));
-        const C2 = cache(); C2[f] = {t:Date.now(), items:items.slice(0, 10)}; try { localStorage.setItem(NEWS_KEY, JSON.stringify(C2)); } catch(e) {}
-        if(f === feed) showNews(items);
-      }).catch(() => {
-        if(f !== feed) return;
-        if(c) showNews(c.items);
-        else box.innerHTML = `<li class="j-empty">Actualités indisponibles pour le moment (connexion ou limite du service). <a href="${esc(gnews(f).replace('/rss/search', '/search'))}" target="_blank" rel="noopener">Ouvrir dans Google Actualités</a></li>`;
-      });
+    Promise.allSettled(sources(f).map(rss2json)).then(res => {
+      const ok = res.filter(r => r.status === 'fulfilled');
+      if(!ok.length) throw new Error('flux indisponibles');
+      // Au plus 4 articles par revue, pour que toutes apparaissent (Now Smell This publique beaucoup chaque jour).
+      const cap = a => (a.length && !/news\.google\./.test(a[0].link) && sources(f).length > 1) ? a.slice(0, 4) : a;
+      const seen = new Set(), items = [].concat(...ok.map(r => cap(r.value)))
+        .filter(i => !FEEDS[f].filtre || (/news\.google\./.test(i.link) ? PARFUM_RE.test(parts(i).titre) || !!marqueDans(parts(i).titre) : !!marqueDans(parts(i).titre)))
+        .filter(i => { const k = parts(i).titre.toLowerCase().slice(0, 60); if(seen.has(k)) return false; seen.add(k); return true; })
+        .sort((a, b) => String(b.pubDate).localeCompare(String(a.pubDate)));
+      // Les articles avec image passent devant pour l'article à la une.
+      const une = items.findIndex(i => imageOf(i)); if(une > 0 && une < 4) items.unshift(items.splice(une, 1)[0]);
+      const C2 = cache(); C2[f] = {t:Date.now(), items:items.slice(0, 12)}; try { localStorage.setItem(NEWS_KEY, JSON.stringify(C2)); } catch(e) {}
+      if(f === feed) showNews(items);
+    }).catch(() => {
+      if(f !== feed) return;
+      if(c) showNews(c.items);
+      else box.innerHTML = `<li class="j-empty">Actualités indisponibles pour le moment (connexion ou limite du service).${FEEDS[f].q ? ` <a href="${esc(gnews(f).replace('/rss/search', '/search'))}" target="_blank" rel="noopener">Ouvrir dans Google Actualités</a>` : ''}</li>`;
+    });
   }
   root.querySelector('#jFeeds').innerHTML = Object.keys(FEEDS).map(k => `<button type="button" data-feed="${k}">${FEEDS[k].l}</button>`).join('');
   root.querySelector('#jFeeds').addEventListener('click', e => { const b = e.target.closest('button'); if(b){ feed = b.dataset.feed; loadNews(); } });
   root.querySelector('#jNewsRefresh').addEventListener('click', () => loadNews(true));
   root.querySelector('#jSites').innerHTML = SITES.map(([n, u]) => `<a href="${u}" target="_blank" rel="noopener">${n}</a>`).join('');
-
+  const mInput = root.querySelector('#jMarques');
+  mInput.value = marques().join(', ');
+  root.querySelector('#jMarquesForm').addEventListener('submit', e => {
+    e.preventDefault();
+    J.marques = mInput.value.split(',').map(s => s.trim()).filter(Boolean); if(!J.marques.length) delete J.marques;
+    mInput.value = marques().join(', '); save(); loadNews(true);
+  });
+  root.querySelector('#jMarquesReset').addEventListener('click', () => { delete J.marques; mInput.value = marques().join(', '); save(); loadNews(true); });
   render();
   loadNews();
   // Les documents peuvent changer dans l'onglet Devis & Factures : on recalcule en revenant sur le journal.
