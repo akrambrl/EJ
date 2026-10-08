@@ -91,6 +91,25 @@
       nouveau:() => ({collection:'VIP', date:T0()})})
   };
 
+  R.mouvements = REG.def('stock_mouvements', {ajout:'+ Ajouter un mouvement de stock', vide:'Aucun mouvement saisi : le stock = comptage − factures.', tri:(x, y) => String(y.date).localeCompare(String(x.date)), cols:[
+    {k:'date', l:'Date', t:'date'}, {k:'collection', l:'Collection', t:'select', o:['VIP', 'VIP BLACK', '50ML', 'BRUMES', 'ROYAL']}, {k:'reference', l:'Référence (nom exact)', w:150},
+    {k:'quantite', l:'Flacons (+ entrée / − sortie)', t:'num'}, {k:'motif', l:'Motif', t:'select', o:['Production reçue', "Correction d'inventaire", 'Casse / perte', 'Échantillons / cadeaux', 'Autre']}, {k:'note', l:'Note', w:140}],
+    nouveau:() => ({date:T0(), collection:'VIP', motif:'Production reçue'})});
+
+  // Page Stock : détail des sorties par facture depuis le comptage et saisie des entrées (production, corrections)
+  function stockMouvements(){
+    const box = $('stockMouv'); if(!box || typeof ALL === 'undefined') return;
+    const M = ALL.stock_mouvements || {factures:[], sorties:0, entrees:0};
+    if(!box.querySelector('[data-reg]')){
+      box.innerHTML = `<details class="gx-reglages" id="stockMouvDet"><summary>Mouvements depuis le comptage du ${fr(ALL.stock_ref_date)} : <span id="stockMouvRes"></span></summary>
+        <div id="stockMouvFact"></div><h3 class="gx-h3">Entrées et corrections</h3><p class="j-sub">Production reçue (+), casse ou échantillons (−), correction après un nouvel inventaire. Le nom de la référence doit être écrit comme dans le stock.</p><div id="stockMouvReg"></div></details>`;
+      R.mouvements.render($('stockMouvReg'));
+    }
+    $('stockMouvRes').textContent = `− ${M.sorties.toLocaleString('fr-FR')} flacons sur ${M.factures.length} facture${M.factures.length > 1 ? 's' : ''}${M.entrees ? `, ${M.entrees > 0 ? '+' : '−'} ${Math.abs(M.entrees).toLocaleString('fr-FR')} en mouvements saisis` : ''}`;
+    $('stockMouvFact').innerHTML = M.factures.length ? `<ul class="gx-det-list">${M.factures.map(f => `<li><span>${esc(f.date)} · ${esc(f.facture)} · ${esc(f.client)}</span><span>− ${f.flacons.toLocaleString('fr-FR')} fl.</span></li>`).join('')}</ul>` : '<p class="j-sub">Aucune facture depuis le comptage.</p>';
+  }
+  if(typeof window.renderStock === 'function'){ const orig = window.renderStock; window.renderStock = function(){ orig.apply(this, arguments); stockMouvements(); }; }
+
   /* ================= Sources automatiques ================= */
   // Encaissements attendus des factures créées dans le dashboard (échéancier ou facture entière)
   function attendusDocs(){

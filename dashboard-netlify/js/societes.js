@@ -51,6 +51,7 @@
   /* ---------- Données de base ---------- */
   const YEARS = ['2025', '2026'];
   const BASE = { '2025': clone(ALL['2025']), '2026': clone(ALL['2026']), 'total': clone(ALL['total']) };
+  const BASE_STOCK = clone(ALL.stock || {});   // comptage physique au ALL.stock_ref_date
   const INTRA = (typeof INTRAGROUPE !== 'undefined') ? INTRAGROUPE : [];
   const isNBNum = n => /^NB\d/.test(n || '');
   const isIntra = f => /^nb evolution/i.test(f.client || '');
@@ -142,6 +143,7 @@
       const Rb = R.rebuildAll(s['2025'], s['2026'], todayUTC());
       YEARS.concat(['total']).forEach(y => { ALL[y] = Rb[y]; });
     }
+    recalcStock();
     const D = depensesFor(view);
     mutate(FIXED_CHARGES, D.fixed); mutate(SUPPLIER_INVOICES, D.supplier); mutate(PENDING_TRANSFERS, D.pending);
     document.querySelectorAll('.soc-btn').forEach(b => b.classList.toggle('active', b.dataset.soc === view));
@@ -150,11 +152,63 @@
     if(typeof renderAll === 'function') renderAll();
   }
 
+  /* ---------- Stock à jour ----------
+     Stock = comptage physique (ALL.stock_ref_date) − flacons sortis sur chaque facture postérieure (bouteilles payées + testeurs),
+     ± mouvements saisis dans la page Stock (production reçue, corrections, casse). Vue « groupe » : chaque envoi compté une fois
+     (les ventes internes BSD → NB sont exclues, les ventes de NB aux clients sont comptées). Les statuts gardent la répartition du comptage. */
+  const RANG = ['ok', 'medium', 'low', 'critical'];
+  function recalcStock(){
+    if(!ALL.stock_ref_date || !Object.keys(BASE_STOCK).length) return;
+    const ref = ALL.stock_ref_date, isoF = d => { const m = String(d || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/); return m ? m[3] + '-' + m[2] + '-' + m[1] : ''; };
+    const S = clone(BASE_STOCK), sorties = {}, detail = [];
+    const sets = setsFor('groupe');
+    YEARS.forEach(y => (sets[y] || []).forEach(f => {
+      const d = isoF(f.date); if(!d || d <= ref) return;
+      let n = 0;
+      (f.lines || []).forEach(l => { if(!S[l.collection]) return; const q = (l.btl || 0) + (l.testers || 0); if(!q) return; const k = l.collection + '|' + l.reference; sorties[k] = (sorties[k] || 0) + q; n += q; });
+      if(n) detail.push({facture:f.facture, date:f.date, client:f.client, flacons:n});
+    }));
+    let mouv = []; try { mouv = JSON.parse(localStorage.getItem('ej_reg_stock_mouvements')) || []; } catch(e) {}
+    const entrees = {};
+    mouv.forEach(m => { const q = +m.quantite || 0; if(!q || !m.collection || !m.reference || (m.date && m.date < ref)) return; const k = m.collection + '|' + m.reference; entrees[k] = (entrees[k] || 0) + q; });
+    Object.keys(S).forEach(col => {
+      const C = S[col], base = BASE_STOCK[col];
+      // nombre de références par statut au comptage (hors épuisées), réappliqué au nouveau classement
+      const parts = RANG.map(r => base.items.filter(i => i.status === r).length);
+      C.items.forEach(i => {
+        const k = col + '|' + i.reference;
+        i.qty_comptage = i.qty; i.sorties = sorties[k] || 0; i.entrees = entrees[k] || 0;
+        i.qty = i.qty - i.sorties + i.entrees;
+        i.ca_pot = Math.max(0, i.qty) * (i.prix_btl || 0);
+        i.benef_pot = Math.round(Math.max(0, i.qty) * ((i.prix_btl || 0) - (i.cost_per_btl || 0)) * 100) / 100;
+      });
+      // références vendues ou reçues mais absentes du comptage
+      Object.keys(Object.assign({}, sorties, entrees)).filter(k => k.startsWith(col + '|') && !C.items.some(i => col + '|' + i.reference === k)).forEach(k => {
+        const r = k.slice(col.length + 1), q = (entrees[k] || 0) - (sorties[k] || 0);
+        C.items.push({reference:r, qty:q, qty_comptage:0, sorties:sorties[k] || 0, entrees:entrees[k] || 0, prix_btl:0, cost_per_btl:0, ca_pot:0, benef_pot:0, status:'ok', initial:0, nouveau:true});
+      });
+      const vivants = C.items.filter(i => i.qty > 0).sort((a, b) => b.qty - a.qty), total = parts.reduce((a, b) => a + b, 0) || 1;
+      let idx = 0;
+      RANG.forEach((r, j) => { const n = j === RANG.length - 1 ? vivants.length - idx : Math.round(parts[j] / total * vivants.length); vivants.slice(idx, idx + n).forEach(i => { i.status = r; }); idx += n; });
+      C.items.filter(i => i.qty <= 0).forEach(i => { i.status = 'epuise'; });
+      C.items.sort((a, b) => b.qty - a.qty);
+      C.total_qty = C.items.reduce((a, i) => a + Math.max(0, i.qty), 0);
+      C.total_ca_pot = C.items.reduce((a, i) => a + i.ca_pot, 0);
+      C.total_benef_pot = Math.round(C.items.reduce((a, i) => a + i.benef_pot, 0) * 100) / 100;
+    });
+    ALL.stock = S;
+    ALL.stock_mouvements = {factures:detail.sort((a, b) => isoF(b.date).localeCompare(isoF(a.date))), sorties:Object.values(sorties).reduce((a, b) => a + b, 0), entrees:Object.values(entrees).reduce((a, b) => a + b, 0)};
+  }
+  // Après une saisie de mouvement : recalcul quand on a fini de remplir la ligne (pas pendant la frappe)
+  let tStock = null;
+  function apresSaisie(){ const a = document.activeElement; if(a && a.closest && a.closest('[data-reg="stock_mouvements"]')){ tStock = setTimeout(apresSaisie, 1200); return; } apply(); }
+  window.addEventListener('ej-reg', e => { if(e.detail === 'stock_mouvements'){ clearTimeout(tStock); tStock = setTimeout(apresSaisie, 600); } });
+
   // Données « groupe » à jour pour l'export (data/ventes.js et data/intragroupe.js)
   function exportData(){
     const s = setsFor('groupe');
     const Rb = R.rebuildAll(s['2025'], s['2026'], todayUTC());
-    const all = {}; Object.keys(ALL).forEach(k => { all[k] = YEARS.concat(['total']).includes(k) ? Rb[k] : ALL[k]; });
+    const all = {}; Object.keys(ALL).forEach(k => { if(k === 'stock_mouvements') return; all[k] = YEARS.concat(['total']).includes(k) ? Rb[k] : k === 'stock' ? BASE_STOCK : ALL[k]; });
     const newIntra = local.filter(f => f.societe === 'BSD' && isIntra(f) && !INTRA.some(x => x.facture === f.facture))
       .map(f => { const g = clean(f); g.annee = yearOf(f); return g; });
     return {all, intra:INTRA.concat(newIntra), nIntra:newIntra.length};
