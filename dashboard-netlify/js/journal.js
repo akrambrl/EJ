@@ -219,8 +219,8 @@
 
   /* Photos des articles Google Actualités : le flux n'en donne pas. Microlink suit le lien et renvoie l'image
      d'aperçu de l'article (og:image) et son adresse réelle. Service gratuit limité (environ 50 appels par jour) :
-     résultats gardés dans le navigateur, 8 articles au plus par affichage, arrêt jusqu'au lendemain si la limite est atteinte. */
-  const IMG_KEY = 'ej_actus_images_v2', IMG_MAX = 8;
+     résultats gardés dans le navigateur, 10 articles au plus par affichage, échecs retentés le lendemain, arrêt jusqu'au lendemain si la limite est atteinte. */
+  const IMG_KEY = 'ej_actus_images_v3', IMG_MAX = 10;
   let imgs = (() => { try { return JSON.parse(localStorage.getItem(IMG_KEY)) || {}; } catch(e) { return {}; } })();
   const saveImgs = () => { const k = Object.keys(imgs).filter(x => x !== '_stop'); if(k.length > 300) k.slice(0, k.length - 300).forEach(x => delete imgs[x]); try { localStorage.setItem(IMG_KEY, JSON.stringify(imgs)); } catch(e) {} };
   function putPhoto(n, r){
@@ -233,24 +233,30 @@
     if(r.url) li.querySelector('a').href = r.url;
   }
   async function photos(list){
-    const todo = [];
+    const todo = [], fresh = r => r && (r.img || Date.now() - (r.t || 0) < 24 * 3600e3);
     list.forEach((i, n) => {
       if(imageOf(i) || !/news\.google\./.test(i.link || '')) return;
-      if(imgs[i.link]) putPhoto(n, imgs[i.link]); else if(todo.length < IMG_MAX) todo.push([n, i.link]);
+      if(fresh(imgs[i.link])) putPhoto(n, imgs[i.link]); else if(todo.length < IMG_MAX) todo.push([n, i.link]);
     });
-    for(const [n, link] of todo){
+    // prerender : Microlink ouvre la page comme un navigateur, ce qui suit aussi les liens Google Actualités en JavaScript.
+    const one = async ([n, link]) => {
       if(imgs._stop && Date.now() < imgs._stop) return;
       try {
-        const r = await fetch('https://api.microlink.io/?url=' + encodeURIComponent(link));
+        const r = await fetch('https://api.microlink.io/?prerender=true&url=' + encodeURIComponent(link));
         if(r.status === 429){ imgs._stop = Date.now() + 12 * 3600e3; saveImgs(); return; }
         const d = await r.json();
         const img = d && d.status === 'success' && d.data && d.data.image && d.data.image.url;
         const url = (d && d.data && d.data.url) || '', google = /news\.google\.|gstatic\.com|googleusercontent\.com/.test(url + ' ' + (img || ''));
-        imgs[link] = {img:!google && /^https:\/\//.test(img || '') ? img : '', url:google ? '' : url};
+        imgs[link] = {img:!google && /^https:\/\//.test(img || '') ? img : '', url:google ? '' : url, t:Date.now()};
         saveImgs();
-        if(root.querySelector(`#jNews li[data-n="${n}"] a[href="${CSS.escape(link)}"]`)) putPhoto(n, imgs[link]);
-      } catch(e) { return; }
-    }
+        if(list[n] && list[n].link === link) putPhoto(n, imgs[link]);
+      } catch(e) {}
+    };
+    for(let k = 0; k < todo.length; k += 3) await Promise.all(todo.slice(k, k + 3).map(one));
+    // Sans photo propre : on reprend la photo d'un autre article sur la même marque.
+    const photoMarque = {};
+    list.forEach(i => { const b = marqueDans(parts(i).titre), im = imageOf(i) || (imgs[i.link] && imgs[i.link].img); if(b && im && !photoMarque[b]) photoMarque[b] = im; });
+    list.forEach((i, n) => { const b = marqueDans(parts(i).titre); if(b && photoMarque[b]) putPhoto(n, {img:photoMarque[b]}); });
   }
   const rss2json = u => fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(u)).then(r => r.json()).then(d => { if(d.status !== 'ok') throw new Error(d.message); return d.items || []; });
   function loadNews(force){
