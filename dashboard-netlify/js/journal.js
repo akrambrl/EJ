@@ -212,8 +212,45 @@
     box.innerHTML = items.slice(0, 9).map((i, n) => {
       const p = parts(i), d = i.pubDate ? new Date(String(i.pubDate).replace(' ', 'T') + 'Z') : null;
       const meta = `<div class="j-sub">${esc(p.src)}${d && !isNaN(d) ? ' · ' + d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) : ''}</div>`;
-      return `<li class="${n === 0 ? 'j-news-une' : 'j-news-item'}"><a href="${esc(i.link)}" target="_blank" rel="noopener">${visuel(i, p, n === 0)}<div class="j-news-t"><span class="j-news-h">${esc(p.titre)}</span>${meta}</div></a></li>`;
+      return `<li class="${n === 0 ? 'j-news-une' : 'j-news-item'}" data-n="${n}"><a href="${esc(i.link)}" target="_blank" rel="noopener">${visuel(i, p, n === 0)}<div class="j-news-t"><span class="j-news-h">${esc(p.titre)}</span>${meta}</div></a></li>`;
     }).join('');
+    photos(items.slice(0, 9));
+  }
+
+  /* Photos des articles Google Actualités : le flux n'en donne pas. Microlink suit le lien et renvoie l'image
+     d'aperçu de l'article (og:image) et son adresse réelle. Service gratuit limité (environ 50 appels par jour) :
+     résultats gardés dans le navigateur, 8 articles au plus par affichage, arrêt jusqu'au lendemain si la limite est atteinte. */
+  const IMG_KEY = 'ej_actus_images_v2', IMG_MAX = 8;
+  let imgs = (() => { try { return JSON.parse(localStorage.getItem(IMG_KEY)) || {}; } catch(e) { return {}; } })();
+  const saveImgs = () => { const k = Object.keys(imgs).filter(x => x !== '_stop'); if(k.length > 300) k.slice(0, k.length - 300).forEach(x => delete imgs[x]); try { localStorage.setItem(IMG_KEY, JSON.stringify(imgs)); } catch(e) {} };
+  function putPhoto(n, r){
+    const li = root.querySelector(`#jNews li[data-n="${n}"]`); if(!li || !r || !r.img) return;
+    const v = li.querySelector('.j-vis-txt'); if(!v) return;
+    const label = v.textContent;
+    v.classList.remove('j-vis-txt');
+    v.innerHTML = `<img src="${esc(r.img)}" alt="" referrerpolicy="no-referrer"><span>${esc(label)}</span>`;
+    v.querySelector('img').onerror = function(){ v.classList.add('j-vis-txt'); this.remove(); };
+    if(r.url) li.querySelector('a').href = r.url;
+  }
+  async function photos(list){
+    const todo = [];
+    list.forEach((i, n) => {
+      if(imageOf(i) || !/news\.google\./.test(i.link || '')) return;
+      if(imgs[i.link]) putPhoto(n, imgs[i.link]); else if(todo.length < IMG_MAX) todo.push([n, i.link]);
+    });
+    for(const [n, link] of todo){
+      if(imgs._stop && Date.now() < imgs._stop) return;
+      try {
+        const r = await fetch('https://api.microlink.io/?url=' + encodeURIComponent(link));
+        if(r.status === 429){ imgs._stop = Date.now() + 12 * 3600e3; saveImgs(); return; }
+        const d = await r.json();
+        const img = d && d.status === 'success' && d.data && d.data.image && d.data.image.url;
+        const url = (d && d.data && d.data.url) || '', google = /news\.google\.|gstatic\.com|googleusercontent\.com/.test(url + ' ' + (img || ''));
+        imgs[link] = {img:!google && /^https:\/\//.test(img || '') ? img : '', url:google ? '' : url};
+        saveImgs();
+        if(root.querySelector(`#jNews li[data-n="${n}"] a[href="${CSS.escape(link)}"]`)) putPhoto(n, imgs[link]);
+      } catch(e) { return; }
+    }
   }
   const rss2json = u => fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(u)).then(r => r.json()).then(d => { if(d.status !== 'ok') throw new Error(d.message); return d.items || []; });
   function loadNews(force){
