@@ -979,3 +979,25 @@ tr.gx-urgent td{color:var(--bad)} tr.gx-bientot td{color:var(--warn)} tr.gx-dorm
   .ia-fab{right:14px;bottom:14px;width:48px;height:48px}
   .ia-box{right:0;bottom:0;width:100vw;height:100dvh;border:none}
 }
+
+/* ===================== Mobile : rien ne dépasse de l'écran ===================== */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.main{min-width:0;max-width:100%}
+.topbar .brand-txt{min-width:0;flex:1 1 auto;overflow:hidden}
+.topbar .brand-sub,.topbar .brand-name{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chart-container,.j-card,.eq-mission,.gx-card,.crm-fiche,.sl-mois,.info-box{max-width:100%;min-width:0}
+#evolutionGrid>div{min-width:0}
+@media(max-width:899px){ #evolutionGrid{grid-template-columns:1fr!important} }
+@media(max-width:599px){
+  html,body{overflow-x:hidden;max-width:100vw}
+  .main{overflow-x:hidden}
+  .topbar .brand-sub{letter-spacing:.18em;font-size:.55rem}
+  .topbar{gap:10px}
+  /* tableaux larges : défilement horizontal dans leur cadre au lieu d'élargir la page */
+  .section table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .j-sites{word-break:break-word}
+  .j-item>*{min-width:0}
+  .j-txt{overflow-wrap:anywhere}
+  .section h2{flex-wrap:wrap}
+  .pli-tout{margin-left:0}
+}
