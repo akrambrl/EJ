@@ -37,7 +37,9 @@
   // Trouve dans la question le nom (client, référence, pays) le plus long qui y figure ; tolère une petite faute de frappe.
   function lev(a, b){ const m = a.length, n = b.length; if(Math.abs(m - n) > 2) return 9; const d = Array.from({length:m + 1}, (_, i) => [i]); for(let j = 1; j <= n; j++) d[0][j] = j;
     for(let i = 1; i <= m; i++) for(let j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[m][n]; }
-  const VIDES = new Set(['nb','evolution','the','de','du','la','le','les','des','et','paris','group','company','trading','limited','ltd','llc','mmc','srls','aps','distribution','distributors','partners','parfum','parfums','perfumeria','cosmetics','global','brands','vip','black','royal','milano','uomo']);
+  // Mots courants à ne jamais prendre pour un nom de client (« est » dans « Gare de l'Est », « gare »…)
+  const VIDES = new Set(['est','gare','styles','pour','par','sur','mes','ses','aux','qui','que','quoi','son','pas','plus','moi','nous','vous','avec','dans','quel','quelle','quand','comme','tout','mon','ont','fait','prochain','prochaine','dernier','derniere','cette','annee','mois','client','clients','salon','salons','stock','prix','combien','une','vente','ventes','commande','commandes','facture','factures','prevu','prevue','il','elle','on','en','au','a','y',
+  'nb','evolution','the','de','du','la','le','les','des','et','paris','group','company','trading','limited','ltd','llc','mmc','srls','aps','distribution','distributors','partners','parfum','parfums','perfumeria','cosmetics','global','brands','vip','black','royal','milano','uomo']);
   function trouver(q, noms){
     const Q = ' ' + norm(q) + ' ', mots = norm(q).split(' ');
     let best = null, score = 0;
@@ -71,6 +73,16 @@
     return `<strong>Facture ${esc(f.facture)}</strong> du ${esc(f.date)} — ${esc(f.client)} (${esc(f.pays)})<br>Montant : <strong>${money(f.ca)}</strong> · ${nombre(f.btl)} flacons${f.marge != null ? ` · bénéfice ${money0(f.marge)}` : ''}<div class="ia-sub">${lignes}${(f.lines || []).length > 8 ? '<br>…' : ''}</div>${btn('Ouvrir la facture', 'factures', ` data-facture="${esc(f.facture)}"`)}`;
   }
   // Dernière(s) facture(s) / commande d'un client
+  // Salons
+  regle(q => /(salon|foire|expo|cosmoprof|beautyworld|esxence|intercharm|pitti)/.test(norm(q)), q => {
+    if(typeof SALONS === 'undefined') return 'Calendrier des salons indisponible.';
+    const Q = norm(q), futurs = SALONS.filter(s => /^\d{4}-\d{2}-\d{2}$/.test(s.debut) ? days(s.fin || s.debut) >= 0 : s.debut >= iso(today()).slice(0, 7)).filter(s => s.statut !== 'reporte').sort((a, b) => a.debut.localeCompare(b.debut));
+    const cible = SALONS.filter(s => norm(s.nom).split(' ').some(w => w.length > 4 && Q.includes(w)) || Q.includes(norm(s.ville)));
+    const fmt = s => `<li><strong>${esc(s.nom)}</strong> — ${esc(s.ville)} · ${/^\d{4}-\d{2}-\d{2}$/.test(s.debut) ? fr(s.debut) + (s.fin && s.fin !== s.debut ? ' au ' + fr(s.fin) : '') + (days(s.debut) > 0 ? ` (dans ${days(s.debut)} j)` : days(s.fin || s.debut) >= 0 ? ' (en cours)' : ' (terminé)') : 'date à confirmer (' + s.debut + ')'}${s.prio ? ' ★' : ''}</li>`;
+    if(cible.length) return `<ul>${cible.sort((a, b) => a.debut.localeCompare(b.debut)).map(fmt).join('')}</ul>${btn('Calendrier des salons', 'salons')}`;
+    const prio = /prioritaire|important/.test(Q) ? futurs.filter(s => s.prio) : futurs;
+    return `Prochains salons :<ul>${prio.slice(0, 5).map(fmt).join('')}</ul>${btn('Calendrier des salons', 'salons')}`;
+  });
   // Clients sans commande récente
   regle(q => /(inactif|n ont pas commande|pas commande depuis|plus commande|sans commande|a relancer)/.test(norm(q)), () => {
     const der = {}; factures().forEach(f => { const d = frToIso(f.date); if(!der[f.client] || d > der[f.client].d) der[f.client] = {d, pays:f.pays, ca:0}; });
@@ -111,16 +123,6 @@
     const cov = window.EJ_GESTION ? EJ_GESTION.couverture().list.filter(x => x.ref === r) : [];
     if(!L.length) return `<strong>${esc(r)}</strong> n'apparaît pas dans le stock compté.`;
     return L.map(i => { const c = cov.find(x => x.col === i.collection); return `<strong>${esc(r)}</strong> (${esc(i.collection)}) : <strong>${nombre(i.qty)} flacons</strong> en stock${c && c.cov != null ? ` · environ ${c.cov.toFixed(1).replace('.', ',')} mois de ventes` : ''}${i.status === 'epuise' ? ' · <span class="ia-ko">épuisé</span>' : i.status === 'critical' || i.status === 'low' ? ' · <span class="ia-ko">stock bas</span>' : ''}`; }).join('<br>') + `<div class="ia-sub">Stock compté le ${fr(ALL.stock_ref_date)}, mis à jour avec les factures suivantes.</div>${btn('Page Stock', 'stock')}`;
-  });
-  // Salons
-  regle(q => /(salon|foire|expo|cosmoprof|beautyworld|esxence|intercharm|pitti)/.test(norm(q)), q => {
-    if(typeof SALONS === 'undefined') return 'Calendrier des salons indisponible.';
-    const Q = norm(q), futurs = SALONS.filter(s => /^\d{4}-\d{2}-\d{2}$/.test(s.debut) ? days(s.fin || s.debut) >= 0 : s.debut >= iso(today()).slice(0, 7)).filter(s => s.statut !== 'reporte').sort((a, b) => a.debut.localeCompare(b.debut));
-    const cible = SALONS.filter(s => norm(s.nom).split(' ').some(w => w.length > 4 && Q.includes(w)) || Q.includes(norm(s.ville)));
-    const fmt = s => `<li><strong>${esc(s.nom)}</strong> — ${esc(s.ville)} · ${/^\d{4}-\d{2}-\d{2}$/.test(s.debut) ? fr(s.debut) + (s.fin && s.fin !== s.debut ? ' au ' + fr(s.fin) : '') + (days(s.debut) > 0 ? ` (dans ${days(s.debut)} j)` : days(s.fin || s.debut) >= 0 ? ' (en cours)' : '') : 'date à confirmer (' + s.debut + ')'}${s.prio ? ' ★' : ''}</li>`;
-    if(cible.length) return `<ul>${cible.sort((a, b) => a.debut.localeCompare(b.debut)).map(fmt).join('')}</ul>${btn('Calendrier des salons', 'salons')}`;
-    const prio = /prioritaire|important/.test(Q) ? futurs.filter(s => s.prio) : futurs;
-    return `Prochains salons :<ul>${prio.slice(0, 5).map(fmt).join('')}</ul>${btn('Calendrier des salons', 'salons')}`;
   });
   // Créances
   regle(q => /(doit|doivent|dette|impaye|creance|a encaisser|pas paye|retard de paiement|argent)/.test(norm(q)), () => {
