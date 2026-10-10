@@ -374,7 +374,7 @@ tr.clickable:hover td{background:rgba(201,164,86,.07)}
 .doc-totals{background:var(--surface);border-color:var(--hair)}
 .doc-totals .kv.strong{font-family:var(--serif);font-size:1.35rem;font-weight:600;border-bottom-color:var(--gold)}
 .modal{background:var(--paper);border:1px solid var(--hair);box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 0 1px rgba(201,164,86,.08) inset}
-.search-box,select,.doc-modal input,.doc-modal select,.doc-modal textarea{background:#110F0D;border-color:var(--hair)}
+.search-box,select,.doc-modal input,.doc-modal select,.doc-modal textarea{background:var(--surface);color:var(--ink);border-color:var(--hair)}
 .footer{font-family:var(--serif);font-size:.95rem;letter-spacing:.3em;color:#7E7366;border-top:1px solid var(--hair)}
 
 @media(max-width:700px){
