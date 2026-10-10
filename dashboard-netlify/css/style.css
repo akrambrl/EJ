@@ -1080,3 +1080,5 @@ html[data-mode="simple"] .info-box{font-size:.9rem}
 .ia-tts{margin-top:12px;padding-top:10px;border-top:1px solid var(--hair)}
 .ia-tts p{font-size:.74rem;color:var(--muted);margin:4px 0 6px}
 .ia-tts input{width:100%;box-sizing:border-box}
+html:not([data-mode="complet"]) .ac-mode:not(.ac-mode-s){display:none} html[data-mode="complet"] .ac-mode-s{display:none}
+.main:has(#accueil.active) .kpis-top,.main:has(#accueil.active) details.notes{display:none!important}

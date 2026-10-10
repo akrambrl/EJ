@@ -24,7 +24,7 @@
     if(mode === 'simple'){
       const g = document.querySelector('.soc-btn[data-soc="groupe"]'); if(g && !g.classList.contains('active')) g.click();
       aller('accueil');
-    } else aller('journal');
+    } else aller('accueil');
     if(window.Chart) setTimeout(() => Object.values(Chart.instances || {}).forEach(c => c.resize()), 50);
   }
   if(btnMode) btnMode.addEventListener('click', () => passer(simple() ? 'complet' : 'simple'));
@@ -62,7 +62,8 @@
       <ul class="ac-todo">${rap.length ? rap.map(r => `<li><button type="button" data-go="${r.tab}"><span class="ac-pt ac-p${r.prio}"></span><span><strong>${esc(r.txt)}</strong>${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</span><em>Ouvrir ›</em></button></li>`).join('') : '<li class="ac-vide">Rien d’urgent aujourd’hui.</li>'}</ul>
       <p class="ac-lien"><button type="button" data-go="journal">Voir toute la liste dans le journal de bord ›</button></p>
       ${sal ? `<h3 class="ac-h">Prochain salon</h3><button type="button" class="ac-salon" data-go="salons"><strong>${esc(sal.nom)}</strong> — ${esc(sal.ville)}, ${days(sal.debut) > 0 ? 'dans ' + days(sal.debut) + ' jours (' + fr(sal.debut) + ')' : 'en ce moment'}</button>` : ''}
-      <p class="ac-mode">Besoin des autres pages (prix de revient, impôts, équipe…) ? <button type="button" data-mode-complet="1">Afficher toutes les pages</button></p>`;
+      ${simple() ? '' : '<p class="ac-mode">Vous êtes en mode complet (toutes les pages). <button type="button" data-mode-simple="1">Revenir au mode simple</button></p>'}
+      <p class="ac-mode ac-mode-s">Besoin des autres pages (prix de revient, impôts, équipe…) ? <button type="button" data-mode-complet="1">Afficher toutes les pages</button></p>`;
   }
 
   document.addEventListener('click', e => {
@@ -74,14 +75,13 @@
       if(q.dataset.iaVoix && window.EJ_ASSISTANT && EJ_ASSISTANT.ecouter) setTimeout(EJ_ASSISTANT.ecouter, 120);
       if(window.innerWidth < 900) document.body.classList.remove('menu-ouvert'); return; }
     if(e.target.closest('[data-mode-complet]')) passer('complet');
+    if(e.target.closest('[data-mode-simple]')) passer('simple');
   });
-  document.querySelectorAll('.sidebar .tab[data-tab="accueil"]').forEach(b => b.addEventListener('click', rendre));
+  document.querySelectorAll('.sidebar .tab[data-tab="accueil"]').forEach(b => b.addEventListener('click', () => { try { rendre(); } catch(e) { console.error(e); } }));
   document.querySelectorAll('.year-btn').forEach(b => b.addEventListener('click', () => setTimeout(rendre, 50)));
 
-  // Ouverture : en mode simple, on arrive sur l'accueil (vue groupe)
-  rendre();
-  if(simple()){
-    const g = document.querySelector('.soc-btn[data-soc="groupe"]'); if(g && !g.classList.contains('active')) g.click();
-    aller('accueil');
-  }
+  // Ouverture : on arrive toujours sur l'accueil (actions rapides) ; en mode simple, vue groupe
+  try { rendre(); } catch(e) { console.error(e); }
+  if(simple()){ const g = document.querySelector('.soc-btn[data-soc="groupe"]'); if(g && !g.classList.contains('active')) g.click(); }
+  aller('accueil');
 })();
