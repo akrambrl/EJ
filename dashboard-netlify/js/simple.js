@@ -51,11 +51,11 @@
       </div>
       <h3 class="ac-h">Que voulez-vous faire ?</h3>
       <div class="ac-actions">
-        <button type="button" class="ac-act" data-new="facture">Faire une facture</button>
-        <button type="button" class="ac-act" data-new="devis">Faire un devis</button>
-        <button type="button" class="ac-act" data-go="stock">Voir le stock</button>
-        <button type="button" class="ac-act" data-go="crm">Chercher un client</button>
-        <button type="button" class="ac-act" data-ia-open="1">Poser une question</button>
+        <button type="button" class="ac-act" data-wz-open="facture">Faire une facture</button>
+        <button type="button" class="ac-act" data-wz-open="devis">Faire un devis</button>
+        <button type="button" class="ac-act" data-wz-open="stock">Voir le stock</button>
+        <button type="button" class="ac-act" data-wz-open="client">Chercher un client</button>
+        <button type="button" class="ac-act" data-wz-open="question">Poser une question</button>
         ${window.EJ_ASSISTANT && EJ_ASSISTANT.vocal ? '<button type="button" class="ac-act ac-voix" data-ia-open="1" data-ia-voix="1">🎤 Demander à voix haute</button>' : ''}
       </div>
       <h3 class="ac-h ac-extra">À faire en priorité</h3>

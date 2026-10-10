@@ -777,5 +777,32 @@
     if(i < 0 || (d.paiement || []).every(r => r.recu)) d.statut = val ? 'Payée' : 'À encaisser';
     saveDocs(); renderList();
   }
-  window.EJ_DOCS = {list:() => docs.slice(), calc:docCalc, payState, echeancier, TYPES, setRecu, soc};
+  /* ---------- Création guidée (js/assistes.js) ----------
+     Prépare un devis ou une facture complet (client, lignes, échéancier) puis ouvre l'éditeur habituel pour vérification :
+     la numérotation, les contrôles et l'enregistrement restent ceux de l'éditeur. */
+  function dernierPrix(client, col){
+    let best = null, bt = -1;
+    BASE_FACT.forEach(f => { if(f.client !== client) return; const t = pdate(f.date); f.lines.forEach(l => { if(l.collection === col && l.mode === 'carton' && l.prix > 0 && t >= bt){ bt = t; best = l.prix; } }); });
+    docs.forEach(d => { if(d.client !== client || d.type === 'avoir' || d.type === 'bl') return; const t = new Date(d.date).getTime(); (d.lines || []).forEach(l => { if(l.collection === col && l.mode === 'carton' && num(l.prix) > 0 && t >= bt){ bt = t; best = num(l.prix); } }); });
+    return best;
+  }
+  function preparer(o){
+    const d = blankDoc(o.type, o.societe), c = clientInfo(o.client || '');
+    d.client = o.client || '';
+    d.pays = o.pays || c.pays || LAST_PAYS[d.client] || '';
+    d.adresse = o.adresse || c.adresse || '';
+    d.tvaClient = o.tvaClient || c.tvaClient || '';
+    if(d.pays){ d.regime = regimeFor(d.societe, d.pays); if(d.societe === 'BSD') d.langue = d.pays === 'France' ? 'fr' : 'en'; }
+    if(o.lignes && o.lignes.length) d.lines = o.lignes.map(x => {
+      const l = newLine(x.collection, d.pays); l.qty = Math.max(1, Math.round(num(x.qty)) || 1);
+      const p = dernierPrix(d.client, x.collection); if(p) l.prix = p;
+      setRef(l, x.reference || ''); l.testers = testerAuto(l.collection, l.mode, l.qty, d.pays); return l;
+    });
+    if(o.preset && PRESETS[o.preset]){ d.paiement = presetRows(o.preset); if(d.conditions === soc(d.societe).conditions) d.conditions = ''; }
+    openEditor(d);
+  }
+  const prixCarton = (client, col) => dernierPrix(client, col) || priceDefault(col, 'carton');
+
+  window.EJ_DOCS = {list:() => docs.slice(), calc:docCalc, payState, echeancier, TYPES, setRecu, soc,
+    preparer, prixCarton, clientInfo, PRESETS, REFS, PARFUMS, COLL, perCarton:perCartonDefault};
 })();
