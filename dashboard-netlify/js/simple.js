@@ -1,4 +1,4 @@
-/* Mode simple (par défaut) / mode complet.
+/* Mode simple (par défaut) / mode complet. En mode complet, l'accueil ne garde que les actions rapides (.ac-extra masqués).
    Mode simple : 7 entrées de menu avec icônes, texte plus grand, page d'accueil claire (chiffres clés, actions en un clic,
    choses à faire), sans les indicateurs répétés en haut de chaque page ni le choix de société.
    Mode complet : toutes les pages. Le choix est gardé sur l'appareil ('ej_mode') ; appliqué dès le <head>. */
@@ -42,8 +42,8 @@
     const h = new Date().getHours();
     const tuile = (titre, valeur, detail, tab, cls) => `<button type="button" class="ac-tuile${cls ? ' ' + cls : ''}" data-go="${tab}"><span class="ac-t">${titre}</span><strong>${valeur}</strong><span class="ac-d">${detail}</span></button>`;
     box.innerHTML = `
-      <p class="ac-bonjour">${h < 18 ? 'Bonjour' : 'Bonsoir'}. Nous sommes le ${today().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}.</p>
-      <div class="ac-tuiles">
+      <p class="ac-bonjour ac-extra">${h < 18 ? 'Bonjour' : 'Bonsoir'}. Nous sommes le ${today().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}.</p>
+      <div class="ac-tuiles ac-extra">
         ${tuile('Ventes ' + YEAR, money0(S.kpi_ca), (S.kpi_factures || 0) + ' factures · ' + (S.kpi_clients || 0) + ' clients', 'overview')}
         ${tuile('Bénéfice ' + YEAR, money0(S.kpi_marge), 'ventes moins le coût des parfums', 'overview', 'ok')}
         ${tuile('À encaisser', money0(creances), creances ? 'argent que les clients doivent encore' : 'aucune facture en attente de paiement', 'creances')}
@@ -58,10 +58,10 @@
         <button type="button" class="ac-act" data-ia-open="1">Poser une question</button>
         ${window.EJ_ASSISTANT && EJ_ASSISTANT.vocal ? '<button type="button" class="ac-act ac-voix" data-ia-open="1" data-ia-voix="1">🎤 Demander à voix haute</button>' : ''}
       </div>
-      <h3 class="ac-h">À faire en priorité</h3>
-      <ul class="ac-todo">${rap.length ? rap.map(r => `<li><button type="button" data-go="${r.tab}"><span class="ac-pt ac-p${r.prio}"></span><span><strong>${esc(r.txt)}</strong>${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</span><em>Ouvrir ›</em></button></li>`).join('') : '<li class="ac-vide">Rien d’urgent aujourd’hui.</li>'}</ul>
-      <p class="ac-lien"><button type="button" data-go="journal">Voir toute la liste dans le journal de bord ›</button></p>
-      ${sal ? `<h3 class="ac-h">Prochain salon</h3><button type="button" class="ac-salon" data-go="salons"><strong>${esc(sal.nom)}</strong> — ${esc(sal.ville)}, ${days(sal.debut) > 0 ? 'dans ' + days(sal.debut) + ' jours (' + fr(sal.debut) + ')' : 'en ce moment'}</button>` : ''}
+      <h3 class="ac-h ac-extra">À faire en priorité</h3>
+      <ul class="ac-todo ac-extra">${rap.length ? rap.map(r => `<li><button type="button" data-go="${r.tab}"><span class="ac-pt ac-p${r.prio}"></span><span><strong>${esc(r.txt)}</strong>${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</span><em>Ouvrir ›</em></button></li>`).join('') : '<li class="ac-vide">Rien d’urgent aujourd’hui.</li>'}</ul>
+      <p class="ac-lien ac-extra"><button type="button" data-go="journal">Voir toute la liste dans le journal de bord ›</button></p>
+      ${sal ? `<h3 class="ac-h ac-extra">Prochain salon</h3><button type="button" class="ac-salon ac-extra" data-go="salons"><strong>${esc(sal.nom)}</strong> — ${esc(sal.ville)}, ${days(sal.debut) > 0 ? 'dans ' + days(sal.debut) + ' jours (' + fr(sal.debut) + ')' : 'en ce moment'}</button>` : ''}
       ${simple() ? '' : '<p class="ac-mode">Vous êtes en mode complet (toutes les pages). <button type="button" data-mode-simple="1">Revenir au mode simple</button></p>'}
       <p class="ac-mode ac-mode-s">Besoin des autres pages (prix de revient, impôts, équipe…) ? <button type="button" data-mode-complet="1">Afficher toutes les pages</button></p>`;
   }

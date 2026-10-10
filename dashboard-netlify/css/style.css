@@ -1082,3 +1082,5 @@ html[data-mode="simple"] .info-box{font-size:.9rem}
 .ia-tts input{width:100%;box-sizing:border-box}
 html:not([data-mode="complet"]) .ac-mode:not(.ac-mode-s){display:none} html[data-mode="complet"] .ac-mode-s{display:none}
 .main:has(#accueil.active) .kpis-top,.main:has(#accueil.active) details.notes{display:none!important}
+html[data-mode="complet"] #accueil .ac-extra{display:none!important}
+html[data-mode="complet"] #accueil .ac-h:first-of-type{margin-top:8px}
