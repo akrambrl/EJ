@@ -1074,3 +1074,6 @@ html[data-mode="simple"] .info-box{font-size:.9rem}
 @keyframes ia-pulse{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,.45)}50%{box-shadow:0 0 0 8px rgba(192,57,43,0)}}
 .ia-reg .ia-voix-opt{display:block;margin-top:6px}
 .ac-act.ac-voix{font-weight:600}
+.ia-voix-choix{display:flex;gap:6px;margin-top:6px}
+.ia-voix-choix select{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);color:var(--ink);padding:6px;font-family:inherit}
+.ia-voix-aide{font-size:.74rem;color:var(--muted);margin:6px 0 0}

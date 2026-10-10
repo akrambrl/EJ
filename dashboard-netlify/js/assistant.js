@@ -300,7 +300,7 @@
   const box = document.createElement('div'); box.className = 'ia-box'; box.hidden = true;
   box.innerHTML = `<div class="ia-h"><div><div class="ia-t">Assistant</div><div class="ia-mode" id="iaMode"></div></div><button type="button" class="ia-x" data-ia="reglages" title="Réglages">⚙</button><button type="button" class="ia-x" data-ia="fermer" title="Fermer">×</button></div>
     <div class="ia-reg" id="iaReg" hidden><p>Réponses directes : sans connexion, gratuites, sur les données du dashboard. Pour les questions libres, ajoute une clé API Anthropic (console.anthropic.com) : elle reste dans ce navigateur uniquement, n'est ni dans le fichier ni partagée. Chaque question envoyée à Claude est facturée sur ce compte.</p>
-      <input type="password" id="iaCle" placeholder="Clé API Anthropic (sk-ant-…)" autocomplete="off"><label><input type="checkbox" id="iaClaude"> Envoyer à Claude les questions sans réponse directe</label><label class="ia-voix-opt"><input type="checkbox" id="iaVoix"> Lire la réponse à voix haute quand je parle au micro</label>
+      <input type="password" id="iaCle" placeholder="Clé API Anthropic (sk-ant-…)" autocomplete="off"><label><input type="checkbox" id="iaClaude"> Envoyer à Claude les questions sans réponse directe</label><label class="ia-voix-opt"><input type="checkbox" id="iaVoix"> Lire la réponse à voix haute quand je parle au micro</label><div class="ia-voix-choix" id="iaVoixBloc" hidden><select id="iaVoixNom" aria-label="Voix"></select><button type="button" class="j-mini" data-ia="ecouter">Écouter</button></div><p class="ia-voix-aide" id="iaVoixAide" hidden></p>
       <div class="ia-reg-act"><button type="button" class="j-mini" data-ia="effacer">Effacer la clé</button><button type="button" class="doc-btn primary" data-ia="sauver">Enregistrer</button></div></div>
     <div class="ia-msgs" id="iaMsgs"><div class="ia-m ia-bot">Bonjour. Pose une question sur les ventes, le stock, les clients, les salons, les paiements… <div class="ia-sugg">${SUGG.map(s => `<button type="button" data-q="${esc(s)}">${esc(s)}</button>`).join('')}</div></div></div>
     <form class="ia-f" id="iaForm"><input id="iaQ" placeholder="Ta question…" autocomplete="off"><button type="button" class="ia-mic" id="iaMic" title="Parler (micro)" aria-label="Poser la question à voix haute" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button><button class="doc-btn primary" aria-label="Envoyer">➤</button></form>`;
@@ -335,12 +335,57 @@
     const c = el.cloneNode(true); c.querySelectorAll('.ia-sugg, .ia-go, .ia-sub, button, table').forEach(x => x.remove()); c.querySelectorAll('div, p, li, br').forEach(x => x.before('. '));
     let t = c.textContent.replace(/\s+/g, ' ').replace(/([.:!?])\s*\.(\s|$)/g, '$1$2').replace(/(\s\.)+/g, '.').trim(); if(!t) return;
     if(t.length > 450){ const p = t.slice(0, 450).lastIndexOf('. '); t = t.slice(0, p > 150 ? p + 1 : 450) + ' Le détail est affiché à l’écran.'; }
-    t = t.replace(/(\d) (?=\d{3}\b)/g, '$1').replace(/€/g, ' euros').replace(/%/g, ' pour cent');
+    const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'], AN = String(new Date().getFullYear());
+    t = t.replace(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/g, (m, d, mo, y) => (+d === 1 ? '1er' : +d) + ' ' + MOIS[+mo - 1] + (y === AN ? '' : ' ' + y))
+      .replace(/\(dans (\d+) j\)/g, ', dans $1 jours').replace(/\bj\b/g, 'jours').replace(/[★✓✔→›]/g, '').replace(/\s[·—–]\s/g, ', ').replace(/[()]/g, ', ')
+      .replace(/(\d) (?=\d{3}\b)/g, '$1').replace(/(\d),(\d)/g, '$1 virgule $2').replace(/€/g, ' euros').replace(/%/g, ' pour cent').replace(/\bCA\b/g, 'chiffre d’affaires')
+      .replace(/\s+,/g, ',').replace(/,\s*([,.])/g, '$1').replace(/\s{2,}/g, ' ');
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(t); u.lang = 'fr-FR'; u.rate = 1.02;
-    const v = speechSynthesis.getVoices().find(x => /^fr[-_]FR/i.test(x.lang)); if(v) u.voice = v;
-    speechSynthesis.speak(u);
+    parler(t);
   }
+  // Choix de la voix : la plus naturelle disponible sur l'appareil (voix « Natural » d'Edge, voix Google de Chrome,
+  // voix « Premium / améliorée » d'Apple), sauf si une voix a été choisie dans les réglages ('ej_ia_voix_nom').
+  const KEY_VNOM = 'ej_ia_voix_nom';
+  const voixFr = () => window.speechSynthesis ? speechSynthesis.getVoices().filter(v => /^fr\b|^fr[-_]/i.test(v.lang)) : [];
+  function note(v){
+    let n = 0, s = v.name + ' ' + (v.voiceURI || '');
+    if(/^fr[-_]FR/i.test(v.lang)) n += 20;
+    if(/natural|neural|online/i.test(s)) n += 60;
+    if(/premium|enhanced|améliorée|amelioree|siri/i.test(s)) n += 50;
+    if(/google/i.test(s)) n += 40;
+    if(/denise|vivienne|eloise|henri|remy|amélie|amelie|audrey|aurélie|aurelie|thomas|marie/i.test(s)) n += 8;
+    if(/compact|espeak|eloquence|grandma|grandpa|jacques|rocko|shelley|flo|eddy|reed|sandy/i.test(s)) n -= 40;
+    return n;
+  }
+  const triees = () => voixFr().sort((a, b) => note(b) - note(a));
+  function voixChoisie(){
+    let nom = ''; try { nom = localStorage.getItem(KEY_VNOM) || ''; } catch(e) {}
+    const l = triees(); return (nom && l.find(v => v.name === nom)) || l[0] || null;
+  }
+  function parler(t){
+    speechSynthesis.cancel();
+    const v = voixChoisie();
+    // Découpe en phrases : les voix en ligne coupent parfois les textes longs, et le débit sonne plus naturel.
+    const phrases = t.match(/[^.!?]+[.!?]*/g) || [t];
+    phrases.forEach(p => { p = p.trim(); if(!p) return;
+      const u = new SpeechSynthesisUtterance(p); u.lang = v ? v.lang : 'fr-FR'; try { if(v) u.voice = v; } catch(x) {}
+      u.rate = v && /google/i.test(v.name) ? 1.05 : 1; u.pitch = 1; speechSynthesis.speak(u); });
+  }
+  function remplirVoix(){
+    const sel = $('iaVoixNom'); if(!sel) return;
+    const l = triees(); let nom = ''; try { nom = localStorage.getItem(KEY_VNOM) || ''; } catch(e) {}
+    $('iaVoixBloc').hidden = !l.length;
+    sel.innerHTML = '<option value="">Automatique (la plus naturelle)</option>' + l.map(v => `<option value="${esc(v.name)}"${v.name === nom ? ' selected' : ''}>${esc(v.name.replace(/^Microsoft\s+/, '').replace(/\s*-\s*French.*$/i, ''))}${note(v) >= 70 ? ' ★' : ''}</option>`).join('');
+    const aide = $('iaVoixAide'), best = l[0], ua = navigator.userAgent;
+    let msg = '';
+    if(!best || note(best) < 60){
+      if(/iPhone|iPad|Macintosh/.test(ua) && !/Chrome|Edg/.test(ua)) msg = 'Pour une voix plus naturelle sur iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Français › choisir « Amélie (améliorée) » ou une voix « Premium » et la télécharger, puis revenir ici.';
+      else if(/Android/.test(ua)) msg = 'Pour une voix plus naturelle sur Android : Paramètres › Accessibilité › Synthèse vocale › Moteur Google › Installer les données vocales › Français.';
+      else msg = 'Pour la voix la plus naturelle sur ordinateur, ouvrez le dashboard dans Microsoft Edge (voix « Denise » ou « Henri ») ou dans Chrome (voix Google).';
+    }
+    aide.textContent = msg; aide.hidden = !msg;
+  }
+  if(window.speechSynthesis){ speechSynthesis.addEventListener ? speechSynthesis.addEventListener('voiceschanged', remplirVoix) : (speechSynthesis.onvoiceschanged = remplirVoix); }
   function ecouter(){
     if(!SR) return;
     if(ecoute){ reco && reco.stop(); return; }
@@ -371,8 +416,11 @@
     }
     const a = e.target.closest('[data-ia]'); if(!a) return;
     if(a.dataset.ia === 'fermer'){ box.hidden = true; fab.classList.remove('ouvert'); if(ecoute) reco.stop(); if(window.speechSynthesis) speechSynthesis.cancel(); }
-    else if(a.dataset.ia === 'reglages'){ const r = $('iaReg'); r.hidden = !r.hidden; $('iaCle').value = cle() ? '••••••••' + cle().slice(-4) : ''; $('iaClaude').checked = modeClaude() || !cle(); $('iaVoix').checked = voixOn(); }
-    else if(a.dataset.ia === 'sauver'){ const v = $('iaCle').value.trim(); try { if(v && !v.startsWith('••')) localStorage.setItem(KEY_CLE, v); localStorage.setItem(KEY_MODE, $('iaClaude').checked ? '1' : '0'); localStorage.setItem(KEY_VOIX, $('iaVoix').checked ? '1' : '0'); } catch(x) {} $('iaReg').hidden = true; client = null; majMode(); }
+    else if(a.dataset.ia === 'ecouter' && window.speechSynthesis){ const avant = (() => { try { return localStorage.getItem(KEY_VNOM); } catch(x) { return null; } })();
+      try { localStorage.setItem(KEY_VNOM, $('iaVoixNom').value); parler('Bonjour. Le stock de Moon est de mille deux cent trente-trois flacons. Le prochain salon a lieu dans trois semaines.'); } catch(x) {}
+      try { avant == null ? localStorage.removeItem(KEY_VNOM) : localStorage.setItem(KEY_VNOM, avant); } catch(x) {} }
+    else if(a.dataset.ia === 'reglages'){ const r = $('iaReg'); r.hidden = !r.hidden; $('iaCle').value = cle() ? '••••••••' + cle().slice(-4) : ''; $('iaClaude').checked = modeClaude() || !cle(); $('iaVoix').checked = voixOn(); remplirVoix(); }
+    else if(a.dataset.ia === 'sauver'){ const v = $('iaCle').value.trim(); try { if(v && !v.startsWith('••')) localStorage.setItem(KEY_CLE, v); localStorage.setItem(KEY_MODE, $('iaClaude').checked ? '1' : '0'); localStorage.setItem(KEY_VOIX, $('iaVoix').checked ? '1' : '0'); localStorage.setItem(KEY_VNOM, $('iaVoixNom').value); } catch(x) {} $('iaReg').hidden = true; client = null; majMode(); }
     else if(a.dataset.ia === 'effacer'){ try { localStorage.removeItem(KEY_CLE); } catch(x) {} $('iaCle').value = ''; client = null; histo = []; majMode(); }
   });
   window.EJ_ASSISTANT = {repondreLocal, donnees, poser, ecouter, vocal: !!SR};
