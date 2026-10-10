@@ -1077,3 +1077,6 @@ html[data-mode="simple"] .info-box{font-size:.9rem}
 .ia-voix-choix{display:flex;gap:6px;margin-top:6px}
 .ia-voix-choix select{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);color:var(--ink);padding:6px;font-family:inherit}
 .ia-voix-aide{font-size:.74rem;color:var(--muted);margin:6px 0 0}
+.ia-tts{margin-top:12px;padding-top:10px;border-top:1px solid var(--hair)}
+.ia-tts p{font-size:.74rem;color:var(--muted);margin:4px 0 6px}
+.ia-tts input{width:100%;box-sizing:border-box}
