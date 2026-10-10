@@ -56,6 +56,7 @@
         <button type="button" class="ac-act" data-go="stock">Voir le stock</button>
         <button type="button" class="ac-act" data-go="crm">Chercher un client</button>
         <button type="button" class="ac-act" data-ia-open="1">Poser une question</button>
+        ${window.EJ_ASSISTANT && EJ_ASSISTANT.vocal ? '<button type="button" class="ac-act ac-voix" data-ia-open="1" data-ia-voix="1">🎤 Demander à voix haute</button>' : ''}
       </div>
       <h3 class="ac-h">À faire en priorité</h3>
       <ul class="ac-todo">${rap.length ? rap.map(r => `<li><button type="button" data-go="${r.tab}"><span class="ac-pt ac-p${r.prio}"></span><span><strong>${esc(r.txt)}</strong>${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</span><em>Ouvrir ›</em></button></li>`).join('') : '<li class="ac-vide">Rien d’urgent aujourd’hui.</li>'}</ul>
@@ -70,6 +71,7 @@
     if(n){ aller('documents'); setTimeout(() => { const b = document.querySelector(`[data-act="new"][data-type="${n.dataset.new}"]`); if(b) b.click(); }, 80); return; }
     const q = e.target.closest('[data-ia-open]');
     if(q){ const box = document.querySelector('.ia-box'), fab = document.querySelector('.ia-fab'); if(box && box.hidden && fab) fab.click();
+      if(q.dataset.iaVoix && window.EJ_ASSISTANT && EJ_ASSISTANT.ecouter) setTimeout(EJ_ASSISTANT.ecouter, 120);
       if(window.innerWidth < 900) document.body.classList.remove('menu-ouvert'); return; }
     if(e.target.closest('[data-mode-complet]')) passer('complet');
   });

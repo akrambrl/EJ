@@ -300,10 +300,10 @@
   const box = document.createElement('div'); box.className = 'ia-box'; box.hidden = true;
   box.innerHTML = `<div class="ia-h"><div><div class="ia-t">Assistant</div><div class="ia-mode" id="iaMode"></div></div><button type="button" class="ia-x" data-ia="reglages" title="Réglages">⚙</button><button type="button" class="ia-x" data-ia="fermer" title="Fermer">×</button></div>
     <div class="ia-reg" id="iaReg" hidden><p>Réponses directes : sans connexion, gratuites, sur les données du dashboard. Pour les questions libres, ajoute une clé API Anthropic (console.anthropic.com) : elle reste dans ce navigateur uniquement, n'est ni dans le fichier ni partagée. Chaque question envoyée à Claude est facturée sur ce compte.</p>
-      <input type="password" id="iaCle" placeholder="Clé API Anthropic (sk-ant-…)" autocomplete="off"><label><input type="checkbox" id="iaClaude"> Envoyer à Claude les questions sans réponse directe</label>
+      <input type="password" id="iaCle" placeholder="Clé API Anthropic (sk-ant-…)" autocomplete="off"><label><input type="checkbox" id="iaClaude"> Envoyer à Claude les questions sans réponse directe</label><label class="ia-voix-opt"><input type="checkbox" id="iaVoix"> Lire la réponse à voix haute quand je parle au micro</label>
       <div class="ia-reg-act"><button type="button" class="j-mini" data-ia="effacer">Effacer la clé</button><button type="button" class="doc-btn primary" data-ia="sauver">Enregistrer</button></div></div>
     <div class="ia-msgs" id="iaMsgs"><div class="ia-m ia-bot">Bonjour. Pose une question sur les ventes, le stock, les clients, les salons, les paiements… <div class="ia-sugg">${SUGG.map(s => `<button type="button" data-q="${esc(s)}">${esc(s)}</button>`).join('')}</div></div></div>
-    <form class="ia-f" id="iaForm"><input id="iaQ" placeholder="Ta question…" autocomplete="off"><button class="doc-btn primary" aria-label="Envoyer">➤</button></form>`;
+    <form class="ia-f" id="iaForm"><input id="iaQ" placeholder="Ta question…" autocomplete="off"><button type="button" class="ia-mic" id="iaMic" title="Parler (micro)" aria-label="Poser la question à voix haute" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button><button class="doc-btn primary" aria-label="Envoyer">➤</button></form>`;
   document.body.appendChild(fab); document.body.appendChild(box);
   const $ = id => document.getElementById(id), msgs = $('iaMsgs');
   const cle = () => { try { return localStorage.getItem(KEY_CLE) || ''; } catch(e) { return ''; } };
@@ -317,13 +317,46 @@
     // Avec l'IA activée, les questions longues ou d'analyse vont directement à Claude ; les questions simples restent instantanées.
     const complexe = modeClaude() && (norm(q).split(' ').length > 9 || /(compar|pourquoi|analys|conseil|explique|strateg|recommand|resume|synthese|tendance|prevoir|devrais)/.test(norm(q)));
     const loc = complexe ? null : repondreLocal(q);
-    if(loc){ ajoute(loc, 'bot'); return; }
-    if(!modeClaude()){ ajoute('Je n’ai pas trouvé de réponse directe à cette question. ' + AIDE + '<div class="ia-sub">Pour les questions libres, ajoute une clé API Anthropic dans les réglages (⚙).</div>', 'bot'); return; }
+    if(loc) return ajoute(loc, 'bot');
+    if(!modeClaude()){ return ajoute('Je n’ai pas trouvé de réponse directe à cette question. ' + AIDE + '<div class="ia-sub">Pour les questions libres, ajoute une clé API Anthropic dans les réglages (⚙).</div>', 'bot'); }
     const att = ajoute('<span class="ia-wait">Claude réfléchit…</span>', 'bot');
     try { att.innerHTML = md(await claude(q)); }
     catch(e) { att.innerHTML = 'Erreur : ' + esc(e.status === 401 ? 'clé API refusée' : e.message || e) + '. ' + (e.status === 401 ? 'Vérifie la clé dans les réglages (⚙).' : ''); histo = []; }
     msgs.scrollTop = msgs.scrollHeight;
+    return att;
   }
+
+  /* ---------- Commande vocale (micro du navigateur : Chrome, Edge, Safari ; pas Firefox) ---------- */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition, KEY_VOIX = 'ej_ia_voix';
+  const voixOn = () => { try { return localStorage.getItem(KEY_VOIX) !== '0'; } catch(e) { return true; } };
+  let reco = null, ecoute = false;
+  function lire(el){
+    if(!el || !window.speechSynthesis || !voixOn()) return;
+    const c = el.cloneNode(true); c.querySelectorAll('.ia-sugg, .ia-go, .ia-sub, button, table').forEach(x => x.remove()); c.querySelectorAll('div, p, li, br').forEach(x => x.before('. '));
+    let t = c.textContent.replace(/\s+/g, ' ').replace(/([.:!?])\s*\.(\s|$)/g, '$1$2').replace(/(\s\.)+/g, '.').trim(); if(!t) return;
+    if(t.length > 450){ const p = t.slice(0, 450).lastIndexOf('. '); t = t.slice(0, p > 150 ? p + 1 : 450) + ' Le détail est affiché à l’écran.'; }
+    t = t.replace(/(\d) (?=\d{3}\b)/g, '$1').replace(/€/g, ' euros').replace(/%/g, ' pour cent');
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t); u.lang = 'fr-FR'; u.rate = 1.02;
+    const v = speechSynthesis.getVoices().find(x => /^fr[-_]FR/i.test(x.lang)); if(v) u.voice = v;
+    speechSynthesis.speak(u);
+  }
+  function ecouter(){
+    if(!SR) return;
+    if(ecoute){ reco && reco.stop(); return; }
+    if(window.speechSynthesis) speechSynthesis.cancel();
+    reco = new SR(); reco.lang = 'fr-FR'; reco.interimResults = true; reco.continuous = false; reco.maxAlternatives = 1;
+    const q = $('iaQ'), mic = $('iaMic'), ph = q.placeholder; let final = '';
+    reco.onstart = () => { ecoute = true; mic.classList.add('actif'); q.value = ''; q.placeholder = 'Je vous écoute… parlez maintenant'; };
+    reco.onresult = e => { let t = ''; for(const r of e.results){ t += r[0].transcript; if(r.isFinal) final = t; } q.value = t; };
+    reco.onerror = e => { if(e.error === 'not-allowed' || e.error === 'service-not-allowed') ajoute('Le micro est bloqué. Autorisez-le dans le navigateur (icône du cadenas à côté de l’adresse), puis réessayez.', 'bot');
+      else if(e.error === 'no-speech') ajoute('Je n’ai rien entendu. Appuyez sur le micro et parlez juste après.', 'bot'); };
+    reco.onend = async () => { ecoute = false; mic.classList.remove('actif'); q.placeholder = ph;
+      const t = (final || q.value).trim(); q.value = ''; if(t) lire(await poser(t.charAt(0).toUpperCase() + t.slice(1))); };
+    try { reco.start(); } catch(e) { ecoute = false; }
+  }
+  if(SR){ $('iaMic').hidden = false; $('iaMic').addEventListener('click', ecouter); document.documentElement.classList.add('ia-vocal'); }
+  else document.querySelectorAll('[data-ia-voix]').forEach(b => b.hidden = true);
   fab.addEventListener('click', () => { box.hidden = !box.hidden; fab.classList.toggle('ouvert', !box.hidden); if(!box.hidden) setTimeout(() => $('iaQ').focus(), 50); });
   $('iaForm').addEventListener('submit', e => { e.preventDefault(); const q = $('iaQ').value; $('iaQ').value = ''; poser(q); });
   box.addEventListener('click', e => {
@@ -337,10 +370,10 @@
       return;
     }
     const a = e.target.closest('[data-ia]'); if(!a) return;
-    if(a.dataset.ia === 'fermer'){ box.hidden = true; fab.classList.remove('ouvert'); }
-    else if(a.dataset.ia === 'reglages'){ const r = $('iaReg'); r.hidden = !r.hidden; $('iaCle').value = cle() ? '••••••••' + cle().slice(-4) : ''; $('iaClaude').checked = modeClaude() || !cle(); }
-    else if(a.dataset.ia === 'sauver'){ const v = $('iaCle').value.trim(); try { if(v && !v.startsWith('••')) localStorage.setItem(KEY_CLE, v); localStorage.setItem(KEY_MODE, $('iaClaude').checked ? '1' : '0'); } catch(x) {} $('iaReg').hidden = true; client = null; majMode(); }
+    if(a.dataset.ia === 'fermer'){ box.hidden = true; fab.classList.remove('ouvert'); if(ecoute) reco.stop(); if(window.speechSynthesis) speechSynthesis.cancel(); }
+    else if(a.dataset.ia === 'reglages'){ const r = $('iaReg'); r.hidden = !r.hidden; $('iaCle').value = cle() ? '••••••••' + cle().slice(-4) : ''; $('iaClaude').checked = modeClaude() || !cle(); $('iaVoix').checked = voixOn(); }
+    else if(a.dataset.ia === 'sauver'){ const v = $('iaCle').value.trim(); try { if(v && !v.startsWith('••')) localStorage.setItem(KEY_CLE, v); localStorage.setItem(KEY_MODE, $('iaClaude').checked ? '1' : '0'); localStorage.setItem(KEY_VOIX, $('iaVoix').checked ? '1' : '0'); } catch(x) {} $('iaReg').hidden = true; client = null; majMode(); }
     else if(a.dataset.ia === 'effacer'){ try { localStorage.removeItem(KEY_CLE); } catch(x) {} $('iaCle').value = ''; client = null; histo = []; majMode(); }
   });
-  window.EJ_ASSISTANT = {repondreLocal, donnees, poser};
+  window.EJ_ASSISTANT = {repondreLocal, donnees, poser, ecouter, vocal: !!SR};
 })();

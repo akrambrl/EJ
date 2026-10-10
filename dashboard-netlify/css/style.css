@@ -1065,3 +1065,12 @@ html[data-mode="simple"] .info-box{font-size:.9rem}
   .ac-act:first-child{grid-column:1 / -1}
 }
 #accueil > h2{display:none}
+
+/* ---------- Assistant : commande vocale ---------- */
+.ia-mic{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.ia-mic[hidden]{display:none}
+.ia-mic svg{width:20px;height:20px}
+.ia-mic.actif{background:#c0392b;border-color:#c0392b;color:#fff;animation:ia-pulse 1.2s ease-in-out infinite}
+@keyframes ia-pulse{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,.45)}50%{box-shadow:0 0 0 8px rgba(192,57,43,0)}}
+.ia-reg .ia-voix-opt{display:block;margin-top:6px}
+.ac-act.ac-voix{font-weight:600}
