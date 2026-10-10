@@ -27,6 +27,7 @@ Lancer en local : `cd dashboard-netlify && python3 -m http.server 8000` puis htt
 | `js/cloud.js`, `data/config-cloud.js` | Partage des saisies entre les membres de l'équipe via Supabase (connexion, envoi et réception automatiques). Mise en place : `PARTAGE-SUPABASE.md` à la racine |
 | `js/theme.js` | Mode clair (beige, par défaut) / mode sombre : bouton soleil-lune dans l'en-tête, choix gardé sur l'appareil (`ej_theme`) ; couleurs dans les variables CSS (`:root` et `[data-theme="dark"]`) |
 | `js/assistant.js` | Assistant (bouton doré en bas à droite) : réponses directes calculées sur les données (stock, factures, CA, clients, salons, créances, échéances, trésorerie, impôts, fournisseurs…) ; mode IA Claude facultatif avec une clé API Anthropic gardée dans le navigateur (modèle `claude-opus-5-5`, SDK `@anthropic-ai/sdk` via jsDelivr, outil `consulter_donnees`) |
+| `js/simple.js` | Mode simple (par défaut) : 7 entrées de menu avec icônes, texte plus grand, page Accueil (chiffres clés, actions en un clic, priorités, prochain salon), sans indicateurs répétés ni choix de société ; bouton « Afficher toutes les pages » pour le mode complet (choix gardé sur l'appareil, `ej_mode`) |
 | `img/` | Logo et marbre noir (visuels VIP Black du catalogue) |
 | `data/ventes.js` | `ALL` : ventes 2025 / 2026 / total, prix de revient, stock |
 | `data/charges.js` | `CHARGES_DATA` : charges par fournisseur et par mois |

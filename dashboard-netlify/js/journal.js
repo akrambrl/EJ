@@ -300,6 +300,7 @@
   });
   root.querySelector('#jMarquesReset').addEventListener('click', () => { delete J.marques; mInput.value = marques().join(', '); save(); loadNews(true); });
   render();
+  window.EJ_JOURNAL = {rappels};
   loadNews();
   // Les documents peuvent changer dans l'onglet Devis & Factures : on recalcule en revenant sur le journal.
   document.querySelectorAll('.sidebar .tab[data-tab="journal"]').forEach(b => b.addEventListener('click', render));
