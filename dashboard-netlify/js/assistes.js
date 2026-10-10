@@ -65,7 +65,7 @@
 
   /* ---------- Parcours : facture / devis ---------- */
   const PAIEMENTS = [['100c', 'Tout à la commande', '100 % avant de préparer la commande'], ['50e', 'Moitié-moitié', '50 % à la commande, 50 % avant expédition'], ['30e', 'Acompte de 30 %', '30 % à la commande, 70 % avant expédition'],
-    ['50l', 'Moitié à la livraison', '50 % à la commande, 50 % à la livraison'], ['30j', 'À 30 jours', 'le client paie tout 30 jours après la facture'], ['60j', 'À 60 jours', 'le client paie tout 60 jours après la facture'], ['', 'Je verrai plus tard', 'conditions habituelles de la société']];
+    ['50j60', 'Moitié maintenant, moitié à 60 jours', '50 % à la commande, 50 % 60 jours après la date de la facture'], ['50l', 'Moitié à la livraison', '50 % à la commande, 50 % à la livraison'], ['30j', 'À 30 jours', 'le client paie tout 30 jours après la facture'], ['60j', 'À 60 jours', 'le client paie tout 60 jours après la facture'], ['', 'Je verrai plus tard', 'conditions habituelles de la société']];
   function totalLignes(d){ return (d.lignes || []).reduce((a, l) => a + l.qty * (D() ? D().prixCarton(d.client, l.collection) : 0), 0); }
   function lignesHtml(d){
     if(!d.lignes.length) return '<p class="wz-vide">Aucun parfum pour l’instant : choisissez une collection puis touchez un parfum.</p>';

@@ -207,6 +207,7 @@
     '30e':{l:'30 % à la commande, 70 % avant expédition', p:[[30,'commande'],[70,'expedition']]},
     '50l':{l:'50 % à la commande, 50 % à la livraison', p:[[50,'commande'],[50,'livraison']]},
     '50j':{l:'50 % à la commande, 50 % à 30 jours', p:[[50,'commande'],[50,'jours',30]]},
+    '50j60':{l:'50 % maintenant, 50 % à 60 jours après la facture', p:[[50,'commande'],[50,'jours',60]]},
     '30j':{l:'100 % à 30 jours', p:[[100,'jours',30]]},
     '60j':{l:'100 % à 60 jours', p:[[100,'jours',60]]},
     '3x':{l:'3 fois : 40 % à la commande, 30 % à 30 j, 30 % à 60 j', p:[[40,'commande'],[30,'jours',30],[30,'jours',60]]}
