@@ -41,17 +41,17 @@
   function fermer(){ ov.hidden = true; document.body.classList.remove('wz-on'); P = null; }
   function aller_(etape, sansHisto){ if(P.etape && !sansHisto) pile.push(P.etape); P.etape = etape; rendre(); }
   function retour(){ if(pile.length){ P.etape = pile.pop(); rendre(); } else fermer(); }
-  function rendre(){
+  function rendre(garder){
     const def = PARCOURS[P.nom], e = def.etapes[P.etape], n = def.ordre.indexOf(P.etape);
     $('wzK').textContent = def.titre; $('wzT').textContent = typeof e.q === 'function' ? e.q() : e.q;
     $('wzPas').innerHTML = def.ordre.map((k, i) => `<span class="${i < n ? 'fait' : i === n ? 'ici' : ''}"></span>`).join('') + (n >= 0 ? `<em>Étape ${n + 1} sur ${def.ordre.length}</em>` : '');
-    $('wzB').innerHTML = e.h(); $('wzB').scrollTop = 0;
+    const y = $('wzB').scrollTop; $('wzB').innerHTML = e.h(); $('wzB').scrollTop = garder ? y : 0;
     const suite = e.suite ? e.suite() : null;
     $('wzF').innerHTML = `<button type="button" class="wz-ret" data-wz-act="retour">‹ ${pile.length ? 'Retour' : 'Annuler'}</button>${suite ? `<button type="button" class="wz-ok" data-wz-act="suite"${suite.off ? ' disabled' : ''}>${suite.l}</button>` : ''}`;
     if(e.apres) e.apres();
-    const f = $('wzB').querySelector('[data-wz-focus]'); if(f && window.innerWidth > 700) setTimeout(() => f.focus(), 30);
+    const f = $('wzB').querySelector('[data-wz-focus]'); if(f && !garder && window.innerWidth > 700) setTimeout(() => f.focus(), 30);
   }
-  const maj = () => rendre();
+  const maj = () => rendre(true);   // même étape (ajout d'un carton…) : on garde la position à l'écran
 
   /* ---------- Briques ---------- */
   const gros = (act, val, titre, sous, cls) => `<button type="button" class="wz-choix${cls ? ' ' + cls : ''}" data-wz="${act}" data-v="${esc(val)}"><strong>${titre}</strong>${sous ? `<small>${sous}</small>` : ''}</button>`;
