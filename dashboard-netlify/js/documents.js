@@ -172,6 +172,7 @@
   // Facture -> format ALL[année].factures (cf. CLAUDE.md), avec .societe (et .lien pour un achat NB).
   // La valeur douane des testeurs et sa déduction s'annulent : elles ne sont pas reportées dans les chiffres.
   function toInvoice(d){
+    syncEch(d);
     const k = docCalc(d);
     // Avoir : une ligne AVOIR négative (le CA baisse ; le coût n'est pas modifié, la marchandise n'est pas réintégrée au stock).
     if(d.type === 'avoir'){
@@ -281,8 +282,13 @@
       cadeaux:{}, notes:'', conditions:S.conditions, lien:'', statut:TYPES[type].statuts[0], lines:[newLine('VIP', '')]};
   }
   function newLine(col, pays){
-    return {collection:col, reference:'', ean:'', mode:'carton', qty:1, perCarton:perCartonDefault(col), prix:priceDefault(col, 'carton'), testers:testerAuto(col, 'carton', 1, pays), autoT:true};
+    return {collection:col, reference:'', ean:'', mode:'carton', qty:1, perCarton:perCartonDefault(col), prix:priceDefault(col, 'carton'), testers:testerAuto(col, 'carton', 1, pays), autoT:true, ech:echAuto(col, 'carton', 1), autoE:true};
   }
+  // Échantillons 2 ml offerts : 1 par carton de parfum (pas pour les brumes), modifiable ligne par ligne.
+  // Le total des lignes alimente le cadeau « Échantillons 2ml » (coût, tableaux cadeaux, document).
+  const echAuto = (col, mode, qty) => (mode === 'carton' && PARFUMS.includes(col) && col !== 'BRUMES') ? Math.round(num(qty)) : 0;
+  const hasEch = d => (d.lines || []).some(l => l.ech != null && l.ech !== '');
+  function syncEch(d){ if(!hasEch(d)) return; d.cadeaux = d.cadeaux || {}; d.cadeaux['Échantillons 2ml'] = sum(d.lines.filter(l => !isSvc(l)), l => Math.round(num(l.ech))); }
   function testerAuto(col, mode, qty, pays){
     if(mode !== 'carton' || !PARFUMS.includes(col)) return 0;
     return Math.round(num(qty)) * (col === 'BRUMES' && pays === 'Russie' ? 2 : 1);
@@ -326,7 +332,7 @@
       ${PARFUMS.map(c => `<datalist id="docRefs-${c.replace(/\s/g, '')}">${REFS[c].map(r => `<option value="${esc(r)}">`).join('')}</datalist>`).join('')}
       <h3 class="doc-h3">Lignes</h3>
       <div class="doc-table-wrap"><table class="doc-lines">
-        <thead><tr><th>Collection</th><th>Référence</th><th>EAN</th><th>Vente</th><th class="text-right">Qté</th><th class="text-right">Fl./ctn</th><th class="text-right">Testeurs</th><th class="text-right">Prix HT</th><th class="text-right">Total HT</th><th></th></tr></thead>
+        <thead><tr><th>Collection</th><th>Référence</th><th>EAN</th><th>Vente</th><th class="text-right">Qté</th><th class="text-right">Fl./ctn</th><th class="text-right">Testeurs</th><th class="text-right" title="Échantillons 2 ml offerts (1 par carton par défaut)">Éch. 2 ml</th><th class="text-right">Prix HT</th><th class="text-right">Total HT</th><th></th></tr></thead>
         <tbody>${d.lines.map((l, i) => lineRow(l, i)).join('')}</tbody>
       </table></div>
       <div class="doc-row-actions"><button class="doc-btn" data-act="addline">+ Ajouter une ligne</button><button class="doc-btn" data-act="sim">Appliquer la grille du simulateur d'offres</button><span id="docSimMsg" class="doc-sub"></span></div>
@@ -337,7 +343,8 @@
             <label>Valeur douane d'un testeur (€)<input type="number" step="0.01" min="0" data-f="prixTesteur" value="${esc(d.prixTesteur)}"></label>
             <label>Remise commerciale (%)<input type="number" step="0.5" min="0" data-f="remisePct" value="${esc(d.remisePct)}"></label>
             <label>ou remise (montant €)<input type="number" step="0.01" min="0" data-f="remiseMontant" value="${esc(d.remiseMontant || '')}" placeholder="0"></label>
-            ${CADEAUX.map(a => `<label>${esc(a)}<input type="number" min="0" step="1" data-cad="${esc(a)}" value="${esc((d.cadeaux || {})[a] || '')}" placeholder="0"></label>`).join('')}
+            ${(syncEch(d), CADEAUX.map(a => { const auto = a === 'Échantillons 2ml' && hasEch(d);
+              return `<label>${esc(a)}${auto ? ' <small class="doc-sub">(total des lignes)</small>' : ''}<input type="number" min="0" step="1" data-cad="${esc(a)}" value="${esc((d.cadeaux || {})[a] || '')}" placeholder="0"${auto ? ' readonly title="Total de la colonne « Éch. 2 ml » des lignes"' : ''}></label>`; }).join(''))}
           </div>
           <p class="doc-sub">Les testeurs apparaissent sur le document à leur valeur douane, puis sont déduits automatiquement dans la remise : ils restent gratuits et n'entrent pas dans le CA.</p>
           <label class="doc-full">Autres conditions / mentions<textarea data-f="conditions" rows="2">${esc(d.conditions)}</textarea></label>
@@ -383,6 +390,7 @@
       <td><input class="num" type="number" min="0" step="1" data-l="qty" value="${esc(l.qty)}"></td>
       <td>${!svc && l.mode === 'carton' ? `<input class="num" type="number" min="1" step="1" data-l="perCarton" value="${esc(l.perCarton)}">` : ''}</td>
       <td>${svc ? '' : `<input class="num" type="number" min="0" step="1" data-l="testers" value="${esc(l.testers)}">`}</td>
+      <td>${svc ? '' : `<input class="num" type="number" min="0" step="1" data-l="ech" value="${esc(l.ech == null ? '' : l.ech)}" placeholder="0" title="Échantillons 2 ml de ${esc(l.reference || 'ce parfum')} offerts">`}</td>
       <td><input class="num" type="number" min="0" step="0.01" data-l="prix" value="${esc(l.prix)}"></td>
       <td class="text-right" data-total>${money(k.ca)}</td>
       <td><button class="doc-x" data-act="delline" title="Supprimer la ligne">×</button></td>
@@ -394,6 +402,9 @@
     const pd = docs.find(x => x.numero === d.lien && x.societe === 'BSD'); return pd ? docCalc(pd).ht : null;
   }
   function updateTotals(){
+    syncEch(cur);
+    const ci = $('docEdBody') && $('docEdBody').querySelector('[data-cad="Échantillons 2ml"]');
+    if(ci && hasEch(cur)){ ci.value = cur.cadeaux['Échantillons 2ml'] || ''; ci.readOnly = true; ci.title = 'Total de la colonne « Éch. 2 ml » des lignes'; }
     const k = docCalc(cur);
     if(cur.paiement && cur.paiement.length) echeancier(cur, k).forEach((r, i) => { const tr = document.querySelector(`#docPay tr[data-p="${i}"]`); if(tr){ tr.children[3].textContent = money(r.montant); tr.children[4].textContent = r.due ? isoToFr(r.due) : '—'; } });
     cur.lines.forEach((l, i) => { const td = document.querySelector(`#docEdBody tr[data-i="${i}"] [data-total]`); if(td) td.textContent = money(lineCalc(l).ca); });
@@ -463,13 +474,13 @@
       const i = +el.closest('tr').dataset.i, l = cur.lines[i];
       if(lf === 'collection'){
         if(e.type !== 'change') return;
-        const nl = newLine(el.value, cur.pays); nl.qty = l.qty; nl.testers = testerAuto(nl.collection, nl.mode, nl.qty, cur.pays);
+        const nl = newLine(el.value, cur.pays); nl.qty = l.qty; nl.testers = testerAuto(nl.collection, nl.mode, nl.qty, cur.pays); nl.ech = echAuto(nl.collection, nl.mode, nl.qty);
         if(isSvc(nl)){ nl.qty = 1; nl.prix = 0; nl.mode = 'service'; nl.reference = nl.collection === 'TRANSPORT' ? 'Frais de transport' : ''; }
         cur.lines[i] = nl; renderEditor(); return;
       }
       if(lf === 'mode'){
         if(e.type !== 'change') return;
-        l.mode = el.value; l.prix = priceDefault(l.collection, l.mode); l.autoT = true; l.testers = testerAuto(l.collection, l.mode, l.qty, cur.pays); renderEditor(); return;
+        l.mode = el.value; l.prix = priceDefault(l.collection, l.mode); l.autoT = true; l.testers = testerAuto(l.collection, l.mode, l.qty, cur.pays); l.autoE = true; l.ech = echAuto(l.collection, l.mode, l.qty); renderEditor(); return;
       }
       if(lf === 'format'){
         if(e.type !== 'change') return;
@@ -488,6 +499,8 @@
       }
       l[lf] = num(el.value);
       if(lf === 'testers') l.autoT = false;
+      if(lf === 'ech') l.autoE = false;
+      if(lf === 'qty' && l.autoE !== false){ l.ech = echAuto(l.collection, l.mode, l.qty); l.autoE = true; const xi = el.closest('tr').querySelector('[data-l="ech"]'); if(xi) xi.value = l.ech; }
       if(lf === 'qty' && l.autoT){ l.testers = testerAuto(l.collection, l.mode, l.qty, cur.pays); const ti = el.closest('tr').querySelector('[data-l="testers"]'); if(ti) ti.value = l.testers; }
       updateTotals();
     }
@@ -503,6 +516,7 @@
     cur.remisePct = T.remise; cur.remiseMontant = 0;
     cur.lines.forEach(l => { if(l.mode === 'carton' && PARFUMS.includes(l.collection)){ l.autoT = false; l.testers = Math.round(num(l.qty)) * Math.max(T.testeur, l.collection === 'BRUMES' && cur.pays === 'Russie' ? 2 : 0); } });
     cur.cadeaux = {'Sacs noirs':cartons * T.sac, 'Échantillons 2ml':cartons * T.ech, 'Catalogues':T.cata, 'Paquets de mouillettes':T.mouil};
+    cur.lines.forEach(l => { if(l.mode === 'carton' && PARFUMS.includes(l.collection)){ l.ech = Math.round(num(l.qty)) * T.ech; l.autoE = false; } else if(!isSvc(l)) l.ech = 0; });
     renderEditor();
     $('docSimMsg').textContent = `Palier « dès ${T.min} cartons » appliqué (${cartons} cartons) : remise ${T.remise} %, testeurs et cadeaux mis à jour.`;
   }
@@ -556,7 +570,9 @@
     en:{date:'Date', due:'Due date', valid:'Valid until', from:'Ref.', bill:'Invoicing address', to:'Customer', ml:'Contents', ean:'EAN codes', unit:'Unit price', bpb:'Bottles per box', tpb:'Tester per box', ppb:'Price per box', qty:'Box ordered', total:'Total', testers:'TESTERS', sub:'Total', other:'Description', q:'Quantity', gross:'Total', disc:'Discount', discT:'Discount (testers)', ht:'Total excl. VAT', vat:'VAT', exo:'0%', net:{devis:'Total quotation', proforma:'Total proforma', facture:'Total invoice', avoir:'Credit amount'}, avoirOn:'Credit note for invoice', blRecu:'Goods received in good condition — date, name, signature and stamp', colis:'Boxes', fl:'Bottles', tst:'Testers', ref:'Reference', coll:'Collection', gifts:'Offered with the order', pay:'Payment terms', bank:'Banking details', sign:'Approved — date, signature and company stamp', units:'btl', vatno:'VAT / company no.', late:'Late payment: penalties at three times the French legal interest rate and a fixed recovery fee of €40 (article L441-10 of the French Commercial Code).', pro:'Proforma invoice — not a tax invoice.', tnote:'Testers are free of charge, valued for customs purposes only and deducted in the discount.'}
   };
   function docHtml(d){
+    syncEch(d);
     const k = docCalc(d), S = soc(d.societe), lg = d.langue === 'en' ? 'en' : 'fr', L = T[lg];
+    const avecEch = (d.lines || []).some(l => !isSvc(l) && num(l.ech) > 0), echTh = avecEch ? `<th class="c">${lg === 'en' ? '2 ml samples' : 'Éch. 2 ml'}</th>` : '';
     const groups = {}; const others = [];
     k.rows.filter(r => num(r.src.qty) > 0).forEach(r => { if(isSvc(r.src)) others.push(r); else (groups[r.src.collection] = groups[r.src.collection] || []).push(r); });
     const tables = PARFUMS.filter(c => groups[c]).map(c => {
@@ -565,14 +581,14 @@
         const unit = carton ? num(l.prix) / (num(l.perCarton) || 1) : num(l.prix);
         const tpc = carton && num(l.qty) ? Math.round(r.testers / num(l.qty) * 100) / 100 : (r.testers || '—');
         return `<tr><td>${esc(String(l.reference).toUpperCase())}</td><td class="c">${mlOf(l)}</td><td class="c">${esc(fmtEan(l.ean))}</td><td class="r">${money(unit)}</td>
-          <td class="c">${carton ? esc(l.perCarton) : '—'}</td><td class="c">${tpc}</td>
+          <td class="c">${carton ? esc(l.perCarton) : '—'}</td><td class="c">${tpc}</td>${avecEch ? `<td class="c">${num(l.ech) > 0 ? Math.round(num(l.ech)) : '—'}</td>` : ''}
           <td class="r">${carton ? money(num(l.prix)) : '—'}</td><td class="c">${carton ? esc(l.qty) : esc(l.qty) + ' ' + L.units}</td><td class="r">${money(r.ca)}</td></tr>`;
       }).join('');
       const nt = k.testersByColl[c] || 0, tval = k.pt ? r2(nt * k.pt) : 0;
-      const trow = k.pt && nt ? `<tr class="pd-trow"><td>${L.testers}</td><td></td><td></td><td class="r">${money(k.pt)}</td><td></td><td></td><td></td><td class="c">${nt}</td><td class="r">${money(tval)}</td></tr>` : '';
+      const trow = k.pt && nt ? `<tr class="pd-trow"><td>${L.testers}</td><td></td><td></td><td class="r">${money(k.pt)}</td><td></td><td></td>${avecEch ? '<td></td>' : ''}<td></td><td class="c">${nt}</td><td class="r">${money(tval)}</td></tr>` : '';
       const subtotal = r2(sum(groups[c], r => r.ca) + tval);
-      return `<table class="pd-table"><thead><tr><th>${COLL[c][lg]}</th><th class="c">${L.ml}</th><th class="c">${L.ean}</th><th class="r">${L.unit}</th><th class="c">${L.bpb}</th><th class="c">${L.tpb}</th><th class="r">${L.ppb}</th><th class="c">${L.qty}</th><th class="r">${L.total}</th></tr></thead>
-        <tbody>${rows}${trow}</tbody><tfoot><tr><td colspan="8" class="r">${L.sub}</td><td class="r">${money(subtotal)}</td></tr></tfoot></table>`;
+      return `<table class="pd-table"><thead><tr><th>${COLL[c][lg]}</th><th class="c">${L.ml}</th><th class="c">${L.ean}</th><th class="r">${L.unit}</th><th class="c">${L.bpb}</th><th class="c">${L.tpb}</th>${echTh}<th class="r">${L.ppb}</th><th class="c">${L.qty}</th><th class="r">${L.total}</th></tr></thead>
+        <tbody>${rows}${trow}</tbody><tfoot><tr><td colspan="${avecEch ? 9 : 8}" class="r">${L.sub}</td><td class="r">${money(subtotal)}</td></tr></tfoot></table>`;
     }).join('');
     const otherTable = others.length ? `<table class="pd-table"><thead><tr><th>${L.other}</th><th class="c">${L.q}</th><th class="r">${L.unit}</th><th class="r">${L.total}</th></tr></thead><tbody>${others.map(r => `<tr><td>${esc(r.src.reference || COLL[r.src.collection][lg])}</td><td class="c">${esc(r.src.qty)}</td><td class="r">${money(num(r.src.prix))}</td><td class="r">${money(r.ca)}</td></tr>`).join('')}</tbody></table>` : '';
     const cad = CADEAUX.filter(a => num((d.cadeaux || {})[a]) > 0).map(a => `${lg === 'en' ? CADEAUX_EN[a] : a} : ${Math.round(num(d.cadeaux[a]))}`);
@@ -797,7 +813,7 @@
     if(o.lignes && o.lignes.length) d.lines = o.lignes.map(x => {
       const l = newLine(x.collection, d.pays); l.qty = Math.max(1, Math.round(num(x.qty)) || 1);
       const p = dernierPrix(d.client, x.collection); if(p) l.prix = p;
-      setRef(l, x.reference || ''); l.testers = testerAuto(l.collection, l.mode, l.qty, d.pays); return l;
+      setRef(l, x.reference || ''); l.testers = testerAuto(l.collection, l.mode, l.qty, d.pays); l.ech = echAuto(l.collection, l.mode, l.qty); return l;
     });
     if(o.preset && PRESETS[o.preset]){ d.paiement = presetRows(o.preset); if(d.conditions === soc(d.societe).conditions) d.conditions = ''; }
     openEditor(d);

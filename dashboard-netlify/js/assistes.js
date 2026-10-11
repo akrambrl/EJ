@@ -113,6 +113,7 @@
         return `<dl class="wz-recap"><dt>Document</dt><dd>${type === 'devis' ? 'Devis' : 'Facture'} ${d.soc === 'NB' ? 'NB Evolution (Dubaï)' : 'BSD (France)'}</dd>
           <dt>Client</dt><dd>${esc(d.client)}${d.pays ? ' · ' + esc(d.pays) : ''}</dd>
           <dt>Parfums</dt><dd>${d.lignes.map(l => `${l.qty} carton${l.qty > 1 ? 's' : ''} de <strong>${esc(l.reference)}</strong> <small>(${esc(nomCol(l.collection))})</small>`).join('<br>')}</dd>
+          ${(() => { const e = d.lignes.filter(l => l.collection !== 'BRUMES').reduce((x, l) => x + l.qty, 0); return e ? `<dt>Offert</dt><dd>${e} échantillon${e > 1 ? 's' : ''} 2 ml (1 par carton, modifiable)</dd>` : ''; })()}
           <dt>Total estimé</dt><dd><strong>${money0(totalLignes(d))}</strong> HT</dd><dt>Paiement</dt><dd>${pay ? pay[1] + (pay[0] ? ' — ' + pay[2] : '') : '—'}</dd></dl>
           <p class="wz-aide">En cliquant ci-dessous, ${type === 'devis' ? 'le devis s’ouvre déjà rempli' : 'la facture s’ouvre déjà remplie'}. Vous pourrez encore changer un prix ou ajouter un cadeau, puis cliquer sur <strong>Enregistrer</strong>.</p>`; },
         suite:() => ({l:type === 'devis' ? 'Préparer le devis ›' : 'Préparer la facture ›'}),
