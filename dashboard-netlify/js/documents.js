@@ -591,7 +591,7 @@
         const l = r.src, carton = l.mode === 'carton';
         const unit = carton ? num(l.prix) / (num(l.perCarton) || 1) : num(l.prix);
         const tpc = carton && num(l.qty) ? Math.round(r.testers / num(l.qty) * 100) / 100 : (r.testers || '—');
-        return `<tr><td>${esc(String(l.reference).toUpperCase())}</td><td class="c">${mlOf(l)}</td><td class="c">${esc(fmtEan(l.ean))}</td><td class="r">${money(unit)}</td>
+        return `<tr><td>${esc(String(l.reference).toUpperCase())}</td><td class="c">${mlOf(l)}</td><td class="c pd-ean">${esc(fmtEan(l.ean))}</td><td class="r">${money(unit)}</td>
           <td class="c">${carton ? esc(l.perCarton) : '—'}</td><td class="c">${tpc}</td>${avecEch ? `<td class="c">${num(l.ech) > 0 ? Math.round(num(l.ech)) : '—'}</td>` : ''}
           <td class="r">${carton ? money(num(l.prix)) : '—'}</td><td class="c">${carton ? esc(l.qty) : esc(l.qty) + ' ' + L.units}</td><td class="r">${money(r.ca)}</td></tr>`;
       }).join('');
@@ -660,7 +660,7 @@
         <div class="pd-title"><h1>${TYPES.bl[lg]}</h1><div class="pd-num">N° ${esc(d.numero)}</div><div class="pd-dates"><div><span>${L.date}</span>${esc(isoToFr(d.date))}</div></div>${d.source ? `<div class="pd-ref">${L.from} ${esc(d.source)}</div>` : ''}</div></div>
       <div class="pd-client"><div class="pd-label">${L.to}</div><strong>${esc(d.client)}</strong><br>${esc(d.adresse).replace(/\n/g, '<br>')}${d.adresse ? '<br>' : ''}${esc(d.pays)}</div>
       <table class="pd-table"><thead><tr><th>${L.coll}</th><th>${L.ref}</th><th class="c">${L.ml}</th><th class="c">${L.ean}</th><th class="c">${L.colis}</th><th class="c">${L.fl}</th><th class="c">${L.tst}</th></tr></thead>
-        <tbody>${rows.map(r => `<tr><td>${esc(COLL[r.src.collection][lg])}</td><td>${esc(String(r.src.reference).toUpperCase())}</td><td class="c">${mlOf(r.src)}</td><td class="c">${esc(fmtEan(r.src.ean))}</td><td class="c">${r.cartons || '—'}</td><td class="c">${r.btl}</td><td class="c">${r.testers || 0}</td></tr>`).join('')}</tbody>
+        <tbody>${rows.map(r => `<tr><td>${esc(COLL[r.src.collection][lg])}</td><td>${esc(String(r.src.reference).toUpperCase())}</td><td class="c">${mlOf(r.src)}</td><td class="c pd-ean">${esc(fmtEan(r.src.ean))}</td><td class="c">${r.cartons || '—'}</td><td class="c">${r.btl}</td><td class="c">${r.testers || 0}</td></tr>`).join('')}</tbody>
         <tfoot><tr><td colspan="4" class="r">${L.total}</td><td class="c">${colis}</td><td class="c">${sum(rows, r => r.btl)}</td><td class="c">${sum(rows, r => r.testers || 0)}</td></tr></tfoot></table>
       <div class="pd-sign"><div>${L.blRecu}</div></div>
       <div class="pd-legal">${esc(S.nom)}</div></div>`;

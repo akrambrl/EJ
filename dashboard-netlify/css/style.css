@@ -1183,3 +1183,4 @@ body.wz-on{overflow:hidden}
 .wz-nb{width:64px;height:40px;text-align:center;font-family:inherit;font-size:1.1rem;font-weight:700;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);-moz-appearance:textfield}
 .wz-nb:focus{outline:none;border-color:var(--gold)}
 .wz-nb::-webkit-outer-spin-button,.wz-nb::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.pd-table td.pd-ean{white-space:nowrap;font-size:9.5px;letter-spacing:0;font-variant-numeric:tabular-nums}
