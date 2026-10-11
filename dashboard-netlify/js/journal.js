@@ -47,7 +47,8 @@
   /* ---------- Rappels automatiques ---------- */
   function rappels(){
     const R = [], t = iso(today()), mk = iso(today()).slice(0, 7);
-    const add = o => { if(!J.done[o.key]) R.push(o); };
+    // Accès limité : pas de rappels d'argent (encaissements, fournisseurs, impôts)
+    const add = o => { if(window.EJ_ROLE && ['paiement', 'fournisseur', 'admin'].includes(o.cat)) return; if(!J.done[o.key]) R.push(o); };
     // 1. Paiements clients (documents créés dans le dashboard)
     const D = window.EJ_DOCS;
     if(D){

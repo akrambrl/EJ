@@ -191,6 +191,7 @@
     salons:{t:'Les salons', s:'dates, villes', q:[['Quel est le prochain salon ?', '', 'Quel est le prochain salon ?']]},
     jour:{t:'Ma journée', s:'choses à faire', q:[['Qu’est-ce que je dois faire aujourd’hui ?', '', 'Qu’est-ce que je dois faire aujourd’hui ?']]}
   };
+  if(window.EJ_ROLE){ delete THEMES.ventes; delete THEMES.argent; }   // accès limité : pas de questions financières
   const txt = (f, v) => typeof f === 'function' ? f(v) : f;
   function toutesRefs(q){ q = norm(q); const L = []; COLS().forEach(c => stockItems(c).forEach(i => { if(!q || norm(i.reference).includes(q)) L.push([c, i.reference]); })); return L; }
   const question = {

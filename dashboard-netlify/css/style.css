@@ -1248,3 +1248,12 @@ body.wz-on{overflow:hidden}
   .ff-apercu iframe{min-height:300px}
   .ff-f fieldset{grid-template-columns:1fr}
 }
+
+/* ---------- Accès limité (js/role.js) ---------- */
+html[data-role] .section.role-cache,html[data-role] .fin,html[data-role] .kpis-top,html[data-role] details.notes,
+html[data-role] .sb-block:has(.soc-switcher),html[data-role] .doc-internal,
+html[data-role] .ac-tuile[data-go="overview"],html[data-role] .ac-tuile[data-go="creances"],html[data-role] [data-go="fournisseurs"],
+html[data-role] .wz-fiche > div:nth-child(n+3),html[data-role] .sb-simple [data-tab="overview"],html[data-role] .sb-simple [data-tab="tresorerie"]{display:none!important}
+html[data-role] .ac-tuiles{grid-template-columns:minmax(0,1fr)}
+.role-badge{margin:4px auto 10px;padding:4px 12px;border:1px solid var(--gold);border-radius:14px;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-lt);width:max-content}
+html[data-role] .ac-mode{display:none!important}

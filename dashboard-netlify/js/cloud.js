@@ -10,7 +10,9 @@
   const SESSION = 'ej_cloud_session', META = 'ej_cloud_meta';
   // Clés partagées (le reste — caches, préférences d'affichage — reste propre à chaque appareil)
   const PARTAGEES = ['ej_documents_v1', 'ej_documents_settings_v2', 'ej_journal_v1', 'ej_equipe_v1', 'ej_salons_perso', 'productionData_v1', 'ej-simulateur-v3'];
-  const partagee = k => PARTAGEES.includes(k) || /^ej_reg_/.test(k);
+  // Accès limité : les registres financiers ne sont ni envoyés ni reçus sur cet appareil
+  const FINANCIERS = /^ej_reg_(comptes|tresorerie|creances|echeances|objectifs|budget|factures_fournisseurs|fiscal)$/;
+  const partagee = k => (PARTAGEES.includes(k) || /^ej_reg_/.test(k)) && !(window.EJ_ROLE && FINANCIERS.test(k));
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const ls = {get:k => { try { return localStorage.getItem(k); } catch(e) { return null; } }, set:null};
   const rawSet = Storage.prototype.setItem;

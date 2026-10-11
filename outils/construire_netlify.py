@@ -10,9 +10,10 @@ import re, base64, os, sys, html
 def datauri(path):
     ext = path.rsplit('.',1)[1].lower(); mime = {'png':'image/png','jpg':'image/jpeg','jpeg':'image/jpeg'}[ext]
     return f'data:{mime};base64,' + base64.b64encode(open(path,'rb').read()).decode()
-def inline(base, h):
+def inline(base, h, transfo=None):
+    lire = lambda rel: (transfo or (lambda r, t: t))(rel, open(os.path.join(base, rel), encoding='utf-8').read())
     h = re.sub(r'<link rel="stylesheet" href="([^"]+)">', lambda m: '<style>\n' + css(base, m.group(1)) + '\n</style>', h)
-    h = re.sub(r'<script src="((?!https?:)[^"]+)"></script>', lambda m: '<script>\n' + open(os.path.join(base, m.group(1)), encoding='utf-8').read().replace('</script', '<\\/script') + '\n</script>', h)
+    h = re.sub(r'<script src="((?!https?:)[^"]+)"></script>', lambda m: '<script>\n' + lire(m.group(1)).replace('</script', '<\\/script') + '\n</script>', h)
     return h
 def css(base, rel):
     p = os.path.join(base, rel); d = os.path.dirname(p)
@@ -24,6 +25,10 @@ args = sys.argv[1:]
 mdp = os.environ.get('EJ_MOT_DE_PASSE', '')
 if '--mot-de-passe' in args:
     i = args.index('--mot-de-passe'); mdp = args[i + 1]; del args[i:i + 2]
+# Accès limité (sans chiffres financiers internes) : page séparée <sortie>/natali/, autre mot de passe
+mdp_lim = os.environ.get('EJ_MOT_DE_PASSE_LIMITE', '')
+if '--mot-de-passe-limite' in args:
+    i = args.index('--mot-de-passe-limite'); mdp_lim = args[i + 1]; del args[i:i + 2]
 out_dir = args[0] if args else os.path.join(HERE, '..', 'netlify-deploy')
 os.makedirs(out_dir, exist_ok=True)
 out = os.path.join(out_dir, 'index.html')
@@ -31,21 +36,27 @@ out = os.path.join(out_dir, 'index.html')
 sb = os.path.join(root, 'simulateur-offres')
 sim = inline(sb, open(os.path.join(sb, 'index.html'), encoding='utf-8').read())
 sim = re.sub(r'(?<=["(])img/([\w.-]+\.(?:png|jpe?g))', lambda m: datauri(os.path.join(sb, 'img', m.group(1))), sim)
-# page principale
-h = inline(root, open(os.path.join(root, 'index.html'), encoding='utf-8').read())
-# Logo : une seule copie (window.EJ_LOGO) reprise par les documents imprimables
+def construire(role=None):
+  from acces_limite import nettoyer
+  h = inline(root, open(os.path.join(root, 'index.html'), encoding='utf-8').read(), nettoyer if role else None)
+  if role:
+    h = h.replace('<head>', '<head>\n<script>window.EJ_ROLE="' + role + '";document.documentElement.dataset.role="' + role + '";</script>', 1)
+  # Logo : une seule copie (window.EJ_LOGO) reprise par les documents imprimables
+  LOGO = datauri(os.path.join(root, 'img/logo.png'))
+  h = h.replace('<img src="img/logo.png" alt="">`', '<img src="${window.EJ_LOGO}" alt="">`')
+  h = re.sub(r'(<div class="pd-brand"><img src=")img/logo.png(")', r'\1${window.EJ_LOGO}\2', h)
+  h = h.replace('"img/logo.png"', '"' + LOGO + '"')
+  h = h.replace('<head>', '<head>\n<script>window.EJ_LOGO="' + LOGO + '";</script>', 1)
+  h = h.replace('<iframe class="sim-frame" src="simulateur-offres/index.html"', '<iframe class="sim-frame" srcdoc="' + (html.escape(sim, quote=True) if not role else '') + '"')
+  h = h.replace(' <a href="simulateur-offres/index.html" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet</a>', '')
+  h = h.replace('<link rel="icon" href="img/logo.png">', '<link rel="icon" href="' + datauri(os.path.join(root, 'img/logo.png')) + '">')
+  return h
 LOGO = datauri(os.path.join(root, 'img/logo.png'))
-h = h.replace('<img src="img/logo.png" alt="">`', '<img src="${window.EJ_LOGO}" alt="">`')
-h = re.sub(r'(<div class="pd-brand"><img src=")img/logo.png(")', r'\1${window.EJ_LOGO}\2', h)
-h = h.replace('"img/logo.png"', '"' + LOGO + '"')
-h = h.replace('<head>', '<head>\n<script>window.EJ_LOGO="' + LOGO + '";</script>', 1)
-h = h.replace('<iframe class="sim-frame" src="simulateur-offres/index.html"', '<iframe class="sim-frame" srcdoc="' + html.escape(sim, quote=True) + '"')
-h = h.replace(' <a href="simulateur-offres/index.html" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet</a>', '')
-h = h.replace('<link rel="icon" href="img/logo.png">', '<link rel="icon" href="' + datauri(os.path.join(root, 'img/logo.png')) + '">')
+h = construire()
 left = [x for x in re.findall(r'(?:src|href)="((?!https?:|data:|#|\$\{)[^"]+)"', h) if not x.startswith("' +")]
 print('références locales restantes :', left)
 
-def chiffrer(page, mot):
+def chiffrer(page, mot, cle_stockage="ej_cle_acces", sous_titre="Tableau de bord"):
     """Page de connexion + page chiffrée. Le déchiffrement se fait dans le navigateur (WebCrypto)."""
     import base64, secrets
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -56,7 +67,7 @@ def chiffrer(page, mot):
     cle = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=sel, iterations=ITER).derive(mot.encode('utf-8'))
     # Bouton « Verrouiller cet appareil » ajouté au menu de la page déchiffrée
     verrou = ('<script>(function(){var s=document.querySelector(".sidebar");if(!s)return;var a=document.createElement("a");a.href="#";a.className="cloud-foot";'
-              'a.style.display="block";a.textContent="Verrouiller cet appareil";a.onclick=function(e){e.preventDefault();try{localStorage.removeItem("ej_cle_acces")}catch(x){}location.reload()};s.appendChild(a)})();</script>')
+              'a.style.display="block";a.textContent="Verrouiller cet appareil";a.onclick=function(e){e.preventDefault();try{localStorage.removeItem("'+cle_stockage+'")}catch(x){}location.reload()};s.appendChild(a)})();</script>')
     page = page.replace('</body>', verrou + '</body>', 1)
     ct = AESGCM(cle).encrypt(iv, page.encode('utf-8'), None)
     b = lambda x: base64.b64encode(x).decode()
@@ -69,7 +80,7 @@ img{{width:84px}}h1{{font-weight:400;font-size:1.6rem;margin:12px 0 2px}}p{{font
 input[type=password]{{width:100%;box-sizing:border-box;padding:12px;background:#0B0A09;border:1px solid #332C25;color:#F2E8D8;font-size:15px}}
 label{{display:block;font:12px sans-serif;color:#A3968A;margin:12px 0}}button{{width:100%;padding:12px;border:0;background:linear-gradient(135deg,#F6E3A8,#D9B866 38%,#B8913F 62%,#E9CF85);color:#14110D;font:600 12px sans-serif;letter-spacing:.2em;text-transform:uppercase;cursor:pointer}}
 #e{{color:#E8847A;font:13px sans-serif;min-height:18px;margin:10px 0 0}}</style></head>
-<body><div class="b"><form id="f"><img src="{LOGO}" alt=""><h1>Emmanuelle Jane</h1><p>Tableau de bord</p>
+<body><div class="b"><form id="f"><img src="{LOGO}" alt=""><h1>Emmanuelle Jane</h1><p>{sous_titre}</p>
 <input type="password" id="m" placeholder="Mot de passe" autocomplete="current-password" autofocus required>
 <label><input type="checkbox" id="r" checked> Se souvenir de cet appareil</label><button>Ouvrir</button><div id="e"></div></form></div>
 <script>
@@ -80,11 +91,11 @@ async function __ejO(raw){{var k=await crypto.subtle.importKey("raw",raw,"AES-GC
  var p=await crypto.subtle.decrypt({{name:"AES-GCM",iv:__ejU(__EJD.i)}},k,__ejU(__EJD.c));var h=new TextDecoder().decode(p);document.open();document.write(h);document.close()}}
 async function __ejR(m){{var b=await crypto.subtle.importKey("raw",new TextEncoder().encode(m),"PBKDF2",false,["deriveBits"]);
  return crypto.subtle.deriveBits({{name:"PBKDF2",salt:__ejU(__EJD.s),iterations:__EJD.n,hash:"SHA-256"}},b,256)}}
-(async function(){{try{{var c=localStorage.getItem("ej_cle_acces");if(c){{await __ejO(__ejU(c));return}}}}catch(x){{try{{localStorage.removeItem("ej_cle_acces")}}catch(y){{}}}}}})();
+(async function(){{try{{var c=localStorage.getItem("{cle_stockage}");if(c){{await __ejO(__ejU(c));return}}}}catch(x){{try{{localStorage.removeItem("{cle_stockage}")}}catch(y){{}}}}}})();
 document.getElementById("f").onsubmit=async function(ev){{ev.preventDefault();var e=document.getElementById("e");e.textContent="Ouverture…";
  var garder=document.getElementById("r").checked;
  try{{var raw=await __ejR(document.getElementById("m").value);var t=await crypto.subtle.importKey("raw",raw,"AES-GCM",false,["decrypt"]);await crypto.subtle.decrypt({{name:"AES-GCM",iv:__ejU(__EJD.i)}},t,__ejU(__EJD.c));
- if(garder)try{{localStorage.setItem("ej_cle_acces",__ejK(raw))}}catch(x){{}}await __ejO(raw)}}
+ if(garder)try{{localStorage.setItem("{cle_stockage}",__ejK(raw))}}catch(x){{}}await __ejO(raw)}}
  catch(x){{e.textContent="Mot de passe incorrect."}}}};
 </script></body></html>"""
 
@@ -94,6 +105,13 @@ if mdp:
 else:
     print('⚠️  page NON chiffrée : ajouter --mot-de-passe pour protéger les données')
 open(out, 'w', encoding='utf-8').write(h)
+if mdp_lim:
+    if not mdp:
+        sys.exit('Le mot de passe principal est requis pour construire aussi l\'accès limité.')
+    os.makedirs(os.path.join(out_dir, 'natali'), exist_ok=True)
+    hl = chiffrer(construire('limite'), mdp_lim, 'ej_cle_acces_limite', 'Accès Natali')
+    open(os.path.join(out_dir, 'natali', 'index.html'), 'w', encoding='utf-8').write(hl)
+    print('accès limité : natali/index.html (chiffré, sans chiffres financiers internes)')
 # Bibliothèques chargées à la demande (lecture des PDF de factures fournisseurs) : fichiers publics, sans donnée.
 import shutil
 src_pdf = os.path.join(root, 'vendor', 'pdfjs')

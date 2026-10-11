@@ -218,7 +218,12 @@
     return `<strong>${esc(r)}</strong> : ${st.map(i => `${esc(i.collection)} — ${nombre(i.qty)} flacons en stock`).join(' · ') || 'pas de stock compté'}${v.length ? `<br>Ventes 2025 + 2026 : ${v.map(x => `${nombre(x.btl)} flacons (${money0(x.ca)})`).join(' · ')}` : ''}${btn('Page Stock', 'stock')}`;
   });
 
+  // Accès limité : pas de réponse sur les chiffres financiers internes
+  const FIN_Q = /(chiffre d.?affaire|\bca\b|benefice|marge|rentab|impot|tresor|banque|compte bancaire|charges?\b|salaire|resultat|cout|prix de revient|depense|fournisseurs? a payer|creance|doit de l.?argent|me doit|encaiss|objectif|budget|tva|bilan)/;
+  const refusFin = q => window.EJ_ROLE && FIN_Q.test(norm(q));
+  const REFUS = 'Cette information financière n’est pas disponible avec votre accès. Je peux vous aider sur le stock, les clients, les factures et devis, les expéditions ou les salons.';
   function repondreLocal(q){
+    if(refusFin(q)) return REFUS;
     for(const r of R){ try { if(r.test(q)){ const h = r.f(q); if(h) return h; } } catch(e) { console.warn(e); } }
     return null;
   }
@@ -294,7 +299,7 @@
   }
 
   /* ================= Interface ================= */
-  const SUGG = ['Stock de Moon', 'Dernière facture de Gazzaz', 'Quel est le prochain salon ?', 'Qui me doit de l’argent ?', 'CA 2026', 'Meilleurs clients 2026', 'Références en rupture', 'Prochaines échéances fiscales', 'Combien d’impôts cette année ?', 'Qu’est-ce que je dois faire aujourd’hui ?'];
+  const SUGG = (window.EJ_ROLE ? s => s.filter(x => !refusFin(x)) : s => s)(['Stock de Moon', 'Dernière facture de Gazzaz', 'Quel est le prochain salon ?', 'Qui me doit de l’argent ?', 'CA 2026', 'Meilleurs clients 2026', 'Références en rupture', 'Prochaines échéances fiscales', 'Combien d’impôts cette année ?', 'Qu’est-ce que je dois faire aujourd’hui ?']);
   const fab = document.createElement('button'); fab.type = 'button'; fab.className = 'ia-fab'; fab.title = 'Assistant'; fab.setAttribute('aria-label', 'Ouvrir l’assistant');
   fab.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>';
   const box = document.createElement('div'); box.className = 'ia-box'; box.hidden = true;
@@ -317,6 +322,7 @@
     q = q.trim(); if(!q) return;
     ajoute(esc(q), 'moi');
     // Avec l'IA activée, les questions longues ou d'analyse vont directement à Claude ; les questions simples restent instantanées.
+    if(refusFin(q)){ return ajoute(REFUS, 'bot'); }
     const complexe = modeClaude() && (norm(q).split(' ').length > 9 || /(compar|pourquoi|analys|conseil|explique|strateg|recommand|resume|synthese|tendance|prevoir|devrais)/.test(norm(q)));
     const loc = complexe ? null : repondreLocal(q);
     if(loc) return ajoute(loc, 'bot');

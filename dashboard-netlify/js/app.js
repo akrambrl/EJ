@@ -1008,12 +1008,12 @@ function renderStock(){
   document.getElementById('stockGlobalKpis').innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px">
       <div class="kpi"><div class="kpi-label">Total bouteilles en stock</div><div class="kpi-value big">${fmtNum(totalQty)}</div></div>
-      <div class="kpi"><div class="kpi-label">💰 CA potentiel (si tout vendu)</div><div class="kpi-value">${fmtMoneyShort(totalCAPot)}</div></div>
-      <div class="kpi success"><div class="kpi-label">📈 Bénéfice potentiel*</div><div class="kpi-value">${fmtMoneyShort(totalBenefPot)}</div></div>
+      <div class="kpi fin"><div class="kpi-label">💰 CA potentiel (si tout vendu)</div><div class="kpi-value">${fmtMoneyShort(totalCAPot)}</div></div>
+      <div class="kpi success fin"><div class="kpi-label">📈 Bénéfice potentiel*</div><div class="kpi-value">${fmtMoneyShort(totalBenefPot)}</div></div>
       <div class="kpi danger"><div class="kpi-label">Réf. critiques</div><div class="kpi-value">${totalCritique}</div></div>
       <div class="kpi danger"><div class="kpi-label">Réf. épuisées</div><div class="kpi-value">${totalEpuise}</div></div>
     </div>
-    <div style="color:var(--muted);font-size:.78rem;margin-bottom:14px">*Bénéfice calculé hors ROYAL (coût non renseigné). CA potentiel calculé au prix de vente unitaire standard (VIP 16€, VIP BLACK 18€, ROYAL 9€, 50ML 13€, BRUMES 4€).</div>
+    <div class="fin" style="color:var(--muted);font-size:.78rem;margin-bottom:14px">*Bénéfice calculé hors ROYAL (coût non renseigné). CA potentiel calculé au prix de vente unitaire standard (VIP 16€, VIP BLACK 18€, ROYAL 9€, 50ML 13€, BRUMES 4€).</div>
   `;
 
   let html = '';
@@ -1027,8 +1027,8 @@ function renderStock(){
           <h3 style="color:#C9A456"><span class="${collClass(coll)}">${coll}</span></h3>
           <div style="color:var(--muted);font-size:.95rem">
             <strong style="color:#C9A456">${fmtNum(s.total_qty)}</strong> btl •
-            CA : <strong style="color:#C9A456">${fmtMoneyShort(s.total_ca_pot)}</strong> •
-            Bénéfice : <strong style="color:var(--good)">${benefDisplay}</strong>
+            <span class="fin">CA : <strong style="color:#C9A456">${fmtMoneyShort(s.total_ca_pot)}</strong> •
+            Bénéfice : <strong style="color:var(--good)">${benefDisplay}</strong></span>
           </div>
         </div>
         <table>
@@ -1037,8 +1037,8 @@ function renderStock(){
               <th>#</th><th>Référence</th>
               <th class="text-right">Stock (btl)</th>
               <th class="text-right">Prix vente/btl</th>
-              <th class="text-right">CA potentiel</th>
-              <th class="text-right">Bénéfice potentiel</th>
+              <th class="text-right fin">CA potentiel</th>
+              <th class="text-right fin">Bénéfice potentiel</th>
               <th class="text-center">Statut</th>
             </tr>
           </thead>
@@ -1052,8 +1052,8 @@ function renderStock(){
                   <td><strong>${it.reference}</strong></td>
                   <td class="text-right" style="font-weight:bold;color:${sc.color};font-size:1.05rem">${fmtNum(it.qty)}</td>
                   <td class="text-right">${fmtMoney(it.prix_btl)}</td>
-                  <td class="text-right amount">${fmtMoney(it.ca_pot)}</td>
-                  <td class="text-right amount-positive">${benefDisp}</td>
+                  <td class="text-right amount fin">${fmtMoney(it.ca_pot)}</td>
+                  <td class="text-right amount-positive fin">${benefDisp}</td>
                   <td class="text-center" style="color:${sc.color};font-weight:600">${sc.text}</td>
                 </tr>
               `;
