@@ -17,10 +17,13 @@ function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[i
 
 // Couleurs du thème (clair ou sombre) lues dans les variables CSS au moment du rendu
 function cv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-function applyChartTheme(){ Chart.defaults.color = cv('--ink'); Chart.defaults.borderColor = 'rgba(' + cv('--ink-rgb') + ',.1)'; }
-applyChartTheme();
-Chart.defaults.font.family = "Montserrat, 'Helvetica Neue', Arial, sans-serif";
-Chart.defaults.plugins.title.font = {family:"'Cormorant Garamond', Georgia, serif", size:19, weight:'500'};
+function applyChartTheme(){ if(!window.Chart) return; Chart.defaults.color = cv('--ink'); Chart.defaults.borderColor = 'rgba(' + cv('--ink-rgb') + ',.1)'; }
+// Chart.js est intégré (vendor/) ; si jamais il manquait, le reste du dashboard (menus, années, onglets) doit fonctionner quand même.
+try {
+  applyChartTheme();
+  Chart.defaults.font.family = "Montserrat, 'Helvetica Neue', Arial, sans-serif";
+  Chart.defaults.plugins.title.font = {family:"'Cormorant Garamond', Georgia, serif", size:19, weight:'500'};
+} catch(e) { console.error('Graphiques indisponibles', e); }
 const PALETTE = ['#c98500','#3987e5','#d95926','#199e70','#9085e9','#d55181','#008300','#e66767','#8a5c00','#245a9c','#93401b','#11694b','#5f57a3','#93385a']; // thème sombre : 8 teintes validées (fond var(--surface)) + 6 teintes foncées
 
 function renderKpis(){
