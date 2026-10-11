@@ -29,25 +29,25 @@ const INVENTAIRE_DATA = {
     },
     {
      "code": "FLPEJWILCHB00TR4",
-     "label": "FL 2ML WILD CHERRY",
+     "label": "Échantillon 2 ml — Wild Cherry",
      "conforme": 2000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJBLAISB00TR4",
-     "label": "FL 2ML BLAIS",
+     "label": "Échantillon 2 ml — Blais",
      "conforme": 2000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJELODO00TR4",
-     "label": "FL 2ML ELOGE D'ORIENT",
+     "label": "Échantillon 2 ml — L'Éloge d'Orient",
      "conforme": 2000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJVETIVB00TR4",
-     "label": "FL 2ML VETIVER",
+     "label": "Échantillon 2 ml — Vétiver",
      "conforme": 2000,
      "non_conforme": 0
     },
@@ -65,145 +65,145 @@ const INVENTAIRE_DATA = {
     },
     {
      "code": "FLPEJBORAB00TR4",
-     "label": "FL 2ML BORA BORA",
+     "label": "Échantillon 2 ml — Bora Bora",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJCAFTA00TR4",
-     "label": "FL 2ML VIP CAFTAN",
+     "label": "Échantillon 2 ml — Caftan",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJDREAM00TR4",
-     "label": "FL 2ML VIP DREAM CATCHER",
+     "label": "Échantillon 2 ml — Dream Catcher",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJECLVA00TR4",
-     "label": "FL 2ML VIP ECLAT DE VANILLE",
+     "label": "Échantillon 2 ml — Éclat de Vanille",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJELIXI00TR4",
-     "label": "FL 2ML VIP ELIXIR",
+     "label": "Échantillon 2 ml — Elixir",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJEXOTW00TR4",
-     "label": "FL 2ML EXOTIC WOOD",
+     "label": "Échantillon 2 ml — Exotic Oud",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJGOLDC00TR4",
-     "label": "FL 2ML GOLDEN CARAMEL",
+     "label": "Échantillon 2 ml — Golden Caramel",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJGREY00TR4",
-     "label": "FL 2ML VIP GREY",
+     "label": "Échantillon 2 ml — Grey",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJMILRE00TR4",
-     "label": "FL 2ML MILANO RENAISSANCE",
+     "label": "Échantillon 2 ml — Milano Renaissance",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJMILWO00TR4",
-     "label": "FL 2ML MILANO WOMEN",
+     "label": "Échantillon 2 ml — Milano Women",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJMIMEN00TR4",
-     "label": "FL 2ML MILANO MEN",
+     "label": "Échantillon 2 ml — Milano Men",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJMIULT00TR4",
-     "label": "FL 2ML MILANO ULTRA",
+     "label": "Échantillon 2 ml — Milano Ultra",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJMOON00TR4",
-     "label": "FL 2ML VIP MOON",
+     "label": "Échantillon 2 ml — Moon",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJOUDBE00TR4",
-     "label": "FL 2ML VIP OUD BERRY",
+     "label": "Échantillon 2 ml — Oud Berry",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJOUDVA00TR4",
-     "label": "FL 2ML VIP OUD VANILLE",
+     "label": "Échantillon 2 ml — Oud Vanille",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJPIEGE00TR4",
-     "label": "FL 2ML VIP PIEGE",
+     "label": "Échantillon 2 ml — Piège",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJPURE00TR4",
-     "label": "FL 2ML VIP PURE",
+     "label": "Échantillon 2 ml — Pure",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJRED00TR4",
-     "label": "FL 2ML VIP RED",
+     "label": "Échantillon 2 ml — Red",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJREGAT00TR4",
-     "label": "FL 2ML VIP REGATUS",
+     "label": "Échantillon 2 ml — Regatus",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJRIVNO00TR4",
-     "label": "FL 2ML VIP RIVIERE NOIRE",
+     "label": "Échantillon 2 ml — Rivière Noire",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJSANOU00TR4",
-     "label": "FL 2ML SANTAL OUD",
+     "label": "Échantillon 2 ml — Santal Wood",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJSILVE00TR4",
-     "label": "FL 2ML VIP SILVER",
+     "label": "Échantillon 2 ml — Silver",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJUOMO00TR4",
-     "label": "FL 2ML UOMO",
+     "label": "Échantillon 2 ml — Uomo",
      "conforme": 1000,
      "non_conforme": 0
     },
     {
      "code": "FLPEJUOMOA00TR4",
-     "label": "FL 2ML UOMO ALTERNANCE",
+     "label": "Échantillon 2 ml — Uomo Alternance",
      "conforme": 1000,
      "non_conforme": 0
     },
