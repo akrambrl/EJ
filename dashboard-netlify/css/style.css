@@ -1176,3 +1176,7 @@ body.wz-on{overflow:hidden}
   .wz-ok{min-width:0;flex:1}
   .wz-lignes em{display:none}
 }
+.wz-barre{text-decoration:line-through;opacity:.6;margin-left:4px}
+.wz-reste{margin-top:2px}
+.wz-reste b{font-weight:700}
+.wz .wz-reste.ko,.wz .wz-ref small.ko{color:var(--bad);font-weight:600}
