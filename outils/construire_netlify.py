@@ -94,4 +94,9 @@ if mdp:
 else:
     print('⚠️  page NON chiffrée : ajouter --mot-de-passe pour protéger les données')
 open(out, 'w', encoding='utf-8').write(h)
+# Bibliothèques chargées à la demande (lecture des PDF de factures fournisseurs) : fichiers publics, sans donnée.
+import shutil
+src_pdf = os.path.join(root, 'vendor', 'pdfjs')
+if os.path.isdir(src_pdf):
+    shutil.copytree(src_pdf, os.path.join(out_dir, 'vendor', 'pdfjs'), dirs_exist_ok=True)
 print('taille :', round(os.path.getsize(out)/1e6, 2), 'Mo')

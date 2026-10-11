@@ -140,6 +140,8 @@
       });
       if(D.supplier.goldrock && /payer/i.test(D.supplier.goldrock.status || '')) (D.supplier.goldrock.lines || []).forEach(l => out.push({soc:s, date:T0(), lib:'Goldrock — ' + l.label, montant:l.eur || enEur(l.usd, 'USD'), retard:true}));
     });
+    // Factures déposées dans « Factures fournisseurs » (js/fournisseurs.js), non payées
+    try { if(window.EJ_FOURN) EJ_FOURN.dus().forEach(f => out.push(Object.assign({}, f, {retard:f.date < T0(), depot:true}))); } catch(e) {}
     return out;
   }
 
@@ -535,6 +537,8 @@
     R.commandes.rows().filter(x => x.statut !== 'Reçue' && x.eta && days(x.eta) < 0).forEach(x => out.push({key:'cmd:' + x.id + ':' + x.eta, cat:'fournisseur', prio:2, tab:'appro', txt:`Commande ${x.fournisseur || ''} ${x.objet || ''} en retard`, sub:'arrivée prévue le ' + fr(x.eta)}));
     R.expeditions.rows().filter(x => x.statut === 'Problème' || (x.statut === 'Livrée' && !x.export)).forEach(x => out.push({key:'exp:' + x.id + ':' + x.statut, cat:'logistique', prio:x.statut === 'Problème' ? 3 : 1, tab:'expeditions', txt:x.statut === 'Problème' ? `Problème d'expédition : ${x.client}` : `Récupérer la preuve d'export : ${x.client} ${x.facture || ''}`, sub:fr(x.date)}));
     R.prospects.rows().filter(x => !['Gagné', 'Perdu'].includes(x.etape) && x.date && days(x.date) <= 0).forEach(x => out.push({key:'pro:' + x.id + ':' + x.date, cat:'client', prio:2, tab:'prospects', txt:`Prospect ${x.nom} : ${x.action || 'relancer'}`, sub:'prévu le ' + fr(x.date)}));
+    try { if(window.EJ_FOURN) EJ_FOURN.dus().filter(f => days(f.date) <= 7).forEach(f => out.push({key:'ff:' + f.id + ':' + f.date, cat:'fournisseur', prio:days(f.date) < 0 ? 3 : 2, tab:'fournisseurs',
+      txt:`Payer ${f.lib} : ${money(f.montant)}`, sub:days(f.date) < 0 ? `échéance dépassée (${fr(f.date)})` : `à payer avant le ${fr(f.date)}`})); } catch(e) {}
     R.creances.rows().filter(x => !x.paye && x.echeance && days(x.echeance) < 0).forEach(x => out.push({key:'cre:' + x.id, cat:'paiement', prio:3, tab:'creances', txt:`Relancer ${x.client} : ${x.facture || 'créance'} (${money(enEur(x.montant, x.devise))})`, sub:`en retard de ${-days(x.echeance)} j`}));
     const C = couverture().list.filter(x => x.etat === 'urgent');
     if(C.length) out.push({key:'couv:' + t0.slice(0, 7) + ':' + C.length, cat:'stock', prio:2, tab:'appro', txt:`${C.length} références avec moins d'un mois de stock`, sub:C.slice(0, 6).map(x => x.ref).join(' · ')});

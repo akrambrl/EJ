@@ -56,6 +56,7 @@
         <button type="button" class="ac-act" data-wz-open="stock">Voir le stock</button>
         <button type="button" class="ac-act" data-wz-open="client">Chercher un client</button>
         <button type="button" class="ac-act" data-wz-open="question">Poser une question</button>
+        <button type="button" class="ac-act" data-go="fournisseurs">Déposer une facture fournisseur</button>
         ${window.EJ_ASSISTANT && EJ_ASSISTANT.vocal ? '<button type="button" class="ac-act ac-voix" data-ia-open="1" data-ia-voix="1">🎤 Demander à voix haute</button>' : ''}
       </div>
       <h3 class="ac-h ac-extra">À faire en priorité</h3>
