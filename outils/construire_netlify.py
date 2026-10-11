@@ -68,7 +68,7 @@ def chiffrer_donnees(page, mot):
     cle = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=sel, iterations=ITER).derive(mot.encode('utf-8'))
     # Bouton « Verrouiller cet appareil » ajouté au menu de la page déchiffrée
     verrou = ('<script>(function(){var s=document.querySelector(".sidebar");if(!s)return;var a=document.createElement("a");a.href="#";a.className="cloud-foot";'
-              'a.style.display="block";a.textContent="Verrouiller cet appareil";a.onclick=function(e){e.preventDefault();try{localStorage.removeItem("' + CLE_STOCKAGE + '")}catch(x){}location.reload()};s.appendChild(a)})();</script>')
+              'a.style.cssText="display:block;margin:10px auto 6px;padding:9px 14px;border:1px solid var(--gold);border-radius:8px;text-align:center;text-decoration:none;color:var(--ink);font-size:.85rem;width:max-content";a.textContent="Se déconnecter";a.title="Fermer la session sur cet appareil (pour changer d\'accès, ex. Natali)";a.onclick=function(e){e.preventDefault();try{localStorage.removeItem("' + CLE_STOCKAGE + '")}catch(x){}location.reload()};s.appendChild(a)})();</script>')
     page = page.replace('</body>', verrou + '</body>', 1)
     ct = AESGCM(cle).encrypt(iv, page.encode('utf-8'), None)
     b = lambda x: base64.b64encode(x).decode()
