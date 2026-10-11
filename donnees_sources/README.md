@@ -35,7 +35,9 @@ Le guide d'origine est dans [`dashboard-netlify/CLAUDE.md`](../dashboard-netlify
 3. **Numérotation** : la vente PARFUM GLOBAL TRADE du 30/07/2026 (1 200 €) est `FR2026001` dans le
    registre et `EJ2026030` dans le dashboard.
 4. **Factures présentes seulement dans le dashboard** : FA20260001 à FA20260004 (Jade Création),
-   EJ2026012, EJ2026014, EJ2026017, EJ2026024 (avoir −1 512 €), EJ2026030.
+   EJ2026014, EJ2026017, EJ2026024 (avoir −1 512 €), EJ2026030.
+   (EJ2026012 « IBIS STYLES GARE DE L'EST », 20 coffrets 5 ml, 400,08 € du 04/05/2026, a été retirée du dashboard
+   le 11/10/2026 à la demande d'Akram : absente du registre et sans encaissement correspondant, jugée erronée.)
 5. **Charges 2026** : 3 catégories diffèrent légèrement entre `Recap_Charges_2026.xlsx` et le
    dashboard (Voyages −10 275,06 € / −11 235,15 € ; Téléphone −7 501,73 € / −7 509,72 € ;
    Fournitures −3 670,72 € / −3 677,71 €), probablement des opérations reclassées.
