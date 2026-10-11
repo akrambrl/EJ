@@ -158,14 +158,19 @@
     rows.forEach(r => { if(!isSvc(r.src) && r.testers) testersByColl[r.src.collection] = (testersByColl[r.src.collection] || 0) + r.testers; });
     const produits = r2(sum(rows, r => r.ca));
     const testersVal = pt ? r2(sum(Object.values(testersByColl), n => n * pt)) : 0;
-    const brut = r2(produits + testersVal);
+    // Échantillons 2 ml : valorisés comme les testeurs (0,20 € pièce par défaut) puis déduits automatiquement.
+    const pe = d.prixEch == null ? PRIX_ECH : num(d.prixEch), echByColl = {};
+    rows.forEach(r => { const n = isSvc(r.src) ? 0 : Math.round(num(r.src.ech)); if(n > 0) echByColl[r.src.collection] = (echByColl[r.src.collection] || 0) + n; });
+    const nEch = sum(Object.values(echByColl), n => n), echVal = pe ? r2(nEch * pe) : 0;
+    const brut = r2(produits + testersVal + echVal);
     const remiseTesteurs = -testersVal;                  // déduction automatique : les testeurs restent gratuits
+    const remiseEch = -echVal;                           // idem pour les échantillons 2 ml
     const remiseCom = num(d.remiseMontant) > 0 ? -r2(num(d.remiseMontant)) : (num(d.remisePct) ? -r2(produits * num(d.remisePct) / 100) : 0);
-    const remise = r2(remiseTesteurs + remiseCom);
+    const remise = r2(remiseTesteurs + remiseEch + remiseCom);
     const ht = r2(brut + remise);
     const regime = regimeOf(d);
     const tva = r2(ht * regime.taux / 100);
-    return {rows, testersByColl, pt, produits, testersVal, brut, remiseTesteurs, remiseCom, remise, ht, tva, ttc:r2(ht + tva), regime,
+    return {rows, testersByColl, pt, echByColl, pe, nEch, echVal, remiseEch, produits, testersVal, brut, remiseTesteurs, remiseCom, remise, ht, tva, ttc:r2(ht + tva), regime,
       btl:sum(rows, r => r.btl), testers:sum(rows, r => r.testers), cout:r4(sum(rows, r => r.cout))};
   }
   const remiseLabel = (d, lg) => num(d.remiseMontant) > 0 ? (lg === 'en' ? 'Discount' : 'Remise') : `${lg === 'en' ? 'Discount' : 'Remise'} ${String(d.remisePct).replace('.', ',')} %`;
@@ -278,7 +283,7 @@
     const S = soc(s), date = todayIso();
     return {id:newId(), societe:s, type, numero:nextNumero(s, type, date), date, langue:s === 'NB' ? 'en' : 'fr',
       validite:addDaysIso(date, +S.validite || 30), echeance:addDaysIso(date, +S.echeance || 30),
-      client:'', pays:'', adresse:'', tvaClient:'', regime:Object.keys(REGIMES[s])[0], remisePct:0, remiseMontant:0, prixTesteur:num(S.prixTesteur),
+      client:'', pays:'', adresse:'', tvaClient:'', regime:Object.keys(REGIMES[s])[0], remisePct:0, remiseMontant:0, prixTesteur:num(S.prixTesteur), prixEch:PRIX_ECH,
       cadeaux:{}, notes:'', conditions:S.conditions, lien:'', statut:TYPES[type].statuts[0], lines:[newLine('VIP', '')]};
   }
   function newLine(col, pays){
@@ -286,7 +291,7 @@
   }
   // Échantillons 2 ml offerts : 1 par carton de parfum (pas pour les brumes ni la collection Royal), modifiable ligne par ligne.
   // Le total des lignes alimente le cadeau « Échantillons 2ml » (coût, tableaux cadeaux, document).
-  const SANS_ECH = ['BRUMES', 'ROYAL'];
+  const SANS_ECH = ['BRUMES', 'ROYAL'], PRIX_ECH = 0.20;
   const echAuto = (col, mode, qty) => (mode === 'carton' && PARFUMS.includes(col) && !SANS_ECH.includes(col)) ? Math.round(num(qty)) : 0;
   const hasEch = d => (d.lines || []).some(l => l.ech != null && l.ech !== '');
   function syncEch(d){ if(!hasEch(d)) return; d.cadeaux = d.cadeaux || {}; d.cadeaux['Échantillons 2ml'] = sum(d.lines.filter(l => !isSvc(l)), l => Math.round(num(l.ech))); }
@@ -341,7 +346,7 @@
         <div>
           <h3 class="doc-h3">Testeurs, remise et cadeaux</h3>
           <div class="doc-grid">
-            <label>Valeur douane d'un testeur (€)<input type="number" step="0.01" min="0" data-f="prixTesteur" value="${esc(d.prixTesteur)}"></label>
+            <label>Valeur douane d'un testeur (€)<input type="number" step="0.01" min="0" data-f="prixTesteur" value="${esc(d.prixTesteur)}"></label><label>Valeur douane d'un échantillon 2 ml (€)<input type="number" step="0.01" min="0" data-f="prixEch" value="${esc(d.prixEch == null ? PRIX_ECH : d.prixEch)}"></label>
             <label>Remise commerciale (%)<input type="number" step="0.5" min="0" data-f="remisePct" value="${esc(d.remisePct)}"></label>
             <label>ou remise (montant €)<input type="number" step="0.01" min="0" data-f="remiseMontant" value="${esc(d.remiseMontant || '')}" placeholder="0"></label>
             ${(syncEch(d), CADEAUX.map(a => { const auto = a === 'Échantillons 2ml' && hasEch(d);
@@ -414,8 +419,10 @@
     $('docTotals').innerHTML = `
       <div class="kv"><span>Produits</span><span>${money(k.produits)}</span></div>
       ${k.testersVal ? `<div class="kv"><span>Testeurs (valeur douane : ${k.testers} × ${money(k.pt)})</span><span>${money(k.testersVal)}</span></div>` : ''}
+      ${k.echVal ? `<div class="kv"><span>Échantillons 2 ml (valeur douane : ${k.nEch} × ${money(k.pe)})</span><span>${money(k.echVal)}</span></div>` : ''}
       <div class="kv"><span>Total</span><span>${money(k.brut)}</span></div>
       ${k.testersVal ? `<div class="kv"><span>Remise testeurs (automatique)</span><span>${money(k.remiseTesteurs)}</span></div>` : ''}
+      ${k.echVal ? `<div class="kv"><span>Remise échantillons 2 ml (automatique)</span><span>${money(k.remiseEch)}</span></div>` : ''}
       ${k.remiseCom ? `<div class="kv"><span>${esc(remiseLabel(cur, 'fr'))}</span><span>${money(k.remiseCom)}</span></div>` : ''}
       <div class="kv"><span>Total HT</span><span>${money(k.ht)}</span></div>
       <div class="kv"><span>${k.regime.taux ? `TVA ${k.regime.taux} %` : 'TVA (0 % / exonéré)'}</span><span>${money(k.tva)}</span></div>
@@ -456,7 +463,7 @@
         cur.numero = nextNumero(cur.societe, cur.type, cur.date); cur.statut = TYPES[cur.type].statuts[0];
         renderEditor(); return;
       }
-      cur[f] = ['remisePct','remiseMontant','prixTesteur'].includes(f) ? num(v) : v;
+      cur[f] = ['remisePct','remiseMontant','prixTesteur','prixEch'].includes(f) ? num(v) : v;
       if(f === 'date' && e.type === 'change') renderPay();
       if(f === 'date' && e.type === 'change' && !docs.some(x => x.id === cur.id)){ cur.numero = nextNumero(cur.societe, cur.type, v); $('docEdBody').querySelector('[data-f="numero"]').value = cur.numero; }
       if(f === 'client' && e.type === 'change'){
@@ -570,8 +577,8 @@
 
   /* ---------- Document imprimable (mise en page des factures BSD / NB) ---------- */
   const T = {
-    fr:{date:'Date', due:'Échéance', valid:"Valable jusqu'au", from:'Réf.', bill:'Adresse de facturation', to:'Destinataire', ml:'Contenance', ean:'Code EAN', unit:'Prix unitaire', bpb:'Flacons / carton', tpb:'Testeur / carton', ppb:'Prix carton', qty:'Cartons', total:'Total', testers:'TESTEURS', sub:'Total', other:'Désignation', q:'Quantité', gross:'Total', disc:'Remise', discT:'Remise testeurs', ht:'Total HT', vat:'TVA', exo:'0 %', net:{devis:'Total devis', proforma:'Total proforma', facture:'Total facture', avoir:"Montant de l'avoir"}, avoirOn:'Avoir sur la facture', blRecu:'Marchandise reçue en bon état — date, nom, signature et cachet', colis:'Colis / cartons', fl:'Flacons', tst:'Testeurs', ref:'Référence', coll:'Collection', gifts:'Offert avec la commande', pay:'Conditions de paiement', bank:'Coordonnées bancaires', sign:'Bon pour accord — date, signature et cachet', units:'fl.', vatno:'N° TVA', late:"En cas de retard de paiement : pénalités au taux de trois fois le taux d'intérêt légal et indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce). Pas d'escompte pour paiement anticipé.", pro:'Facture proforma : document sans valeur comptable, ne constitue pas une facture.', tnote:'Testeurs offerts, valorisés pour la douane uniquement et déduits dans la remise.'},
-    en:{date:'Date', due:'Due date', valid:'Valid until', from:'Ref.', bill:'Invoicing address', to:'Customer', ml:'Contents', ean:'EAN codes', unit:'Unit price', bpb:'Bottles per box', tpb:'Tester per box', ppb:'Price per box', qty:'Box ordered', total:'Total', testers:'TESTERS', sub:'Total', other:'Description', q:'Quantity', gross:'Total', disc:'Discount', discT:'Discount (testers)', ht:'Total excl. VAT', vat:'VAT', exo:'0%', net:{devis:'Total quotation', proforma:'Total proforma', facture:'Total invoice', avoir:'Credit amount'}, avoirOn:'Credit note for invoice', blRecu:'Goods received in good condition — date, name, signature and stamp', colis:'Boxes', fl:'Bottles', tst:'Testers', ref:'Reference', coll:'Collection', gifts:'Offered with the order', pay:'Payment terms', bank:'Banking details', sign:'Approved — date, signature and company stamp', units:'btl', vatno:'VAT / company no.', late:'Late payment: penalties at three times the French legal interest rate and a fixed recovery fee of €40 (article L441-10 of the French Commercial Code).', pro:'Proforma invoice — not a tax invoice.', tnote:'Testers are free of charge, valued for customs purposes only and deducted in the discount.'}
+    fr:{date:'Date', due:'Échéance', valid:"Valable jusqu'au", from:'Réf.', bill:'Adresse de facturation', to:'Destinataire', ml:'Contenance', ean:'Code EAN', unit:'Prix unitaire', bpb:'Flacons / carton', tpb:'Testeur / carton', ppb:'Prix carton', qty:'Cartons', total:'Total', testers:'TESTEURS', sub:'Total', other:'Désignation', q:'Quantité', gross:'Total', disc:'Remise', discT:'Remise testeurs', discTE:'Remise testeurs et échantillons', samples:'ÉCHANTILLONS 2 ML', snote:'Échantillons 2 ml offerts, valorisés pour la douane uniquement et déduits dans la remise.', ht:'Total HT', vat:'TVA', exo:'0 %', net:{devis:'Total devis', proforma:'Total proforma', facture:'Total facture', avoir:"Montant de l'avoir"}, avoirOn:'Avoir sur la facture', blRecu:'Marchandise reçue en bon état — date, nom, signature et cachet', colis:'Colis / cartons', fl:'Flacons', tst:'Testeurs', ref:'Référence', coll:'Collection', gifts:'Offert avec la commande', pay:'Conditions de paiement', bank:'Coordonnées bancaires', sign:'Bon pour accord — date, signature et cachet', units:'fl.', vatno:'N° TVA', late:"En cas de retard de paiement : pénalités au taux de trois fois le taux d'intérêt légal et indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce). Pas d'escompte pour paiement anticipé.", pro:'Facture proforma : document sans valeur comptable, ne constitue pas une facture.', tnote:'Testeurs offerts, valorisés pour la douane uniquement et déduits dans la remise.'},
+    en:{date:'Date', due:'Due date', valid:'Valid until', from:'Ref.', bill:'Invoicing address', to:'Customer', ml:'Contents', ean:'EAN codes', unit:'Unit price', bpb:'Bottles per box', tpb:'Tester per box', ppb:'Price per box', qty:'Box ordered', total:'Total', testers:'TESTERS', sub:'Total', other:'Description', q:'Quantity', gross:'Total', disc:'Discount', discT:'Discount (testers)', discTE:'Discount (testers & samples)', samples:'2 ML SAMPLES', snote:'2 ml samples are free of charge, valued for customs purposes only and deducted in the discount.', ht:'Total excl. VAT', vat:'VAT', exo:'0%', net:{devis:'Total quotation', proforma:'Total proforma', facture:'Total invoice', avoir:'Credit amount'}, avoirOn:'Credit note for invoice', blRecu:'Goods received in good condition — date, name, signature and stamp', colis:'Boxes', fl:'Bottles', tst:'Testers', ref:'Reference', coll:'Collection', gifts:'Offered with the order', pay:'Payment terms', bank:'Banking details', sign:'Approved — date, signature and company stamp', units:'btl', vatno:'VAT / company no.', late:'Late payment: penalties at three times the French legal interest rate and a fixed recovery fee of €40 (article L441-10 of the French Commercial Code).', pro:'Proforma invoice — not a tax invoice.', tnote:'Testers are free of charge, valued for customs purposes only and deducted in the discount.'}
   };
   function docHtml(d){
     syncEch(d);
@@ -590,12 +597,14 @@
       }).join('');
       const nt = k.testersByColl[c] || 0, tval = k.pt ? r2(nt * k.pt) : 0;
       const trow = k.pt && nt ? `<tr class="pd-trow"><td>${L.testers}</td><td></td><td></td><td class="r">${money(k.pt)}</td><td></td><td></td>${avecEch ? '<td></td>' : ''}<td></td><td class="c">${nt}</td><td class="r">${money(tval)}</td></tr>` : '';
-      const subtotal = r2(sum(groups[c], r => r.ca) + tval);
+      const ne = k.echByColl[c] || 0, eval_ = k.pe ? r2(ne * k.pe) : 0;
+      const erow = k.pe && ne ? `<tr class="pd-trow"><td>${L.samples}</td><td class="c">2 ml</td><td></td><td class="r">${money(k.pe)}</td><td></td><td></td>${avecEch ? `<td class="c">${ne}</td>` : ''}<td></td><td class="c">${ne}</td><td class="r">${money(eval_)}</td></tr>` : '';
+      const subtotal = r2(sum(groups[c], r => r.ca) + tval + eval_);
       return `<table class="pd-table"><thead><tr><th>${COLL[c][lg]}</th><th class="c">${L.ml}</th><th class="c">${L.ean}</th><th class="r">${L.unit}</th><th class="c">${L.bpb}</th><th class="c">${L.tpb}</th>${echTh}<th class="r">${L.ppb}</th><th class="c">${L.qty}</th><th class="r">${L.total}</th></tr></thead>
-        <tbody>${rows}${trow}</tbody><tfoot><tr><td colspan="${avecEch ? 9 : 8}" class="r">${L.sub}</td><td class="r">${money(subtotal)}</td></tr></tfoot></table>`;
+        <tbody>${rows}${trow}${erow}</tbody><tfoot><tr><td colspan="${avecEch ? 9 : 8}" class="r">${L.sub}</td><td class="r">${money(subtotal)}</td></tr></tfoot></table>`;
     }).join('');
     const otherTable = others.length ? `<table class="pd-table"><thead><tr><th>${L.other}</th><th class="c">${L.q}</th><th class="r">${L.unit}</th><th class="r">${L.total}</th></tr></thead><tbody>${others.map(r => `<tr><td>${esc(r.src.reference || COLL[r.src.collection][lg])}</td><td class="c">${esc(r.src.qty)}</td><td class="r">${money(num(r.src.prix))}</td><td class="r">${money(r.ca)}</td></tr>`).join('')}</tbody></table>` : '';
-    const cad = CADEAUX.filter(a => num((d.cadeaux || {})[a]) > 0).map(a => `${lg === 'en' ? CADEAUX_EN[a] : a} : ${Math.round(num(d.cadeaux[a]))}`);
+    const cad = CADEAUX.filter(a => num((d.cadeaux || {})[a]) > 0 && !(a === 'Échantillons 2ml' && k.echVal)).map(a => `${lg === 'en' ? CADEAUX_EN[a] : a} : ${Math.round(num(d.cadeaux[a]))}`);
     if(d.type === 'bl') return blHtml(d, k, S, lg, L);
     const dates = (d.type === 'avoir') ? `<div><span>${L.date}</span>${esc(isoToFr(d.date))}</div>` : d.type === 'facture'
       ? `<div><span>${L.date}</span>${esc(isoToFr(d.date))}</div><div><span>${L.due}</span>${esc(isoToFr(d.echeance))}</div>`
@@ -605,6 +614,7 @@
       : [S.adresse, S.cp_ville + ' — ' + S.pays, S.tel && (lg === 'en' ? 'Tel : ' : 'Tél : ') + S.tel, S.portable && 'Port : ' + S.portable, S.email];
     const mentions = [];
     if(k.testersVal) mentions.push(L.tnote);
+    if(k.echVal) mentions.push(L.snote);
     if(k.regime[lg]) mentions.push(esc(k.regime[lg]));
     if(d.conditions) mentions.push(esc(d.conditions));
     if(d.type === 'facture' && d.societe === 'BSD') mentions.push(L.late);
@@ -617,8 +627,8 @@
       ? [S.nom + (S.sousTitre ? ' – ' + S.sousTitre.toUpperCase() : ''), [S.adresse, S.cp_ville, S.pays].filter(Boolean).join(', '), S.email && 'Mail : ' + S.email, S.portable && 'Port : ' + S.portable, S.licence && 'License number : ' + S.licence]
       : [S.nom, S.forme, [S.adresse, S.cp_ville, S.pays].filter(Boolean).join(' '), S.siret && 'SIRET ' + S.siret, S.rcs, S.naf && 'NAF ' + S.naf, S.tva && (lg === 'en' ? 'VAT ' : 'TVA intracom. ') + S.tva];
     // Remises : testeurs seuls -> une ligne « Remise » comme sur les factures d'origine ; sinon détail.
-    const discRows = !k.remise ? '' : (k.testersVal && k.remiseCom)
-      ? `<div><span>${L.discT}</span><span>${money(-k.remiseTesteurs)}</span></div><div><span>${esc(remiseLabel(d, lg))}</span><span>${money(-k.remiseCom)}</span></div>`
+    const discRows = !k.remise ? '' : ((k.testersVal || k.echVal) && k.remiseCom)
+      ? `<div><span>${k.echVal ? L.discTE : L.discT}</span><span>${money(-(k.remiseTesteurs + k.remiseEch))}</span></div><div><span>${esc(remiseLabel(d, lg))}</span><span>${money(-k.remiseCom)}</span></div>`
       : `<div><span>${k.remiseCom ? esc(remiseLabel(d, lg)) : L.disc}</span><span>${money(-k.remise)}</span></div>`;
     return `<div class="pd pd-${d.societe}">
       <div class="pd-head">
