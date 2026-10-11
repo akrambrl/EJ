@@ -82,7 +82,7 @@
     if(!d.lignes.length) return '<p class="wz-vide">Aucun parfum pour l’instant : choisissez une collection puis touchez un parfum.</p>';
     return `<ul class="wz-lignes">${d.lignes.map((l, i) => `<li><span><strong>${esc(l.reference)}</strong><small>${esc(nomCol(l.collection))} · ${D() ? D().perCarton(l.collection) : ''} flacons par carton</small>${(() => { const sa = stockApres(l.collection, l.reference); if(!sa || interne()) return '';
         return `<small class="wz-reste ${classeReste(sa.apres)}">Stock : ${nb(sa.avant)} − ${nb(sa.sortie)} = <b>${nb(sa.apres)}</b> flacons${sa.apres < 0 ? ' — pas assez de stock' : ''}</small>`; })()}</span>
-      <span class="wz-qte"><button type="button" data-wz="moins" data-v="${i}" aria-label="Un carton de moins">−</button><b>${l.qty}</b><button type="button" data-wz="plus" data-v="${i}" aria-label="Un carton de plus">+</button></span><em>carton${l.qty > 1 ? 's' : ''}</em>
+      <span class="wz-qte"><button type="button" data-wz="moins" data-v="${i}" aria-label="Un carton de moins">−</button><input class="wz-nb" type="number" inputmode="numeric" min="1" step="1" value="${l.qty}" data-wz-qte="${i}" aria-label="Nombre de cartons de ${esc(l.reference)}"><button type="button" data-wz="plus" data-v="${i}" aria-label="Un carton de plus">+</button></span><em>carton${l.qty > 1 ? 's' : ''}</em>
       <button type="button" class="wz-suppr" data-wz="suppr" data-v="${i}" aria-label="Retirer">×</button></li>`).join('')}</ul>
       <p class="wz-total">Environ <strong>${money0(totalLignes(d))}</strong> HT <small>(prix habituels ; modifiables à la fin)</small></p>`;
   }
@@ -113,7 +113,7 @@
         return `<dl class="wz-recap"><dt>Document</dt><dd>${type === 'devis' ? 'Devis' : 'Facture'} ${d.soc === 'NB' ? 'NB Evolution (Dubaï)' : 'BSD (France)'}</dd>
           <dt>Client</dt><dd>${esc(d.client)}${d.pays ? ' · ' + esc(d.pays) : ''}</dd>
           <dt>Parfums</dt><dd>${d.lignes.map(l => `${l.qty} carton${l.qty > 1 ? 's' : ''} de <strong>${esc(l.reference)}</strong> <small>(${esc(nomCol(l.collection))})</small>`).join('<br>')}</dd>
-          ${(() => { const e = d.lignes.filter(l => l.collection !== 'BRUMES').reduce((x, l) => x + l.qty, 0); return e ? `<dt>Offert</dt><dd>${e} échantillon${e > 1 ? 's' : ''} 2 ml (1 par carton, modifiable)</dd>` : ''; })()}
+          ${(() => { const e = d.lignes.filter(l => l.collection !== 'BRUMES' && l.collection !== 'ROYAL').reduce((x, l) => x + l.qty, 0); return e ? `<dt>Offert</dt><dd>${e} échantillon${e > 1 ? 's' : ''} 2 ml (1 par carton, modifiable)</dd>` : ''; })()}
           <dt>Total estimé</dt><dd><strong>${money0(totalLignes(d))}</strong> HT</dd><dt>Paiement</dt><dd>${pay ? pay[1] + (pay[0] ? ' — ' + pay[2] : '') : '—'}</dd></dl>
           <p class="wz-aide">En cliquant ci-dessous, ${type === 'devis' ? 'le devis s’ouvre déjà rempli' : 'la facture s’ouvre déjà remplie'}. Vous pourrez encore changer un prix ou ajouter un cadeau, puis cliquer sur <strong>Enregistrer</strong>.</p>`; },
         suite:() => ({l:type === 'devis' ? 'Préparer le devis ›' : 'Préparer la facture ›'}),
@@ -224,6 +224,24 @@
   const PARCOURS = {facture:facture('facture'), devis:facture('devis'), stock, client, question};
 
   /* ---------- Événements ---------- */
+  // Saisie directe du nombre de cartons : on met à jour les chiffres autour (stock, total, bouton) sans redessiner le champ,
+  // pour pouvoir taper « 12 » d'un coup sans perdre la main.
+  ov.addEventListener('input', e => {
+    const q = e.target.closest('[data-wz-qte]'); if(!q || !P) return;
+    const l = P.data.lignes[+q.dataset.wzQte]; if(!l) return;
+    const n = Math.round(+q.value); if(!(n >= 1)) return;
+    l.qty = n;
+    const et = PARCOURS[P.nom].etapes[P.etape], tmp = document.createElement('div'); tmp.innerHTML = et.h();
+    const ref = tmp.querySelector('.wz-refs'), cible = $('wzB').querySelector('.wz-refs'); if(ref && cible) cible.innerHTML = ref.innerHTML;
+    const r1 = [...tmp.querySelectorAll('.wz-lignes > li')], r2 = [...$('wzB').querySelectorAll('.wz-lignes > li')];
+    r2.forEach((li, i) => { const a = li.querySelector('.wz-reste'), b = r1[i] && r1[i].querySelector('.wz-reste'); if(a && b){ a.className = b.className; a.innerHTML = b.innerHTML; }
+      const c = li.querySelector('em'), d = r1[i] && r1[i].querySelector('em'); if(c && d) c.textContent = d.textContent; });
+    const t1 = tmp.querySelector('.wz-total'), t2 = $('wzB').querySelector('.wz-total'); if(t1 && t2) t2.innerHTML = t1.innerHTML;
+    const su = et.suite && et.suite(), ok = $('wzF').querySelector('.wz-ok'); if(su && ok){ ok.textContent = su.l; ok.disabled = !!su.off; }
+  });
+  // En quittant le champ (ou Entrée) : valeur vide ou 0 → on remet la quantité enregistrée.
+  ov.addEventListener('change', e => { const q = e.target.closest('[data-wz-qte]'); if(!q || !P) return; const l = P.data.lignes[+q.dataset.wzQte]; if(l && !(Math.round(+q.value) >= 1)) q.value = l.qty; });
+  ov.addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.closest('[data-wz-qte]')){ e.preventDefault(); e.target.blur(); } });
   ov.addEventListener('click', e => {
     if(e.target === ov) return fermer();
     const a = e.target.closest('[data-wz-act]');

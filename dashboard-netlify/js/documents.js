@@ -284,9 +284,10 @@
   function newLine(col, pays){
     return {collection:col, reference:'', ean:'', mode:'carton', qty:1, perCarton:perCartonDefault(col), prix:priceDefault(col, 'carton'), testers:testerAuto(col, 'carton', 1, pays), autoT:true, ech:echAuto(col, 'carton', 1), autoE:true};
   }
-  // Échantillons 2 ml offerts : 1 par carton de parfum (pas pour les brumes), modifiable ligne par ligne.
+  // Échantillons 2 ml offerts : 1 par carton de parfum (pas pour les brumes ni la collection Royal), modifiable ligne par ligne.
   // Le total des lignes alimente le cadeau « Échantillons 2ml » (coût, tableaux cadeaux, document).
-  const echAuto = (col, mode, qty) => (mode === 'carton' && PARFUMS.includes(col) && col !== 'BRUMES') ? Math.round(num(qty)) : 0;
+  const SANS_ECH = ['BRUMES', 'ROYAL'];
+  const echAuto = (col, mode, qty) => (mode === 'carton' && PARFUMS.includes(col) && !SANS_ECH.includes(col)) ? Math.round(num(qty)) : 0;
   const hasEch = d => (d.lines || []).some(l => l.ech != null && l.ech !== '');
   function syncEch(d){ if(!hasEch(d)) return; d.cadeaux = d.cadeaux || {}; d.cadeaux['Échantillons 2ml'] = sum(d.lines.filter(l => !isSvc(l)), l => Math.round(num(l.ech))); }
   function testerAuto(col, mode, qty, pays){
@@ -516,7 +517,10 @@
     cur.remisePct = T.remise; cur.remiseMontant = 0;
     cur.lines.forEach(l => { if(l.mode === 'carton' && PARFUMS.includes(l.collection)){ l.autoT = false; l.testers = Math.round(num(l.qty)) * Math.max(T.testeur, l.collection === 'BRUMES' && cur.pays === 'Russie' ? 2 : 0); } });
     cur.cadeaux = {'Sacs noirs':cartons * T.sac, 'Échantillons 2ml':cartons * T.ech, 'Catalogues':T.cata, 'Paquets de mouillettes':T.mouil};
-    cur.lines.forEach(l => { if(l.mode === 'carton' && PARFUMS.includes(l.collection)){ l.ech = Math.round(num(l.qty)) * T.ech; l.autoE = false; } else if(!isSvc(l)) l.ech = 0; });
+    const avecE = cur.lines.filter(l => echAuto(l.collection, l.mode, 1) > 0), nE = sum(avecE, l => Math.round(num(l.qty)));
+    // Les échantillons du palier vont aux parfums qui en ont (pas brumes ni Royal) ; total = palier × cartons de ces parfums.
+    cur.lines.forEach(l => { if(!isSvc(l)){ l.ech = avecE.includes(l) ? Math.round(num(l.qty)) * T.ech : 0; l.autoE = false; } });
+    if(cur.cadeaux) cur.cadeaux['Échantillons 2ml'] = nE * T.ech;
     renderEditor();
     $('docSimMsg').textContent = `Palier « dès ${T.min} cartons » appliqué (${cartons} cartons) : remise ${T.remise} %, testeurs et cadeaux mis à jour.`;
   }

@@ -1180,3 +1180,6 @@ body.wz-on{overflow:hidden}
 .wz-reste{margin-top:2px}
 .wz-reste b{font-weight:700}
 .wz .wz-reste.ko,.wz .wz-ref small.ko{color:var(--bad);font-weight:600}
+.wz-nb{width:64px;height:40px;text-align:center;font-family:inherit;font-size:1.1rem;font-weight:700;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);-moz-appearance:textfield}
+.wz-nb:focus{outline:none;border-color:var(--gold)}
+.wz-nb::-webkit-outer-spin-button,.wz-nb::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
