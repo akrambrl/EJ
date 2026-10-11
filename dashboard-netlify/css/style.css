@@ -1257,3 +1257,5 @@ html[data-role] .wz-fiche > div:nth-child(n+3),html[data-role] .sb-simple [data-
 html[data-role] .ac-tuiles{grid-template-columns:minmax(0,1fr)}
 .role-badge{margin:4px auto 10px;padding:4px 12px;border:1px solid var(--gold);border-radius:14px;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-lt);width:max-content}
 html[data-role] .ac-mode{display:none!important}
+/* Entrée active du menu simple : texte foncé sur fond doré, dans les deux thèmes (même au survol) */
+.sidebar .sb-big.active,.sidebar .sb-big.active:hover,[data-theme="dark"] .sidebar .sb-big.active,[data-theme="dark"] .sidebar .sb-big.active:hover{color:#14110D;background:var(--gold-grad)}
