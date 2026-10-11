@@ -1259,3 +1259,38 @@ html[data-role] .ac-tuiles{grid-template-columns:minmax(0,1fr)}
 html[data-role] .ac-mode{display:none!important}
 /* Entrée active du menu simple : texte foncé sur fond doré, dans les deux thèmes (même au survol) */
 .sidebar .sb-big.active,.sidebar .sb-big.active:hover,[data-theme="dark"] .sidebar .sb-big.active,[data-theme="dark"] .sidebar .sb-big.active:hover{color:#14110D;background:var(--gold-grad)}
+
+/* ---------- Accueil : vue d'ensemble (meilleurs clients, stock, meilleures ventes, dernières factures) ---------- */
+.ac-vue{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:22px 0 10px}
+.ac-bloc{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:16px 18px;min-width:0}
+.ac-bloc.ac-large{grid-column:1/-1}
+.ac-bh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.ac-bh h3{font-family:var(--serif);font-size:1.35rem;font-weight:500;margin:0}
+.ac-bh span{font-size:.8rem;color:var(--muted)}
+.ac-cl,.ac-st,.ac-vt{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ac-cl button,.ac-st button,.ac-vt button{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-family:inherit;font-size:.95rem;cursor:pointer}
+.ac-cl button:hover,.ac-st button:hover,.ac-vt button:hover{border-color:var(--gold)}
+.ac-med{font-size:1.4rem;width:28px;text-align:center}
+.ac-rg{width:28px;height:28px;flex:none;border-radius:50%;background:var(--gold-grad);color:#14110D;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.ac-nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ac-nm strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-nm small{color:var(--muted);font-size:.8rem}
+.ac-refs i{font-style:normal;color:var(--gold-lt);font-weight:600}
+.ac-cl b,.ac-vt b{white-space:nowrap;font-size:1.02rem}
+.ac-sq{display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
+.ac-sq b{font-size:1.1rem}
+.ac-sq small em{font-style:normal;font-size:.78rem}
+.ac-sq .ko{color:var(--bad)}.ac-sq .bas{color:var(--warn)}.ac-sq .ok{color:var(--good)}
+.ac-plus{margin:10px 0 0}
+.ac-plus button{background:none;border:0;padding:0;color:var(--gold-lt);font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.ac-ft{width:100%;border-collapse:collapse}
+.ac-ft th{font-size:.76rem;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-weight:500}
+.ac-ft td{padding:9px 8px;border-bottom:1px solid var(--line);font-size:.92rem}
+.ac-ft tbody tr{cursor:pointer}
+.ac-ft tbody tr:hover td{background:rgba(201,164,86,.08)}
+.ac-ft .r{text-align:right;white-space:nowrap}
+@media (max-width:900px){
+  .ac-vue{grid-template-columns:1fr}
+  .ac-ft th:nth-child(4),.ac-ft td:nth-child(4){display:none}
+  .ac-ft td{font-size:.85rem;padding:8px 5px}
+}

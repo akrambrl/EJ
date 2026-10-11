@@ -40,6 +40,9 @@ def construire(role=None):
   from acces_limite import nettoyer
   h = inline(root, open(os.path.join(root, 'index.html'), encoding='utf-8').read(), nettoyer if role else None)
   if role:
+    # Mentions de prix de revient écrites en dur dans la page (pied de page, notes de calcul)
+    h = re.sub(r' — \*ROYAL : prix de revient provisoire[^<]*', '', h)
+    h = re.sub(r'<p>Le prix de revient de la collection ROYAL[^<]*</p>', '', h)
     h = h.replace('<head>', '<head>\n<script>window.EJ_ROLE="' + role + '";document.documentElement.dataset.role="' + role + '";</script>', 1)
   # Logo : une seule copie (window.EJ_LOGO) reprise par les documents imprimables
   LOGO = datauri(os.path.join(root, 'img/logo.png'))

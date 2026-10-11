@@ -34,21 +34,30 @@
   function rendre(){
     const box = document.getElementById('accueil-body'); if(!box) return;
     const S = (window.EJ_SOC && EJ_SOC.statsFor ? EJ_SOC.statsFor('groupe') : ALL)[YEAR] || {};
-    let creances = 0; try { creances = EJ_GESTION.creances().reduce((a, c) => a + c.montant, 0); } catch(e) {}
-    const it = []; Object.values(ALL.stock || {}).forEach(c => (c.items || []).forEach(i => it.push(i)));
-    const rupture = it.filter(i => i.qty <= 0).length, bas = it.filter(i => i.qty > 0 && (i.status === 'critical' || i.status === 'low')).length;
-    let rap = []; try { rap = (window.EJ_JOURNAL ? EJ_JOURNAL.rappels() : []).slice(0, 5); } catch(e) {}
-    const sal = (typeof SALONS !== 'undefined' ? SALONS : []).filter(s => /^\d{4}-\d{2}-\d{2}$/.test(s.debut) && s.statut !== 'reporte' && days(s.fin || s.debut) >= 0).sort((a, b) => a.debut.localeCompare(b.debut))[0];
+    const AN = typeof currentYear !== 'undefined' ? currentYear : 'total', periode = AN === 'total' ? '2025 + 2026' : AN;
+    const ST = (window.EJ_SOC && EJ_SOC.statsFor ? EJ_SOC.statsFor('groupe') : ALL), P = ST[AN] || {}, T = ST.total || ALL.total || {};
+    const fin = !window.EJ_ROLE;   // accès limité : pas de montants dans les classements
+    const nb = n => Math.round(n || 0).toLocaleString('fr-FR');
+    const pdate = s => { const m = String(s || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/); return m ? m[3] + m[2] + m[1] : ''; };
+    const cartons = f => (f.lines || []).reduce((a, l) => a + (l.cartons || 0), 0);
+    const refsDe = f => { const m = {}; (f.lines || []).forEach(l => { if(l.reference && (l.btl || 0) > 0 && !/REMISE|TRANSPORT|SERVICE|AVOIR/.test(l.collection)) m[l.reference] = (m[l.reference] || 0) + (l.cartons || 0 || Math.round(l.btl / 10)); });
+      return Object.entries(m).sort((a, b) => b[1] - a[1]); };
+    // 1. Meilleurs clients
+    const clients = (P.clients || []).slice().sort((a, b) => fin ? b.ca - a.ca : b.btl - a.btl).slice(0, 3);
+    // 2. Meilleures ventes (factures les plus importantes)
+    const ventes = (P.factures || []).filter(f => f.ca > 0).slice().sort((a, b) => b.ca - a.ca).slice(0, 5);
+    // 3. Stock actuel par collection
+    const COLS = ['VIP', 'VIP BLACK', '50ML', 'ROYAL', 'BRUMES'], NOMS = {'VIP':'VIP 90 ml', 'VIP BLACK':'VIP Black 90 ml', '50ML':'VIP Black 50 ml', 'ROYAL':'Royal 100 ml', 'BRUMES':'Brumes 250 ml'};
+    const stock = COLS.filter(c => ALL.stock && ALL.stock[c]).map(c => { const it = ALL.stock[c].items || [];
+      return {c, total:it.reduce((a, i) => a + Math.max(0, i.qty), 0), refs:it.length, rupture:it.filter(i => i.qty <= 0).length, bas:it.filter(i => i.qty > 0 && (i.status === 'critical' || i.status === 'low')).length,
+        top:it.filter(i => i.qty > 0).sort((a, b) => b.qty - a.qty).slice(0, 3)}; });
+    const totalStock = stock.reduce((a, s) => a + s.total, 0);
+    // 4. Dernières factures éditées (les plus récentes d'abord)
+    const recentes = (T.factures || []).slice().sort((a, b) => pdate(b.date).localeCompare(pdate(a.date)) || String(b.facture).localeCompare(String(a.facture))).slice(0, 8);
+    const medaille = i => ['🥇', '🥈', '🥉'][i] || '';
     const h = new Date().getHours();
-    const tuile = (titre, valeur, detail, tab, cls) => `<button type="button" class="ac-tuile${cls ? ' ' + cls : ''}" data-go="${tab}"><span class="ac-t">${titre}</span><strong>${valeur}</strong><span class="ac-d">${detail}</span></button>`;
     box.innerHTML = `
       <p class="ac-bonjour ac-extra">${h < 18 ? 'Bonjour' : 'Bonsoir'}. Nous sommes le ${today().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}.</p>
-      <div class="ac-tuiles ac-extra">
-        ${tuile('Ventes ' + YEAR, money0(S.kpi_ca), (S.kpi_factures || 0) + ' factures · ' + (S.kpi_clients || 0) + ' clients', 'overview')}
-        ${tuile('Bénéfice ' + YEAR, money0(S.kpi_marge), 'ventes moins le coût des parfums', 'overview', 'ok')}
-        ${tuile('À encaisser', money0(creances), creances ? 'argent que les clients doivent encore' : 'aucune facture en attente de paiement', 'creances')}
-        ${tuile('Stock', rupture + bas ? `${rupture} en rupture` : 'Tout va bien', rupture + bas ? `${bas} références presque épuisées` : 'aucune référence en rupture', 'stock', rupture ? 'ko' : '')}
-      </div>
       <h3 class="ac-h">Que voulez-vous faire ?</h3>
       <div class="ac-actions">
         <button type="button" class="ac-act" data-wz-open="facture">Faire une facture</button>
@@ -59,15 +68,32 @@
         <button type="button" class="ac-act" data-go="fournisseurs">Déposer une facture fournisseur</button>
         ${window.EJ_ASSISTANT && EJ_ASSISTANT.vocal ? '<button type="button" class="ac-act ac-voix" data-ia-open="1" data-ia-voix="1">🎤 Demander à voix haute</button>' : ''}
       </div>
-      <h3 class="ac-h ac-extra">À faire en priorité</h3>
-      <ul class="ac-todo ac-extra">${rap.length ? rap.map(r => `<li><button type="button" data-go="${r.tab}"><span class="ac-pt ac-p${r.prio}"></span><span><strong>${esc(r.txt)}</strong>${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</span><em>Ouvrir ›</em></button></li>`).join('') : '<li class="ac-vide">Rien d’urgent aujourd’hui.</li>'}</ul>
-      <p class="ac-lien ac-extra"><button type="button" data-go="journal">Voir toute la liste dans le journal de bord ›</button></p>
-      ${sal ? `<h3 class="ac-h ac-extra">Prochain salon</h3><button type="button" class="ac-salon ac-extra" data-go="salons"><strong>${esc(sal.nom)}</strong> — ${esc(sal.ville)}, ${days(sal.debut) > 0 ? 'dans ' + days(sal.debut) + ' jours (' + fr(sal.debut) + ')' : 'en ce moment'}</button>` : ''}
+      <div class="ac-vue">
+        <section class="ac-bloc"><div class="ac-bh"><h3>Meilleurs clients</h3><span>${esc(periode)}</span></div>
+          ${clients.length ? `<ol class="ac-cl">${clients.map((c, i) => `<li><button type="button" data-client="${esc(c.client)}"><span class="ac-med">${medaille(i)}</span><span class="ac-nm"><strong>${esc(c.client)}</strong><small>${esc(c.pays || '')} · ${c.factures} facture${c.factures > 1 ? 's' : ''} · ${nb(c.btl)} flacons</small></span>${fin ? `<b>${money0(c.ca)}</b>` : ''}</button></li>`).join('')}</ol>` : '<p class="ac-vide">Aucune vente sur cette période.</p>'}</section>
+        <section class="ac-bloc"><div class="ac-bh"><h3>Stock actuel</h3><span>${nb(totalStock)} flacons</span></div>
+          <ul class="ac-st">${stock.map(s => `<li><button type="button" data-go="stock"><span class="ac-nm"><strong>${NOMS[s.c] || s.c}</strong><small>${s.top.map(i => esc(i.reference) + ' ' + nb(i.qty)).join(' · ') || '—'}</small></span>
+            <span class="ac-sq"><b>${nb(s.total)}</b><small>${s.rupture ? `<em class="ko">${s.rupture} en rupture</em>` : ''}${s.rupture && s.bas ? ' · ' : ''}${s.bas ? `<em class="bas">${s.bas} bas</em>` : ''}${!s.rupture && !s.bas ? '<em class="ok">tout va bien</em>' : ''}</small></span></button></li>`).join('')}</ul>
+          <p class="ac-plus"><button type="button" data-go="stock">Voir le stock détaillé ›</button></p></section>
+        <section class="ac-bloc ac-large"><div class="ac-bh"><h3>Meilleures ventes</h3><span>${esc(periode)} · les 5 plus grosses factures</span></div>
+          ${ventes.length ? `<ol class="ac-vt">${ventes.map((f, i) => { const r = refsDe(f), ct = cartons(f);
+            return `<li><button type="button" data-facture="${esc(f.facture)}"><span class="ac-rg">${i + 1}</span><span class="ac-nm"><strong>${esc(f.client)}</strong>
+              <small>${esc(f.facture)} · ${esc(f.date)} · ${esc(f.pays || '')} · ${ct ? nb(ct) + ' cartons · ' : ''}${nb(f.btl)} flacons</small>
+              <small class="ac-refs">${r.slice(0, 4).map(([n, q]) => `${esc(n)}${q ? ' <i>' + nb(q) + '</i>' : ''}`).join(' · ')}${r.length > 4 ? ` · +${r.length - 4} autres` : ''}</small></span><b>${money0(f.ca)}</b></button></li>`; }).join('')}</ol>` : '<p class="ac-vide">Aucune vente sur cette période.</p>'}</section>
+        <section class="ac-bloc ac-large"><div class="ac-bh"><h3>Dernières factures éditées</h3><span>les plus récentes d'abord</span></div>
+          <table class="ac-ft"><thead><tr><th>Date</th><th>N°</th><th>Client</th><th>Pays</th><th class="r">Montant</th></tr></thead><tbody>
+          ${recentes.map(f => `<tr data-facture="${esc(f.facture)}"><td>${esc(f.date)}</td><td>${esc(f.facture)}</td><td>${esc(f.client)}</td><td>${esc(f.pays || '')}</td><td class="r">${money0(f.ca)}</td></tr>`).join('')}</tbody></table>
+          <p class="ac-plus"><button type="button" data-go="documents">Voir tous les devis et factures ›</button></p></section>
+      </div>
       ${simple() ? '' : '<p class="ac-mode">Vous êtes en mode complet (toutes les pages). <button type="button" data-mode-simple="1">Revenir au mode simple</button></p>'}
       <p class="ac-mode ac-mode-s">Besoin des autres pages (prix de revient, impôts, équipe…) ? <button type="button" data-mode-complet="1">Afficher toutes les pages</button></p>`;
   }
 
   document.addEventListener('click', e => {
+    const fa = e.target.closest('#accueil [data-facture]');
+    if(fa){ const y = document.querySelector('.year-btn[data-year="total"]'); if(y && !y.classList.contains('active')) y.click(); setTimeout(() => { if(typeof openFactureModal === 'function') openFactureModal(fa.dataset.facture); }, 80); return; }
+    const cl = e.target.closest('#accueil [data-client]');
+    if(cl){ if(window.EJ_ASSISTES){ EJ_ASSISTES.ouvrir('client'); setTimeout(() => { const b = document.querySelector(`.wz [data-wz="voir"][data-v="${CSS.escape(cl.dataset.client)}"]`); if(b) b.click(); else { const r = document.getElementById('wzRech'); if(r){ r.value = cl.dataset.client; r.dispatchEvent(new Event('input')); } } }, 50); } return; }
     const g = e.target.closest('#accueil [data-go]'); if(g){ aller(g.dataset.go); window.scrollTo({top:0}); return; }
     const n = e.target.closest('#accueil [data-new]');
     if(n){ aller('documents'); setTimeout(() => { const b = document.querySelector(`[data-act="new"][data-type="${n.dataset.new}"]`); if(b) b.click(); }, 80); return; }
