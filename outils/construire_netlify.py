@@ -56,8 +56,9 @@ h = construire()
 left = [x for x in re.findall(r'(?:src|href)="((?!https?:|data:|#|\$\{)[^"]+)"', h) if not x.startswith("' +")]
 print('références locales restantes :', left)
 
-def chiffrer(page, mot, cle_stockage="ej_cle_acces", sous_titre="Tableau de bord"):
-    """Page de connexion + page chiffrée. Le déchiffrement se fait dans le navigateur (WebCrypto)."""
+CLE_STOCKAGE = 'ej_cle_acces'
+def chiffrer_donnees(page, mot):
+    """Chiffre une page (AES-256-GCM, clé PBKDF2-SHA256 du mot de passe) → {s, i, n, c} en base64."""
     import base64, secrets
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -67,10 +68,18 @@ def chiffrer(page, mot, cle_stockage="ej_cle_acces", sous_titre="Tableau de bord
     cle = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=sel, iterations=ITER).derive(mot.encode('utf-8'))
     # Bouton « Verrouiller cet appareil » ajouté au menu de la page déchiffrée
     verrou = ('<script>(function(){var s=document.querySelector(".sidebar");if(!s)return;var a=document.createElement("a");a.href="#";a.className="cloud-foot";'
-              'a.style.display="block";a.textContent="Verrouiller cet appareil";a.onclick=function(e){e.preventDefault();try{localStorage.removeItem("'+cle_stockage+'")}catch(x){}location.reload()};s.appendChild(a)})();</script>')
+              'a.style.display="block";a.textContent="Verrouiller cet appareil";a.onclick=function(e){e.preventDefault();try{localStorage.removeItem("' + CLE_STOCKAGE + '")}catch(x){}location.reload()};s.appendChild(a)})();</script>')
     page = page.replace('</body>', verrou + '</body>', 1)
     ct = AESGCM(cle).encrypt(iv, page.encode('utf-8'), None)
     b = lambda x: base64.b64encode(x).decode()
+    return {'s': b(sel), 'i': b(iv), 'n': ITER, 'c': b(ct)}
+
+def chiffrer(page, mot, fichier_limite=''):
+    """Page de connexion + page chiffrée. Le déchiffrement se fait dans le navigateur (WebCrypto).
+    Avec fichier_limite : si le mot de passe n'ouvre pas la page principale, la page de connexion essaie l'accès limité
+    (fichier chiffré à part, téléchargé seulement dans ce cas) — même adresse, autre mot de passe."""
+    import json
+    D = chiffrer_donnees(page, mot)
     return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Emmanuelle Jane Paris</title><link rel="icon" href="{LOGO}">
 <style>html,body{{margin:0;height:100%;background:#070605;color:#F2E8D8;font-family:Georgia,serif}}
@@ -80,38 +89,44 @@ img{{width:84px}}h1{{font-weight:400;font-size:1.6rem;margin:12px 0 2px}}p{{font
 input[type=password]{{width:100%;box-sizing:border-box;padding:12px;background:#0B0A09;border:1px solid #332C25;color:#F2E8D8;font-size:15px}}
 label{{display:block;font:12px sans-serif;color:#A3968A;margin:12px 0}}button{{width:100%;padding:12px;border:0;background:linear-gradient(135deg,#F6E3A8,#D9B866 38%,#B8913F 62%,#E9CF85);color:#14110D;font:600 12px sans-serif;letter-spacing:.2em;text-transform:uppercase;cursor:pointer}}
 #e{{color:#E8847A;font:13px sans-serif;min-height:18px;margin:10px 0 0}}</style></head>
-<body><div class="b"><form id="f"><img src="{LOGO}" alt=""><h1>Emmanuelle Jane</h1><p>{sous_titre}</p>
+<body><div class="b"><form id="f"><img src="{LOGO}" alt=""><h1>Emmanuelle Jane</h1><p>Tableau de bord</p>
 <input type="password" id="m" placeholder="Mot de passe" autocomplete="current-password" autofocus required>
 <label><input type="checkbox" id="r" checked> Se souvenir de cet appareil</label><button>Ouvrir</button><div id="e"></div></form></div>
 <script>
-var __EJD={{s:"{b(sel)}",i:"{b(iv)}",n:{ITER},c:"{b(ct)}"}};
+var __EJD={json.dumps(D)},__EJL="{fichier_limite}",__EJS="{CLE_STOCKAGE}";
 function __ejU(s){{var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}}
 function __ejK(a){{var s="";a=new Uint8Array(a);for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s)}}
-async function __ejO(raw){{var k=await crypto.subtle.importKey("raw",raw,"AES-GCM",false,["decrypt"]);
- var p=await crypto.subtle.decrypt({{name:"AES-GCM",iv:__ejU(__EJD.i)}},k,__ejU(__EJD.c));var h=new TextDecoder().decode(p);document.open();document.write(h);document.close()}}
-async function __ejR(m){{var b=await crypto.subtle.importKey("raw",new TextEncoder().encode(m),"PBKDF2",false,["deriveBits"]);
- return crypto.subtle.deriveBits({{name:"PBKDF2",salt:__ejU(__EJD.s),iterations:__EJD.n,hash:"SHA-256"}},b,256)}}
-(async function(){{try{{var c=localStorage.getItem("{cle_stockage}");if(c){{await __ejO(__ejU(c));return}}}}catch(x){{try{{localStorage.removeItem("{cle_stockage}")}}catch(y){{}}}}}})();
+async function __ejD(raw,d){{var k=await crypto.subtle.importKey("raw",raw,"AES-GCM",false,["decrypt"]);return new TextDecoder().decode(await crypto.subtle.decrypt({{name:"AES-GCM",iv:__ejU(d.i)}},k,__ejU(d.c)))}}
+async function __ejW(h){{if(document.readyState==="loading")await new Promise(function(r){{document.addEventListener("DOMContentLoaded",r)}});document.open();document.write(h);document.close()}}
+async function __ejR(m,d){{var b=await crypto.subtle.importKey("raw",new TextEncoder().encode(m),"PBKDF2",false,["deriveBits"]);
+ return crypto.subtle.deriveBits({{name:"PBKDF2",salt:__ejU(d.s),iterations:d.n,hash:"SHA-256"}},b,256)}}
+async function __ejL(){{var r=await fetch(__EJL,{{cache:"no-store"}});if(!r.ok)throw new Error("accès limité indisponible");return r.json()}}
+(async function(){{try{{var c=localStorage.getItem(__EJS);if(!c)return;
+ if(c.slice(0,2)==="L:"){{await __ejW(await __ejD(__ejU(c.slice(2)),await __ejL()))}}else{{await __ejW(await __ejD(__ejU(c),__EJD))}}}}
+ catch(x){{try{{localStorage.removeItem(__EJS)}}catch(y){{}}}}}})();
 document.getElementById("f").onsubmit=async function(ev){{ev.preventDefault();var e=document.getElementById("e");e.textContent="Ouverture…";
- var garder=document.getElementById("r").checked;
- try{{var raw=await __ejR(document.getElementById("m").value);var t=await crypto.subtle.importKey("raw",raw,"AES-GCM",false,["decrypt"]);await crypto.subtle.decrypt({{name:"AES-GCM",iv:__ejU(__EJD.i)}},t,__ejU(__EJD.c));
- if(garder)try{{localStorage.setItem("{cle_stockage}",__ejK(raw))}}catch(x){{}}await __ejO(raw)}}
- catch(x){{e.textContent="Mot de passe incorrect."}}}};
+ var garder=document.getElementById("r").checked,m=document.getElementById("m").value,h,cle;
+ try{{var raw=await __ejR(m,__EJD);h=await __ejD(raw,__EJD);cle=__ejK(raw)}}catch(x){{}}
+ if(!h&&__EJL)try{{var d=await __ejL(),raw2=await __ejR(m,d);h=await __ejD(raw2,d);cle="L:"+__ejK(raw2)}}catch(x){{}}
+ if(!h){{e.textContent="Mot de passe incorrect.";return}}
+ if(garder)try{{localStorage.setItem(__EJS,cle)}}catch(x){{}}
+ __ejW(h)}};
 </script></body></html>"""
 
+FICHIER_LIMITE = 'acces-limite.json'
+if mdp_lim and not mdp:
+    sys.exit('Le mot de passe principal est requis pour construire aussi l\'accès limité.')
 if mdp:
-    h = chiffrer(h, mdp)
+    h = chiffrer(h, mdp, FICHIER_LIMITE if mdp_lim else '')
     print('page chiffrée (mot de passe requis)')
 else:
     print('⚠️  page NON chiffrée : ajouter --mot-de-passe pour protéger les données')
 open(out, 'w', encoding='utf-8').write(h)
 if mdp_lim:
-    if not mdp:
-        sys.exit('Le mot de passe principal est requis pour construire aussi l\'accès limité.')
-    os.makedirs(os.path.join(out_dir, 'natali'), exist_ok=True)
-    hl = chiffrer(construire('limite'), mdp_lim, 'ej_cle_acces_limite', 'Accès Natali')
-    open(os.path.join(out_dir, 'natali', 'index.html'), 'w', encoding='utf-8').write(hl)
-    print('accès limité : natali/index.html (chiffré, sans chiffres financiers internes)')
+    # Accès limité : même adresse, autre mot de passe ; page sans chiffres financiers internes, chiffrée à part
+    import json
+    json.dump(chiffrer_donnees(construire('limite'), mdp_lim), open(os.path.join(out_dir, FICHIER_LIMITE), 'w'))
+    print('accès limité :', FICHIER_LIMITE, '(chiffré, sans chiffres financiers internes)')
 # Bibliothèques chargées à la demande (lecture des PDF de factures fournisseurs) : fichiers publics, sans donnée.
 import shutil
 src_pdf = os.path.join(root, 'vendor', 'pdfjs')

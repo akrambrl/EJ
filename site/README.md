@@ -3,7 +3,7 @@
 `index.html` est le dashboard en un seul fichier, **chiffré** : il ne s'ouvre qu'avec le code d'accès
 (le code n'est pas dans le dépôt). Ne jamais déposer ici une version non chiffrée.
 
-`natali/index.html` est l'accès limité (autre code, sans chiffres financiers internes).
+`acces-limite.json` est l'accès limité (même adresse, autre code ; version chiffrée sans chiffres financiers internes).
 
 Mise à jour : `EJ_MOT_DE_PASSE='…' EJ_MOT_DE_PASSE_LIMITE='…' python3 outils/construire_netlify.py site`, puis commit et push :
 Vercel remet le site en ligne automatiquement.
