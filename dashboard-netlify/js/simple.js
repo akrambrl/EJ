@@ -61,7 +61,6 @@
       <h3 class="ac-h">Que voulez-vous faire ?</h3>
       <div class="ac-actions">
         <button type="button" class="ac-act" data-wz-open="facture">Faire une facture</button>
-        <button type="button" class="ac-act" data-wz-open="devis">Faire un devis</button>
         <button type="button" class="ac-act" data-wz-open="stock">Voir le stock</button>
         <button type="button" class="ac-act" data-wz-open="client">Chercher un client</button>
         <button type="button" class="ac-act" data-wz-open="question">Poser une question</button>
@@ -83,7 +82,7 @@
         <section class="ac-bloc ac-large"><div class="ac-bh"><h3>Dernières factures éditées</h3><span>les plus récentes d'abord</span></div>
           <table class="ac-ft"><thead><tr><th>Date</th><th>N°</th><th>Client</th><th>Pays</th><th class="r">Montant</th></tr></thead><tbody>
           ${recentes.map(f => `<tr data-facture="${esc(f.facture)}"><td>${esc(f.date)}</td><td>${esc(f.facture)}</td><td>${esc(f.client)}</td><td>${esc(f.pays || '')}</td><td class="r">${money0(f.ca)}</td></tr>`).join('')}</tbody></table>
-          <p class="ac-plus"><button type="button" data-go="documents">Voir tous les devis et factures ›</button></p></section>
+          <p class="ac-plus"><button type="button" data-go="documents">Voir toutes les factures et proformas ›</button></p></section>
       </div>
       ${simple() ? '' : '<p class="ac-mode">Vous êtes en mode complet (toutes les pages). <button type="button" data-mode-simple="1">Revenir au mode simple</button></p>'}
       <p class="ac-mode ac-mode-s">Besoin des autres pages (prix de revient, impôts, équipe…) ? <button type="button" data-mode-complet="1">Afficher toutes les pages</button></p>`;

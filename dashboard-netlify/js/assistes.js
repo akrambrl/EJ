@@ -26,6 +26,7 @@
   const etat = i => i.qty <= 0 ? ['ko', 'En rupture'] : (i.status === 'critical' || i.status === 'low') ? ['bas', 'Bientôt épuisé'] : ['ok', 'En stock'];
   function aEncaisser(nom){ try { return EJ_GESTION.creances().filter(c => norm(c.client) === norm(nom)).reduce((a, c) => a + (c.montant || 0), 0); } catch(e) { return 0; } }
   const COLS = () => (D() && D().PARFUMS) || ['VIP', 'VIP BLACK', '50ML', 'BRUMES', 'ROYAL'];
+  const photo = (c, r, cls) => { const u = typeof PHOTOS !== 'undefined' && PHOTOS[c + '|' + r]; return u ? `<img class="${cls || 'wz-ph'}" src="${u}" alt="" loading="lazy">` : ''; };
   const nomCol = c => (D() && D().COLL && D().COLL[c] ? D().COLL[c].court : c);
 
   /* ---------- Fenêtre ---------- */
@@ -80,7 +81,7 @@
   function totalLignes(d){ return (d.lignes || []).reduce((a, l) => a + l.qty * (D() ? D().prixCarton(d.client, l.collection) : 0), 0); }
   function lignesHtml(d){
     if(!d.lignes.length) return '<p class="wz-vide">Aucun parfum pour l’instant : choisissez une collection puis touchez un parfum.</p>';
-    return `<ul class="wz-lignes">${d.lignes.map((l, i) => `<li><span><strong>${esc(l.reference)}</strong><small>${esc(nomCol(l.collection))} · ${D() ? D().perCarton(l.collection) : ''} flacons par carton</small>${(() => { const sa = stockApres(l.collection, l.reference); if(!sa || interne()) return '';
+    return `<ul class="wz-lignes">${d.lignes.map((l, i) => `<li>${photo(l.collection, l.reference, 'wz-ph-l')}<span><strong>${esc(l.reference)}</strong><small>${esc(nomCol(l.collection))} · ${D() ? D().perCarton(l.collection) : ''} flacons par carton</small>${(() => { const sa = stockApres(l.collection, l.reference); if(!sa || interne()) return '';
         return `<small class="wz-reste ${classeReste(sa.apres)}">Stock : ${nb(sa.avant)} − ${nb(sa.sortie)} = <b>${nb(sa.apres)}</b> flacons${sa.apres < 0 ? ' — pas assez de stock' : ''}</small>`; })()}</span>
       <span class="wz-qte"><button type="button" data-wz="moins" data-v="${i}" aria-label="Un carton de moins">−</button><input class="wz-nb" type="number" inputmode="numeric" min="1" step="1" value="${l.qty}" data-wz-qte="${i}" aria-label="Nombre de cartons de ${esc(l.reference)}"><button type="button" data-wz="plus" data-v="${i}" aria-label="Un carton de plus">+</button></span><em>carton${l.qty > 1 ? 's' : ''}</em>
       <button type="button" class="wz-suppr" data-wz="suppr" data-v="${i}" aria-label="Retirer">×</button></li>`).join('')}</ul>
@@ -104,7 +105,7 @@
         return `<div class="wz-onglets">${COLS().map(c => `<button type="button" class="${c === d.col ? 'actif' : ''}" data-wz="col" data-v="${esc(c)}">${esc(nomCol(c))}</button>`).join('')}</div>
           <p class="wz-aide">Touchez un parfum pour l’ajouter (1 carton). Touchez-le encore pour ajouter un carton. ${interne() ? 'Vente interne à NB Evolution : le stock baissera quand NB facturera le client final.' : 'Le stock affiché tient compte de ce que vous ajoutez (flacons + testeurs).'}</p>
           <div class="wz-refs">${refs.map(r => { const i = st[r], e = i ? etat(i) : null, n = (d.lignes.find(l => l.collection === d.col && l.reference === r) || {}).qty;
-            return `<button type="button" class="wz-ref${n ? ' pris' : ''}" data-wz="ref" data-v="${esc(r)}"><strong>${esc(r)}</strong>${(() => { if(!i) return ''; const sa = stockApres(d.col, r);
+            return `<button type="button" class="wz-ref${n ? ' pris' : ''}" data-wz="ref" data-v="${esc(r)}">${photo(d.col, r)}<strong>${esc(r)}</strong>${(() => { if(!i) return ''; const sa = stockApres(d.col, r);
               return sa.sortie ? `<small class="${classeReste(sa.apres, i)}">${nb(sa.apres)} restants <span class="wz-barre">${nb(sa.avant)}</span></small>` : `<small class="${e[0]}">${nb(i.qty)} en stock</small>`; })()}${n ? `<b>${n}</b>` : ''}</button>`; }).join('')}</div>
           <h4 class="wz-h4">Votre commande</h4><div id="wzLignes">${lignesHtml(d)}</div>`; },
         suite:() => { const n = P.data.lignes.reduce((x, l) => x + l.qty, 0); return {l:n ? `Continuer (${n} carton${n > 1 ? 's' : ''}) ›` : 'Continuer ›', off:!n}; }, valider:() => aller_('paiement')},
@@ -139,7 +140,7 @@
     const L = []; COLS().forEach(c => stockItems(c).forEach(i => { if(norm(i.reference).includes(q)) L.push([c, i]); }));
     return L.length ? `<div class="wz-stock">${L.slice(0, 20).map(([c, i]) => ligneStock(i, c)).join('')}</div>` : '<p class="wz-vide">Aucun parfum de ce nom.</p>';
   }
-  function ligneStock(i, col){ const e = etat(i); return `<div class="wz-st ${e[0]}"><span><strong>${esc(i.reference)}</strong>${col ? `<small>${esc(nomCol(col))}</small>` : ''}</span><b>${nb(i.qty)}<small> flacons</small></b><em>${e[1]}</em></div>`; }
+  function ligneStock(i, col){ const e = etat(i); return `<div class="wz-st ${e[0]}">${photo(col || P.data.col, i.reference, 'wz-ph-l')}<span><strong>${esc(i.reference)}</strong>${col ? `<small>${esc(nomCol(col))}</small>` : ''}</span><b>${nb(i.qty)}<small> flacons</small></b><em>${e[1]}</em></div>`; }
   const stock = {
     titre:'Voir le stock', debut:'col', ordre:['col', 'liste'],
     etapes: {
@@ -170,7 +171,7 @@
           ${c.der ? `<p class="wz-der">Dernière commande : <strong>${esc(c.der.date)}</strong> — facture ${esc(c.der.facture)} — ${money0(c.der.ca)}</p>` : '<p class="wz-der">Pas encore de commande enregistrée.</p>'}
           ${tops.length ? `<p class="wz-aide">Parfums qu’il achète le plus : ${tops.map(([r, n]) => `<strong>${esc(r)}</strong> (${nb(n)} fl.)`).join(', ')}</p>` : ''}
           ${info.adresse ? `<p class="wz-aide">Adresse : ${esc(info.adresse).replace(/\n/g, ', ')}</p>` : ''}
-          <h4 class="wz-h4">Que voulez-vous faire ?</h4><div class="wz-grille2">${gros('fact', 'facture', 'Lui faire une facture', '')}${gros('fact', 'devis', 'Lui faire un devis', '')}
+          <h4 class="wz-h4">Que voulez-vous faire ?</h4><div class="wz-grille2">${gros('fact', 'facture', 'Lui faire une facture', '')}
           ${c.der ? gros('derf', c.der.facture, 'Voir sa dernière facture', esc(c.der.facture)) : ''}${gros('crm', c.nom, 'Voir sa fiche complète', 'historique, notes, contacts')}</div>`; }}
     },
     clic: {
@@ -219,10 +220,10 @@
       libre: v => { fermer(); ouvrirAssistant(); if(v === 'voix' && window.EJ_ASSISTANT) setTimeout(EJ_ASSISTANT.ecouter, 120); }
     }
   };
-  function refsBtn(q){ const L = toutesRefs(q).slice(0, 40); return L.length ? L.map(([c, r]) => `<button type="button" class="wz-ref" data-wz="choixref" data-v="${esc(r)}"><strong>${esc(r)}</strong><small>${esc(nomCol(c))}</small></button>`).join('') : '<p class="wz-vide">Aucun parfum de ce nom.</p>'; }
+  function refsBtn(q){ const L = toutesRefs(q).slice(0, 40); return L.length ? L.map(([c, r]) => `<button type="button" class="wz-ref" data-wz="choixref" data-v="${esc(r)}">${photo(c, r)}<strong>${esc(r)}</strong><small>${esc(nomCol(c))}</small></button>`).join('') : '<p class="wz-vide">Aucun parfum de ce nom.</p>'; }
   function ouvrirAssistant(){ const box = document.querySelector('.ia-box'), fab = document.querySelector('.ia-fab'); if(box && box.hidden && fab) fab.click(); }
 
-  const PARCOURS = {facture:facture('facture'), devis:facture('devis'), stock, client, question};
+  const PARCOURS = {facture:facture('facture'), stock, client, question};
 
   /* ---------- Événements ---------- */
   // Saisie directe du nombre de cartons : on met à jour les chiffres autour (stock, total, bouton) sans redessiner le champ,

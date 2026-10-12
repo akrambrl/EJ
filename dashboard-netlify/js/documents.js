@@ -316,7 +316,7 @@
     $('docEdBody').innerHTML = `
       <div class="doc-grid">
         <label>Société<select data-f="societe">${opt('BSD', d.societe, 'BSD · France')}${opt('NB', d.societe, 'NB Evolution · Dubaï')}</select></label>
-        <label>Type<select data-f="type">${Object.keys(TYPES).map(k => opt(k, d.type, TYPES[k].label)).join('')}</select></label>
+        <label>Type<select data-f="type">${Object.keys(TYPES).filter(k => k !== 'devis' || d.type === 'devis').map(k => opt(k, d.type, TYPES[k].label)).join('')}</select></label>
         <label>Numéro<input data-f="numero" value="${esc(d.numero)}"></label>
         <label>Date<input type="date" data-f="date" value="${esc(d.date)}"></label>
         ${d.type === 'facture' ? `<label>Échéance<input type="date" data-f="echeance" value="${esc(d.echeance)}"></label>` : (d.type === 'avoir' || d.type === 'bl') ? `<label>${d.type === 'avoir' ? "Facture d'origine" : 'Facture liée'}<input data-f="source" value="${esc(d.source || '')}" placeholder="EJ2026…"></label>` : `<label>Valable jusqu'au<input type="date" data-f="validite" value="${esc(d.validite)}"></label>`}
@@ -583,6 +583,8 @@
   function docHtml(d){
     syncEch(d);
     const k = docCalc(d), S = soc(d.societe), lg = d.langue === 'en' ? 'en' : 'fr', L = T[lg];
+    // Proforma (bon de commande) : photo de chaque parfum à côté de son nom
+    const avecPhotos = d.type === 'proforma';
     const avecEch = (d.lines || []).some(l => !isSvc(l) && num(l.ech) > 0), echTh = avecEch ? `<th class="c">${lg === 'en' ? '2 ml samples' : 'Éch. 2 ml'}</th>` : '';
     const groups = {}; const others = [];
     k.rows.filter(r => num(r.src.qty) > 0).forEach(r => { if(isSvc(r.src)) others.push(r); else (groups[r.src.collection] = groups[r.src.collection] || []).push(r); });
@@ -591,7 +593,8 @@
         const l = r.src, carton = l.mode === 'carton';
         const unit = carton ? num(l.prix) / (num(l.perCarton) || 1) : num(l.prix);
         const tpc = carton && num(l.qty) ? Math.round(r.testers / num(l.qty) * 100) / 100 : (r.testers || '—');
-        return `<tr><td>${esc(String(l.reference).toUpperCase())}</td><td class="c">${mlOf(l)}</td><td class="c pd-ean">${esc(fmtEan(l.ean))}</td><td class="r">${money(unit)}</td>
+        const ph = avecPhotos && typeof PHOTOS !== 'undefined' ? PHOTOS[l.collection + '|' + l.reference] : '';
+        return `<tr><td>${avecPhotos ? `<span class="pd-ph">${ph ? `<img src="${ph}" alt="">` : ''}<span>${esc(String(l.reference).toUpperCase())}</span></span>` : esc(String(l.reference).toUpperCase())}</td><td class="c">${mlOf(l)}</td><td class="c pd-ean">${esc(fmtEan(l.ean))}</td><td class="r">${money(unit)}</td>
           <td class="c">${carton ? esc(l.perCarton) : '—'}</td><td class="c">${tpc}</td>${avecEch ? `<td class="c">${num(l.ech) > 0 ? Math.round(num(l.ech)) : '—'}</td>` : ''}
           <td class="r">${carton ? money(num(l.prix)) : '—'}</td><td class="c">${carton ? esc(l.qty) : esc(l.qty) + ' ' + L.units}</td><td class="r">${money(r.ca)}</td></tr>`;
       }).join('');

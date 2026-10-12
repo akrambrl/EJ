@@ -1976,7 +1976,7 @@ function renderSimulation(){
       const stockColor = it.qty <= 0 ? cv('--bad') : (it.qty < 50 ? cv('--warn') : cv('--ink'));
 
       rows += `<tr>
-        <td><strong>${it.reference}</strong></td>
+        <td><span class="ph-cell">${typeof PHOTOS !== 'undefined' && PHOTOS[key] ? `<img class="ph-mini" src="${PHOTOS[key]}" alt="" loading="lazy">` : ''}<strong>${it.reference}</strong></span></td>
         <td class="text-right" style="color:${stockColor};font-weight:600">${fmtNum(it.qty)}</td>
         <td class="text-right">
           <input type="number" min="0" step="${simCartonMode ? 1 : 1}" value="${displayQty}"
