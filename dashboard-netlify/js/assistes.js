@@ -98,7 +98,7 @@
     proforma:{titre:'Faire un bon de commande', nom:'Bon de commande (proforma)', ouvre:'le bon de commande s’ouvre déjà rempli, avec les photos des parfums', btn:'Préparer le bon de commande ›'}};
   const facture = type => ({
     titre: DOCS[type].titre,
-    debut: 'soc', ordre: ['soc', 'client', 'parfums', 'paiement', 'recap'],
+    debut: 'soc', ordre: ['soc', 'client', 'parfums', 'recap'],
     etapes: {
       soc: {q:'Pour quelle société ?', h:() => `<div class="wz-grille2">${gros('soc', 'BSD', 'BSD', 'France · factures EJ…')}${gros('soc', 'NB', 'NB Evolution', 'Dubaï · factures NB…')}</div>`},
       client: {q:'Pour quel client ?', h:() => `${champRecherche('Tapez le nom du client ou le pays…', P.data.rech)}<div id="wzListe" class="wz-liste">${listeClients(P.data.rech, 'client', P.data.soc)}</div>
@@ -117,17 +117,19 @@
             return `<button type="button" class="wz-ref${n ? ' pris' : ''}" data-wz="ref" data-v="${esc(r)}">${photo(d.col, r)}<strong>${esc(r)}</strong>${(() => { if(!i) return ''; const sa = stockApres(d.col, r);
               return sa.sortie ? `<small class="${classeReste(sa.apres, i)}">${nb(sa.apres)} restants <span class="wz-barre">${nb(sa.avant)}</span></small>` : `<small class="${e[0]}">${nb(i.qty)} en stock</small>`; })()}${n ? `<b>${n}</b>` : ''}</button>`; }).join('')}</div>
           <h4 class="wz-h4">Votre commande</h4><div id="wzLignes">${lignesHtml(d)}</div>`; },
-        suite:() => { const n = P.data.lignes.reduce((x, l) => x + l.qty, 0); return {l:n ? `Continuer (${n} carton${n > 1 ? 's' : ''}) ›` : 'Continuer ›', off:!n}; }, valider:() => aller_('paiement')},
-      paiement: {q:'Comment le client va-t-il payer ?', h:() => `<div class="wz-liste">${PAIEMENTS.map(([k, t, s]) => gros('pay', k, t, s, P.data.preset === k ? 'actif' : '')).join('')}</div>`},
+        suite:() => { const n = P.data.lignes.reduce((x, l) => x + l.qty, 0); return {l:n ? `Continuer (${n} carton${n > 1 ? 's' : ''}) ›` : 'Continuer ›', off:!n}; }, valider:() => aller_('recap')},
       recap: {q:'On vérifie ensemble', h:() => { const d = P.data, pay = PAIEMENTS.find(p => p[0] === d.preset);
         return `<dl class="wz-recap"><dt>Document</dt><dd>${DOCS[type].nom} ${d.soc === 'NB' ? 'NB Evolution (Dubaï)' : 'BSD (France)'}</dd>
           <dt>Client</dt><dd>${esc(d.client)}${d.pays ? ' · ' + esc(d.pays) : ''}</dd>
           <dt>Parfums</dt><dd>${d.lignes.map(l => `${l.qty} carton${l.qty > 1 ? 's' : ''} de <strong>${esc(l.reference)}</strong> <small>(${esc(nomCol(l.collection))})</small>`).join('<br>')}</dd>
           ${(() => { const e = d.lignes.filter(l => l.collection !== 'BRUMES' && l.collection !== 'ROYAL').reduce((x, l) => x + l.qty, 0); return e ? `<dt>Offert</dt><dd>${e} échantillon${e > 1 ? 's' : ''} 2 ml (1 par carton, modifiable)</dd>` : ''; })()}
-          <dt>Total estimé</dt><dd><strong>${money0(totalLignes(d))}</strong> HT</dd><dt>Paiement</dt><dd>${pay ? pay[1] + (pay[0] ? ' — ' + pay[2] : '') : '—'}</dd></dl>
+          <dt>Total estimé</dt><dd><strong>${money0(totalLignes(d))}</strong> HT</dd></dl>
+          <h4 class="wz-h4">Comment le client va-t-il payer ? <span class="wz-obl">obligatoire</span></h4>
+          <div class="wz-liste wz-pay">${PAIEMENTS.filter(p => p[0]).map(([k, t, s]) => gros('pay', k, t, s, d.preset === k ? 'actif' : '')).join('')}</div>
+          ${pay ? '' : '<p class="wz-aide wz-manque">Choisissez un mode de paiement pour pouvoir préparer le document.</p>'}
           <p class="wz-aide">En cliquant ci-dessous, ${DOCS[type].ouvre}. Vous pourrez encore changer un prix ou ajouter un cadeau, puis cliquer sur <strong>Enregistrer</strong>.</p>`; },
-        suite:() => ({l:DOCS[type].btn}),
-        valider:() => { const d = P.data; fermer(); aller('documents');
+        suite:() => ({l:DOCS[type].btn, off:!P.data.preset}),
+        valider:() => { const d = P.data; if(!d.preset) return; fermer(); aller('documents');
           setTimeout(() => D().preparer({type, societe:d.soc, client:d.client, pays:d.pays, adresse:d.adresse, lignes:d.lignes, preset:d.preset}), 60); }}
     },
     clic: {
@@ -139,7 +141,7 @@
       plus: i => { P.data.lignes[+i].qty++; maj(); },
       moins: i => { const l = P.data.lignes[+i]; if(l.qty > 1) l.qty--; else P.data.lignes.splice(+i, 1); maj(); },
       suppr: i => { P.data.lignes.splice(+i, 1); maj(); },
-      pay: v => { P.data.preset = v; aller_('recap'); }
+      pay: v => { P.data.preset = v; maj(); }
     }
   });
 

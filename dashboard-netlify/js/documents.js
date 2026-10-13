@@ -369,8 +369,8 @@
         <div class="doc-totals" id="docTotals"></div>
       </div>
       <h3 class="doc-h3">Conditions de paiement</h3>
-      <div class="doc-grid"><label class="span2">Facilités accordées au client<select data-pay="preset">
-        <option value="">Aucune précision (conditions générales)</option>
+      <div class="doc-grid"><label class="span2">Mode de paiement <small class="wz-obl">obligatoire</small><select data-pay="preset">
+        <option value="">— Choisir le mode de paiement (obligatoire) —</option>
         ${Object.keys(PRESETS).map(k => opt(k, presetOf(d), PRESETS[k].l)).join('')}
         <option value="perso"${presetOf(d) === 'perso' ? ' selected' : ''}>Personnalisé…</option>
       </select></label></div>
@@ -550,6 +550,8 @@
     if(!d.client.trim()) err.push('le client');
     if(!d.pays.trim()) err.push('le pays');
     if(!d.lines.some(l => num(l.qty) > 0)) err.push('au moins une ligne avec une quantité');
+    // Mode de paiement obligatoire pour les factures et bons de commande (proformas)
+    if((d.type === 'facture' || d.type === 'proforma') && !(d.paiement || []).length) err.push('le mode de paiement (Conditions de paiement)');
     if(err.length) return 'Il manque ' + err.join(', ') + '.';
     if((d.paiement || []).length && Math.abs(sum(d.paiement, r => num(r.pct)) - 100) > 0.001 && !confirm("L'échéancier de paiement ne fait pas 100 %. Continuer ?")) return 'cancel';
     if(docs.some(x => x.id !== d.id && x.numero === d.numero)) return `Le numéro ${d.numero} existe déjà.`;
