@@ -72,6 +72,17 @@
     const lignes = (f.lines || []).filter(l => l.mode !== 'remise').slice(0, 8).map(l => `${esc(l.reference)} (${esc(l.collection)}) : ${l.cartons ? l.cartons + ' ctn · ' : ''}${nombre(l.btl)} fl. · ${money0(l.ca)}`).join('<br>');
     return `<strong>Facture ${esc(f.facture)}</strong> du ${esc(f.date)} — ${esc(f.client)} (${drapeau(f.pays)}${esc(f.pays)})<br>Montant : <strong>${money(f.ca)}</strong> · ${nombre(f.btl)} flacons${f.marge != null ? ` · bénéfice ${money0(f.marge)}` : ''}<div class="ia-sub">${lignes}${(f.lines || []).length > 8 ? '<br>…' : ''}</div>${btn('Ouvrir la facture', 'factures', ` data-facture="${esc(f.facture)}"`)}`;
   }
+  // Dernière(s) facture(s) en général ou d'une société (« dernière facture de BSD », « les 5 dernières factures NB »)
+  const socDe = q => { const Q = norm(q); return /\bbsd\b/.test(Q) ? 'BSD' : /\bnb\b|evolution/.test(Q) ? 'NB' : null; };
+  regle(q => /(dernier|derniere|recent)/.test(norm(q)) && /(facture|vente|commande)/.test(norm(q)) && (c => !c || (socDe(q) && !norm(q).includes(norm(c))))(trouver(q, clientsNoms())) && !paysDe(q), q => {
+    const soc = socDe(q), Q = norm(q), m = Q.match(/\b(\d{1,2}) dernier/), n = m ? Math.min(20, +m[1]) : (/(dernieres|derniers)/.test(Q) ? 5 : 1);
+    const S = soc && window.EJ_SOC && EJ_SOC.statsFor ? EJ_SOC.statsFor(soc) : stats();
+    const L = (S.total.factures || []).slice().sort((a, b) => frToIso(b.date).localeCompare(frToIso(a.date)) || String(b.facture).localeCompare(String(a.facture)));
+    const nom = soc === 'BSD' ? 'BSD (France)' : soc === 'NB' ? 'NB Evolution (Dubaï)' : '';
+    if(!L.length) return `Aucune facture trouvée${nom ? ' pour ' + nom : ''}.`;
+    if(n === 1) return `Dernière facture${nom ? ' de <strong>' + nom + '</strong>' : ''} :<br>` + factureHtml(L[0]);
+    return `Les ${Math.min(n, L.length)} dernières factures${nom ? ' de <strong>' + nom + '</strong>' : ''} :<ul>${L.slice(0, n).map(f => `<li>${esc(f.date)} · <strong>${esc(f.facture)}</strong> · ${esc(f.client)} (${drapeau(f.pays)}${esc(f.pays)}) · ${money0(f.ca)}</li>`).join('')}</ul>${btn('Toutes les factures', 'factures')}`;
+  });
   // Dernière(s) facture(s) / commande d'un client
   // Salons
   regle(q => /(salon|foire|expo|cosmoprof|beautyworld|esxence|intercharm|pitti)/.test(norm(q)), q => {
@@ -236,7 +247,7 @@
     const f = norm(filtre || ''), y = annee_ && stats()[annee_] ? annee_ : null, S = stats()[y || 'total'], match = o => !f || norm(JSON.stringify(o)).includes(f);
     const lim = (a, n) => a.filter(match).slice(0, n || 40);
     switch(sujet){
-      case 'factures': return lim(factures().filter(x => !y || frToIso(x.date).startsWith(y)).map(x => ({facture:x.facture, date:x.date, client:x.client, pays:x.pays, ca:x.ca, benefice:Math.round(x.marge), flacons:x.btl, lignes:(x.lines || []).map(l => `${l.collection} ${l.reference} ${l.btl}fl ${Math.round(l.ca)}€`).join('; ')})), 30);
+      case 'factures': return lim(factures().filter(x => !y || frToIso(x.date).startsWith(y)).map(x => ({facture:x.facture, societe:/^NB/i.test(x.facture) ? 'NB Evolution' : 'BSD', date:x.date, client:x.client, pays:x.pays, ca:x.ca, benefice:Math.round(x.marge), flacons:x.btl, lignes:(x.lines || []).map(l => `${l.collection} ${l.reference} ${l.btl}fl ${Math.round(l.ca)}€`).join('; ')})), 30);
       case 'clients': return lim((S.clients || []).map(c => ({client:c.client, pays:c.pays, factures:c.factures, ca:Math.round(c.ca), benefice:Math.round(c.marge), flacons:c.btl})), 60);
       case 'pays': return lim((S.pays || []).map(p => ({pays:p.pays, clients:p.clients, factures:p.factures, ca:Math.round(p.ca), benefice:Math.round(p.marge)})), 60);
       case 'stock': return {compte_le:ALL.stock_ref_date, references:lim(stockItems().map(i => ({collection:i.collection, reference:i.reference, stock:i.qty, statut:i.status, prix_vente:i.prix_btl})), 80)};
