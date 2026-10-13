@@ -58,7 +58,7 @@
   const gros = (act, val, titre, sous, cls) => `<button type="button" class="wz-choix${cls ? ' ' + cls : ''}" data-wz="${act}" data-v="${esc(val)}"><strong>${titre}</strong>${sous ? `<small>${sous}</small>` : ''}</button>`;
   function listeClients(filtre, act){
     const q = norm(filtre), L = clients().filter(c => !q || norm(c.nom).includes(q) || norm(c.pays).includes(q)).slice(0, q ? 30 : 12);
-    return L.length ? L.map(c => gros(act, c.nom, esc(c.nom), esc([c.pays, c.der ? 'dernière commande le ' + c.der.date : 'pas encore de commande'].filter(Boolean).join(' · ')))).join('')
+    return L.length ? L.map(c => gros(act, c.nom, esc(c.nom), drapeau(c.pays) + esc([c.pays, c.der ? 'dernière commande le ' + c.der.date : 'pas encore de commande'].filter(Boolean).join(' · ')))).join('')
       : '<p class="wz-vide">Aucun client trouvé avec ce nom.</p>';
   }
   const champRecherche = (ph, val) => `<input class="wz-in" id="wzRech" data-wz-focus placeholder="${ph}" value="${esc(val || '')}" autocomplete="off">`;
@@ -166,7 +166,7 @@
         const c = clients().find(x => x.nom === P.data.client) || {nom:P.data.client}, info = D() ? D().clientInfo(c.nom) : {}, du = aEncaisser(c.nom);
         const top = {}; factures().filter(f => f.client === c.nom).forEach(f => (f.lines || []).forEach(l => { if(l.btl > 0 && l.reference) top[l.reference] = (top[l.reference] || 0) + l.btl; }));
         const tops = Object.entries(top).sort((a, b) => b[1] - a[1]).slice(0, 3);
-        return `<div class="wz-fiche"><div><span>Pays</span><strong>${esc(c.pays || info.pays || '—')}</strong></div><div><span>Commandes</span><strong>${c.n || 0}</strong></div>
+        return `<div class="wz-fiche"><div><span>Pays</span><strong>${drapeau(c.pays || info.pays)}${esc(c.pays || info.pays || '—')}</strong></div><div><span>Commandes</span><strong>${c.n || 0}</strong></div>
           <div><span>Total acheté</span><strong>${money0(c.ca)}</strong></div><div><span>Doit encore</span><strong class="${du ? 'ko' : ''}">${du ? money0(du) : 'rien'}</strong></div></div>
           ${c.der ? `<p class="wz-der">Dernière commande : <strong>${esc(c.der.date)}</strong> — facture ${esc(c.der.facture)} — ${money0(c.der.ca)}</p>` : '<p class="wz-der">Pas encore de commande enregistrée.</p>'}
           ${tops.length ? `<p class="wz-aide">Parfums qu’il achète le plus : ${tops.map(([r, n]) => `<strong>${esc(r)}</strong> (${nb(n)} fl.)`).join(', ')}</p>` : ''}

@@ -70,7 +70,7 @@
   });
   function factureHtml(f){
     const lignes = (f.lines || []).filter(l => l.mode !== 'remise').slice(0, 8).map(l => `${esc(l.reference)} (${esc(l.collection)}) : ${l.cartons ? l.cartons + ' ctn · ' : ''}${nombre(l.btl)} fl. · ${money0(l.ca)}`).join('<br>');
-    return `<strong>Facture ${esc(f.facture)}</strong> du ${esc(f.date)} — ${esc(f.client)} (${esc(f.pays)})<br>Montant : <strong>${money(f.ca)}</strong> · ${nombre(f.btl)} flacons${f.marge != null ? ` · bénéfice ${money0(f.marge)}` : ''}<div class="ia-sub">${lignes}${(f.lines || []).length > 8 ? '<br>…' : ''}</div>${btn('Ouvrir la facture', 'factures', ` data-facture="${esc(f.facture)}"`)}`;
+    return `<strong>Facture ${esc(f.facture)}</strong> du ${esc(f.date)} — ${esc(f.client)} (${drapeau(f.pays)}${esc(f.pays)})<br>Montant : <strong>${money(f.ca)}</strong> · ${nombre(f.btl)} flacons${f.marge != null ? ` · bénéfice ${money0(f.marge)}` : ''}<div class="ia-sub">${lignes}${(f.lines || []).length > 8 ? '<br>…' : ''}</div>${btn('Ouvrir la facture', 'factures', ` data-facture="${esc(f.facture)}"`)}`;
   }
   // Dernière(s) facture(s) / commande d'un client
   // Salons
@@ -87,7 +87,7 @@
   regle(q => /(inactif|n ont pas commande|pas commande depuis|plus commande|sans commande|a relancer)/.test(norm(q)), () => {
     const der = {}; factures().forEach(f => { const d = frToIso(f.date); if(!der[f.client] || d > der[f.client].d) der[f.client] = {d, pays:f.pays, ca:0}; });
     const L = Object.entries(der).filter(([, x]) => days(x.d) < -120).sort((a, b) => a[1].d.localeCompare(b[1].d));
-    return `${L.length} clients sans commande depuis plus de 4 mois :<ul>${L.map(([c, x]) => `<li>${esc(c)} (${esc(x.pays)}) — dernière le ${fr(x.d)}</li>`).join('')}</ul>${btn('Espace Nassim', 'equipe-nassim')}`;
+    return `${L.length} clients sans commande depuis plus de 4 mois :<ul>${L.map(([c, x]) => `<li>${esc(c)} (${drapeau(x.pays)}${esc(x.pays)}) — dernière le ${fr(x.d)}</li>`).join('')}</ul>${btn('Espace Nassim', 'equipe-nassim')}`;
   });
   // Commandes d'un pays (dernière, liste, nombre)
   const PAYS_ALIAS = {emirats:'Émirats Arabes Unis', eau:'Émirats Arabes Unis', dubai:'Émirats Arabes Unis', uae:'Émirats Arabes Unis', arabie:'Arabie Saoudite', saoudite:'Arabie Saoudite', ksa:'Arabie Saoudite', angleterre:'Angleterre', 'royaume uni':'Angleterre', uk:'Angleterre', usa:'USA', 'etats unis':'USA', amerique:'USA', azerbaidjan:'Azerbaïdjan', nigeria:'Nigéria'};
@@ -160,7 +160,7 @@
   // Meilleurs clients / références
   regle(q => /(meilleur|top|plus gros|principaux)/.test(norm(q)) && /(client)/.test(norm(q)), q => {
     const y = annee(q) || 'total', L = (stats()[y].clients || []).slice().sort((a, b) => b.ca - a.ca).slice(0, 5);
-    return `Meilleurs clients ${y === 'total' ? '(2025 + 2026)' : y} :<ol>${L.map(c => `<li>${esc(c.client)} (${esc(c.pays)}) : ${money0(c.ca)}</li>`).join('')}</ol>${btn('Clients', 'clients')}`;
+    return `Meilleurs clients ${y === 'total' ? '(2025 + 2026)' : y} :<ol>${L.map(c => `<li>${esc(c.client)} (${drapeau(c.pays)}${esc(c.pays)}) : ${money0(c.ca)}</li>`).join('')}</ol>${btn('Clients', 'clients')}`;
   });
   regle(q => /(meilleur|top|plus vendu|best)/.test(norm(q)) && /(ref|parfum|produit|vente|vendu)/.test(norm(q)), q => {
     const y = annee(q) || 'total', L = (stats()[y].refs || []).filter(r => r.btl).slice().sort((a, b) => b.btl - a.btl).slice(0, 8);

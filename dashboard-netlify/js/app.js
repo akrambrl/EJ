@@ -107,7 +107,7 @@ function renderClients(filter=''){
   filtered.forEach((c,i)=>{
     const margePct = c.cout > 0 ? (c.marge/c.ca*100).toFixed(1) : 'N/A';
     const key = `${c.client}|${c.pays}`;
-    tb.innerHTML += `<tr class="client-row" data-key="${key}"><td>${i+1}</td><td><strong>${c.client}</strong></td><td>${c.pays}</td><td class="text-right">${c.factures}</td><td class="text-right">${fmtNum(c.btl)}</td><td class="text-right amount">${fmtMoneyShort(c.ca)}</td><td class="text-right amount-negative">${fmtMoneyShort(c.cout)}</td><td class="text-right amount-positive">${fmtMoneyShort(c.marge)}</td><td class="text-right">${margePct}${typeof margePct==='string'&&margePct!=='N/A'?'%':margePct==='N/A'?'':'%'}</td></tr>`;
+    tb.innerHTML += `<tr class="client-row" data-key="${key}"><td>${i+1}</td><td><strong>${c.client}</strong></td><td>${drapeau(c.pays)}${c.pays}</td><td class="text-right">${c.factures}</td><td class="text-right">${fmtNum(c.btl)}</td><td class="text-right amount">${fmtMoneyShort(c.ca)}</td><td class="text-right amount-negative">${fmtMoneyShort(c.cout)}</td><td class="text-right amount-positive">${fmtMoneyShort(c.marge)}</td><td class="text-right">${margePct}${typeof margePct==='string'&&margePct!=='N/A'?'%':margePct==='N/A'?'':'%'}</td></tr>`;
   });
   // Attach hover events
   document.querySelectorAll('#table-clients .client-row').forEach(tr => {
@@ -169,7 +169,7 @@ function renderPays(){
   const tb = document.getElementById('tbody-pays-client');
   tb.innerHTML = '';
   d.pays_client.forEach((p,i)=>{
-    tb.innerHTML += `<tr><td>${i+1}</td><td><strong>${p.pays}</strong></td><td>${p.client}</td><td class="text-right">${p.factures}</td><td class="text-right">${fmtNum(p.btl)}</td><td class="text-right amount">${fmtMoneyShort(p.ca)}</td><td class="text-right amount-negative">${fmtMoneyShort(p.cout)}</td><td class="text-right amount-positive">${fmtMoneyShort(p.marge)}</td></tr>`;
+    tb.innerHTML += `<tr><td>${i+1}</td><td><strong>${drapeau(p.pays)}${p.pays}</strong></td><td>${p.client}</td><td class="text-right">${p.factures}</td><td class="text-right">${fmtNum(p.btl)}</td><td class="text-right amount">${fmtMoneyShort(p.ca)}</td><td class="text-right amount-negative">${fmtMoneyShort(p.cout)}</td><td class="text-right amount-positive">${fmtMoneyShort(p.marge)}</td></tr>`;
   });
 }
 
@@ -263,7 +263,7 @@ function renderFactures(filter=''){
   let filtered = d.factures;
   if(filter) filtered = filtered.filter(f => (f.facture+' '+f.client+' '+f.pays).toLowerCase().includes(filter.toLowerCase()));
   filtered.forEach(f=>{
-    tb.innerHTML += `<tr class="clickable" data-facture="${f.facture}"><td><strong>${f.facture}</strong></td><td>${f.date}</td><td>${f.client}</td><td>${f.pays}</td><td class="text-right">${fmtNum(f.btl)}</td><td class="text-right amount">${fmtMoneyShort(f.ca)}</td><td class="text-right amount-negative">${fmtMoneyShort(f.cout)}</td><td class="text-right amount-positive">${fmtMoneyShort(f.marge)}</td></tr>`;
+    tb.innerHTML += `<tr class="clickable" data-facture="${f.facture}"><td><strong>${f.facture}</strong></td><td>${f.date}</td><td>${f.client}</td><td>${drapeau(f.pays)}${f.pays}</td><td class="text-right">${fmtNum(f.btl)}</td><td class="text-right amount">${fmtMoneyShort(f.ca)}</td><td class="text-right amount-negative">${fmtMoneyShort(f.cout)}</td><td class="text-right amount-positive">${fmtMoneyShort(f.marge)}</td></tr>`;
   });
 }
 
@@ -273,7 +273,7 @@ function openFactureModal(factureId){
   const f = d.factures.find(x => x.facture === factureId);
   if(!f) return;
   document.getElementById('modalTitle').textContent = `Facture ${f.facture}`;
-  document.getElementById('modalMeta').innerHTML = `<strong>${f.client}</strong> — ${f.pays}<br>Date : ${f.date}`;
+  document.getElementById('modalMeta').innerHTML = `<strong>${f.client}</strong> — ${drapeau(f.pays)}${f.pays}<br>Date : ${f.date}`;
   document.getElementById('modalSummary').innerHTML = `
     <div class="modal-stat"><div class="modal-stat-label">CA</div><div class="modal-stat-value">${fmtMoney(f.ca)}</div></div>
     <div class="modal-stat"><div class="modal-stat-label">Coût</div><div class="modal-stat-value" style="color:var(--bad)">${fmtMoney(f.cout)}</div></div>
@@ -391,7 +391,7 @@ function renderCadeaux(filter=''){
   filtered.forEach(({f,bd}) => {
     const parts = bd.items.map(it => `${fmtNum(it.quantite)} ${it.article}`);
     bd.testers.forEach(t => parts.push(`${fmtNum(t.qty)} testeurs ${t.collection}`));
-    tb.innerHTML += `<tr class="clickable" data-facture="${f.facture}"><td><strong>${f.facture}</strong></td><td>${f.date}</td><td>${f.client}</td><td>${f.pays}</td><td>${parts.join(', ')}</td><td class="text-right amount-negative">${fmtMoney(bd.totalCost)}</td></tr>`;
+    tb.innerHTML += `<tr class="clickable" data-facture="${f.facture}"><td><strong>${f.facture}</strong></td><td>${f.date}</td><td>${f.client}</td><td>${drapeau(f.pays)}${f.pays}</td><td>${parts.join(', ')}</td><td class="text-right amount-negative">${fmtMoney(bd.totalCost)}</td></tr>`;
   });
   if(filtered.length===0){
     tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">Aucun cadeau trouvé.</td></tr>';
@@ -448,7 +448,7 @@ function renderCadeauxClientList(filter=''){
     const isSelected = selectedCadeauxClient && selectedCadeauxClient.client === c.client && selectedCadeauxClient.pays === c.pays;
     const btn = document.createElement('div');
     btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(201,164,86,.25)':('rgba('+cv('--ink-rgb')+',.05)')};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#C9A456':'transparent'};transition:all .15s`;
-    btn.innerHTML = `<div style="font-weight:600;color:#C9A456;font-size:.92rem">${c.client}</div><div style="color:var(--muted);font-size:.78rem;margin-top:2px">${c.pays} • ${c.factures} fact. • <span style="color:var(--bad)">${fmtMoney(c.totalCost)}</span> de cadeaux</div>`;
+    btn.innerHTML = `<div style="font-weight:600;color:#C9A456;font-size:.92rem">${c.client}</div><div style="color:var(--muted);font-size:.78rem;margin-top:2px">${drapeau(c.pays)}${c.pays} • ${c.factures} fact. • <span style="color:var(--bad)">${fmtMoney(c.totalCost)}</span> de cadeaux</div>`;
     btn.addEventListener('click', () => {
       selectedCadeauxClient = c;
       renderCadeauxClientList(document.getElementById('search-cadeaux-client').value);
@@ -473,7 +473,7 @@ function renderCadeauxClientDetail(){
     <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:10px">
       <div>
         <div style="color:#C9A456;font-size:1.2rem;font-weight:bold">${c.client}</div>
-        <div style="color:var(--muted);font-size:.9rem">${c.pays} • ${c.factures} commande(s) • ${fmtMoney(c.ca)} de CA</div>
+        <div style="color:var(--muted);font-size:.9rem">${drapeau(c.pays)}${c.pays} • ${c.factures} commande(s) • ${fmtMoney(c.ca)} de CA</div>
       </div>
       <div style="text-align:right">
         <div style="color:var(--muted);font-size:.78rem">Coût total cadeaux offerts</div>
@@ -613,7 +613,7 @@ function renderEvolutionList(filter=''){
     const isSelected = selectedEvoClient && selectedEvoClient.client === c.client && selectedEvoClient.pays === c.pays;
     const btn = document.createElement('div');
     btn.style.cssText = `padding:10px 12px;margin-bottom:6px;background:${isSelected?'rgba(201,164,86,.25)':('rgba('+cv('--ink-rgb')+',.05)')};border-radius:6px;cursor:pointer;border-left:3px solid ${isSelected?'#C9A456':'transparent'};transition:all .15s`;
-    btn.innerHTML = `<div style="font-weight:600;color:#C9A456;font-size:.92rem">${trendIcon} ${c.client}</div><div style="color:var(--muted);font-size:.78rem;margin-top:2px">${c.pays} • ${factures.length} fact. • ${fmtMoneyShort(c.ca)}</div>`;
+    btn.innerHTML = `<div style="font-weight:600;color:#C9A456;font-size:.92rem">${trendIcon} ${c.client}</div><div style="color:var(--muted);font-size:.78rem;margin-top:2px">${drapeau(c.pays)}${c.pays} • ${factures.length} fact. • ${fmtMoneyShort(c.ca)}</div>`;
     btn.addEventListener('click', () => {
       selectedEvoClient = c;
       renderEvolutionList(document.getElementById('search-evo-client').value);
@@ -664,7 +664,7 @@ function renderEvolutionChart(){
     <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:10px">
       <div>
         <div style="color:#C9A456;font-size:1.2rem;font-weight:bold">${c.client}</div>
-        <div style="color:var(--muted);font-size:.9rem">${c.pays} • ${factures.length} commande(s)</div>
+        <div style="color:var(--muted);font-size:.9rem">${drapeau(c.pays)}${c.pays} • ${factures.length} commande(s)</div>
       </div>
       <div style="text-align:right">
         <div style="font-size:1.6rem">${trendIcon}</div>
@@ -1416,7 +1416,7 @@ function renderPredCards(preds, level){
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
           <div>
             <div style="color:#C9A456;font-weight:bold;font-size:1rem">${p.client}</div>
-            <div style="color:var(--muted);font-size:.8rem">${p.pays} • ${p.n_factures} commande(s)</div>
+            <div style="color:var(--muted);font-size:.8rem">${drapeau(p.pays)}${p.pays} • ${p.n_factures} commande(s)</div>
           </div>
           <div style="text-align:right">
             <div style="color:${c.accent};font-size:.75rem;text-transform:uppercase">Confiance</div>

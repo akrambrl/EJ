@@ -264,7 +264,7 @@
         <td><span class="doc-type doc-type-${d.type}">${t.label}</span></td>
         <td><strong>${esc(d.numero)}</strong>${d.source ? `<div class="doc-sub">depuis ${esc(d.source)}</div>` : ''}${d.lien ? `<div class="doc-sub">achat BSD ${esc(d.lien)}</div>` : ''}</td>
         <td>${esc(isoToFr(d.date))}</td>
-        <td>${esc(d.client)}<div class="doc-sub">${esc(d.pays)}${d.societe === 'BSD' && SOC.isIntra(d) ? ' · vente interne au groupe' : ''}</div></td>
+        <td>${esc(d.client)}<div class="doc-sub">${drapeau(d.pays)}${esc(d.pays)}${d.societe === 'BSD' && SOC.isIntra(d) ? ' · vente interne au groupe' : ''}</div></td>
         <td class="text-right">${money(k.ht)}</td>
         <td><span class="doc-status ${statusClass(d.statut)}">${esc(d.statut || '')}</span>${payCell(d)}</td>
         <td class="doc-actions"><button class="doc-btn small" data-act="view" data-id="${d.id}">Voir / PDF</button><button class="doc-btn small" data-act="edit" data-id="${d.id}">Modifier</button>${conv}<button class="doc-btn small" data-act="dup" data-id="${d.id}">Dupliquer</button><button class="doc-btn small danger" data-act="del" data-id="${d.id}">Supprimer</button></td>

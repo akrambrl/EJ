@@ -412,9 +412,9 @@
     const last = fact.map(f => frToIso(f.date)).sort().pop() || '';
     const top = ((S.client_top_products || {})[crmSel + '|' + base.pays] || []).slice(0, 5);
     box.innerHTML = head("Une fiche par client : contacts, conditions négociées, comptes rendus de rendez-vous et échantillons envoyés. Les chiffres viennent des factures.") +
-      `<div class="crm"><div class="crm-list"><input class="search-box" id="crmQ" placeholder="Rechercher un client…" value="${esc(crmQ)}"><ul>${list.map(c => `<li class="${c.client === crmSel ? 'active' : ''}" data-crm="${esc(c.client)}"><span>${esc(c.client)}<small>${esc(c.pays || '')}</small></span><em>${c.ca ? money(c.ca) : ''}</em></li>`).join('')}</ul>
+      `<div class="crm"><div class="crm-list"><input class="search-box" id="crmQ" placeholder="Rechercher un client…" value="${esc(crmQ)}"><ul>${list.map(c => `<li class="${c.client === crmSel ? 'active' : ''}" data-crm="${esc(c.client)}"><span>${esc(c.client)}<small>${drapeau(c.pays)}${esc(c.pays || '')}</small></span><em>${c.ca ? money(c.ca) : ''}</em></li>`).join('')}</ul>
         <form class="eq-form" id="crmNew"><input name="nom" placeholder="Nouveau client" required><button class="doc-btn">Créer</button></form></div>
-      ${crmSel ? `<div class="crm-fiche"><div class="crm-h"><div><div class="eq-nom">${esc(crmSel)}</div><div class="eq-role">${esc(base.pays || adr.pays || '')}</div></div></div>
+      ${crmSel ? `<div class="crm-fiche"><div class="crm-h"><div><div class="eq-nom">${esc(crmSel)}</div><div class="eq-role">${drapeau(base.pays || adr.pays)}${esc(base.pays || adr.pays || '')}</div></div></div>
         ${kpis([['CA total', money(base.ca)], ['Factures', fact.length], ['Dernière commande', last ? fr(last) : '—', last && days(last) < -120 ? 'ko' : '']])}
         ${adr.adresse ? `<p class="j-sub">${esc(adr.adresse).replace(/\n/g, ' · ')}${adr.tvaClient ? ' · ' + esc(adr.tvaClient) : ''}</p>` : ''}
         ${top.length ? `<p class="j-sub">Produits phares : ${top.map(t => esc(t.reference || t.ref || t[0] || '')).join(' · ')}</p>` : ''}

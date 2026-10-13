@@ -54,7 +54,7 @@
     const enCours = docs().filter(d => (d.type === 'devis' || d.type === 'proforma') && !/Convert|Refus/.test(d.statut || ''));
     const li = (a, b) => `<li><span>${a}</span><span>${b}</span></li>`;
     return `<div class="eq-tool-grid">
-      <div><div class="eq-th">Clients à relancer <em>sans commande depuis 4 mois</em></div><ul class="eq-kv">${relance.map(c => li(esc(c.client) + `<small>${esc(c.pays)}</small>`, 'dernière : ' + fr(c.last))).join('') || '<li class="eq-empty">Aucun</li>'}</ul></div>
+      <div><div class="eq-th">Clients à relancer <em>sans commande depuis 4 mois</em></div><ul class="eq-kv">${relance.map(c => li(esc(c.client) + `<small>${drapeau(c.pays)}${esc(c.pays)}</small>`, 'dernière : ' + fr(c.last))).join('') || '<li class="eq-empty">Aucun</li>'}</ul></div>
       <div><div class="eq-th">Nouveaux clients ${an}</div><ul class="eq-kv">${nouveaux.map(c => li(esc(c.client) + `<small>${esc(c.pays)}</small>`, money(c.ca))).join('') || '<li class="eq-empty">Aucun pour l\'instant</li>'}</ul></div>
       <div><div class="eq-th">Devis & proformas en cours</div><ul class="eq-kv">${enCours.map(d => li(esc(d.numero) + `<small>${esc(d.client)}</small>`, esc(d.statut))).join('') || '<li class="eq-empty">Aucun — onglet Devis & factures</li>'}</ul></div>
     </div>`;
@@ -72,7 +72,7 @@
     const notes = P(pers.id).pays, ps = paysStats();
     Object.keys(notes).forEach(k => { if(!ps.some(p => p.pays === k)) ps.push({pays:k, ca:0, clients:0, last:'', nouveau:true}); });
     return `<div class="eq-table-wrap"><table class="eq-table"><thead><tr><th>Marché</th><th class="text-right">CA total</th><th>Clients</th><th>Dernière commande</th><th>Stratégie, positionnement, actions</th></tr></thead><tbody>
-      ${ps.map(p => `<tr><td>${esc(p.pays)}${p.nouveau ? ' <small class="eq-new">à développer</small>' : ''}</td><td class="text-right">${money(p.ca)}</td><td>${p.clients}</td><td>${fr(p.last) || '—'}</td>
+      ${ps.map(p => `<tr><td>${drapeau(p.pays)}${esc(p.pays)}${p.nouveau ? ' <small class="eq-new">à développer</small>' : ''}</td><td class="text-right">${money(p.ca)}</td><td>${p.clients}</td><td>${fr(p.last) || '—'}</td>
         <td><textarea data-pays="${esc(p.pays)}" rows="1" placeholder="Positionnement, prix, canal, campagne…">${esc(notes[p.pays] || '')}</textarea></td></tr>`).join('')}
       </tbody></table></div>
       <form class="eq-form" data-paysadd><input name="pays" placeholder="Nouveau marché à développer (ex. Japon)" required><button class="doc-btn">Ajouter</button></form>`;
