@@ -124,12 +124,9 @@
           <dt>Parfums</dt><dd>${d.lignes.map(l => `${l.qty} carton${l.qty > 1 ? 's' : ''} de <strong>${esc(l.reference)}</strong> <small>(${esc(nomCol(l.collection))})</small>`).join('<br>')}</dd>
           ${(() => { const e = d.lignes.filter(l => l.collection !== 'BRUMES' && l.collection !== 'ROYAL').reduce((x, l) => x + l.qty, 0); return e ? `<dt>Offert</dt><dd>${e} échantillon${e > 1 ? 's' : ''} 2 ml (1 par carton, modifiable)</dd>` : ''; })()}
           <dt>Total estimé</dt><dd><strong>${money0(totalLignes(d))}</strong> HT</dd></dl>
-          <h4 class="wz-h4">Comment le client va-t-il payer ? <span class="wz-obl">obligatoire</span></h4>
-          <div class="wz-liste wz-pay">${PAIEMENTS.filter(p => p[0]).map(([k, t, s]) => gros('pay', k, t, s, d.preset === k ? 'actif' : '')).join('')}</div>
-          ${pay ? '' : '<p class="wz-aide wz-manque">Choisissez un mode de paiement pour pouvoir préparer le document.</p>'}
-          <p class="wz-aide">En cliquant ci-dessous, ${DOCS[type].ouvre}. Vous pourrez encore changer un prix ou ajouter un cadeau, puis cliquer sur <strong>Enregistrer</strong>.</p>`; },
-        suite:() => ({l:DOCS[type].btn, off:!P.data.preset}),
-        valider:() => { const d = P.data; if(!d.preset) return; fermer(); aller('documents');
+          <p class="wz-aide">En cliquant ci-dessous, ${DOCS[type].ouvre}. Il restera à choisir le <strong>mode de paiement</strong> (obligatoire), puis à cliquer sur <strong>Enregistrer</strong>.</p>`; },
+        suite:() => ({l:DOCS[type].btn}),
+        valider:() => { const d = P.data; fermer(); aller('documents');
           setTimeout(() => D().preparer({type, societe:d.soc, client:d.client, pays:d.pays, adresse:d.adresse, lignes:d.lignes, preset:d.preset}), 60); }}
     },
     clic: {
