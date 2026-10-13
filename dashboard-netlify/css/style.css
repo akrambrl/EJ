@@ -1330,3 +1330,90 @@ html[data-role] .ac-mode{display:none!important}
   .main{overflow-x:hidden;max-width:100vw;width:100%}
   .page{overflow-x:hidden}
 }
+
+/* =====================================================================
+   Design moderne (couche finale) : coins arrondis, ombres douces, cartes aérées,
+   moins de majuscules espacées. Fonctionne en thème clair et sombre (variables).
+   ===================================================================== */
+:root{--r-lg:18px;--r-md:12px;--r-sm:9px;--ombre:0 1px 2px rgba(var(--ink-rgb),.05),0 8px 24px rgba(var(--ink-rgb),.06);--ombre-h:0 2px 6px rgba(var(--ink-rgb),.08),0 14px 32px rgba(var(--ink-rgb),.10)}
+:root[data-theme="dark"]{--ombre:0 1px 2px rgba(0,0,0,.35),0 10px 28px rgba(0,0,0,.35);--ombre-h:0 2px 8px rgba(0,0,0,.45),0 16px 36px rgba(0,0,0,.45)}
+
+/* Cartes et indicateurs */
+html .kpi,html .kpis-top .kpi{border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface);box-shadow:var(--ombre);padding:16px 18px}
+html .kpis-top{gap:12px;border:none}
+html .kpi-label{text-transform:none;letter-spacing:.01em;font-size:.8rem;font-weight:500;color:var(--muted)}
+html .kpis:not(.kpis-top) .kpi-value,html div[style*="repeat(auto-fit"] > .kpi .kpi-value{font-family:inherit;font-weight:700;font-size:1.45rem;letter-spacing:-.01em}
+html .info-box{border-radius:var(--r-md);border:1px solid var(--line);border-left:4px solid var(--gold);background:var(--surface)}
+#stockContent > div,#inventaireContent > div,.gx-month,.j-card,.eq-mission,.sl-mois,.reg-wrap,.ff,.ac-bloc,.crm-list,.crm-fiche{border-radius:var(--r-lg)!important;box-shadow:var(--ombre)}
+#stockContent > div,#inventaireContent > div{background:var(--surface)!important;border:1px solid var(--line);overflow:hidden}
+html .ac-bloc{background:var(--surface);border:1px solid var(--line)}
+
+/* Titres de section : plus sobres */
+html .section h2{letter-spacing:0;gap:12px}
+html .section h2::before{content:"";width:6px;height:22px;border-radius:3px;background:var(--gold-grad);font-size:0}
+html .section h2::after{opacity:.35}
+
+/* Tableaux : conteneur arrondi, lignes légères */
+html table{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+html th{text-transform:none;letter-spacing:.01em;font-size:.78rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);background:rgba(var(--ink-rgb),.025)}
+html td{border-bottom:1px solid rgba(var(--ink-rgb),.06)}
+html tbody tr:last-child td{border-bottom:none}
+html tbody tr:hover td{background:rgba(201,164,86,.06)}
+.pd-table,.pd-table th,.pd-table td{border-radius:0}  /* documents imprimés inchangés */
+.pd table{border-radius:0;box-shadow:none}
+
+/* Étiquettes de collection : pastilles */
+html .badge{border-radius:999px;letter-spacing:.04em;font-size:.7rem;padding:4px 12px;text-transform:uppercase}
+
+/* Boutons et champs */
+html .doc-btn{border-radius:var(--r-sm);letter-spacing:.02em;text-transform:none;font-size:.85rem;padding:9px 16px;border-color:var(--line)}
+html .doc-btn.small{border-radius:8px;font-size:.75rem;padding:5px 10px}
+html .doc-btn.primary{box-shadow:0 4px 14px rgba(201,164,86,.25)}
+html input,html select,html textarea,html .search-box{border-radius:var(--r-sm)}
+.pd input,.pd select{border-radius:0}
+html .pli-btn,html .pli-tout{border-radius:999px}
+html .pli-btn{width:34px;height:34px}
+
+/* Menu latéral et en-tête */
+html .sb-seg{border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--line)}
+html .sb-seg button{letter-spacing:.04em;text-transform:none;font-size:.78rem}
+html .sb-seg-col{border-radius:var(--r-md)}
+html .sidebar .tab:not(.sb-big){border-radius:8px;border-left:none;padding-left:12px;letter-spacing:.06em}
+html .sidebar .tab.active:not(.sb-big){background:rgba(201,164,86,.14)}
+html .sidebar .sb-big{border-radius:var(--r-md)}
+html .sb-toggle,html .theme-btn{border-radius:var(--r-md)}
+html .sb-mode{border-radius:var(--r-sm)}
+html .ia-fab{box-shadow:0 8px 24px rgba(201,164,86,.35)}
+html .ia-box{border-radius:var(--r-lg);overflow:hidden}
+html .ac-act{border-radius:var(--r-md);box-shadow:var(--ombre)}
+html .ac-act:hover,html #stockContent > div:hover{box-shadow:var(--ombre-h)}
+html .modal,html .modal-overlay .modal{border-radius:var(--r-lg)}
+
+/* Mobile : marges et cartes un peu plus compactes */
+@media (max-width:600px){
+  html .kpi,html .kpis-top .kpi{padding:12px 14px;border-radius:14px}
+  html .kpis:not(.kpis-top) .kpi-value,html div[style*="repeat(auto-fit"] > .kpi .kpi-value{font-size:1.2rem}
+  #stockContent > div,#inventaireContent > div{padding:14px!important;border-radius:14px!important}
+  html div[style*="repeat(auto-fit,minmax(180px"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+/* Indicateurs du haut : même carte pour tous, montants en chiffres modernes qui ne débordent pas */
+html .kpis-top .kpi,html .kpis-top .kpi:first-child,html .kpis-top .kpi-main{padding:16px 18px!important;border:1px solid var(--line)!important}
+html .kpis-top .kpi-value{font-family:inherit!important;font-weight:700;font-size:clamp(1.05rem,1.6vw,1.45rem)!important;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html .kpis-top .kpi-main .kpi-value{font-size:clamp(1.2rem,2vw,1.75rem)!important}
+/* Textes en majuscules très espacées → écriture normale */
+html .brand-sub{letter-spacing:.04em;text-transform:none;font-size:.82rem}
+html .sidebar .tab:not(.sb-big){text-transform:none;letter-spacing:.01em;font-size:.88rem}
+html .sb-label,html .sb-maison{letter-spacing:.08em}
+html #stockMouv summary,html #stockMouv details > summary,html .notes summary,html details.notes > summary{text-transform:none;letter-spacing:.01em;font-size:.88rem}
+html #stockMouv details,html #stockMouv > div{border-radius:var(--r-md)}
+html .gx-reglages{border-radius:var(--r-md);overflow:hidden}
+html .gx-reglages > summary{text-transform:none;letter-spacing:.01em;font-size:.88rem}
+html .j-h,html .eq-mh h3{letter-spacing:0}
+html .kpis-top{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))!important}
+html .kpis-top .kpi-main{grid-column:span 2!important}
+html .kpis-top .kpi-value{overflow:visible;text-overflow:clip;font-size:1.3rem!important}
+html .kpis-top .kpi-main .kpi-value{font-size:1.65rem!important}
+@media (max-width:700px){ html .kpis-top{display:flex!important} html .kpis-top .kpi{min-width:44%!important} }
+html .chart-container,html .gx-card,html .crm-fiche,html .j-vis,html .sl-mois,html .eq-mission,html .j-card{border-radius:var(--r-lg)!important;box-shadow:var(--ombre)!important;border:1px solid var(--line)!important}
+html .chart-container{background:var(--surface)!important}
+@media (max-width:700px){ html .kpis-top{margin:0 0 6px!important;padding:2px 0 8px!important} }

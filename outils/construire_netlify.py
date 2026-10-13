@@ -83,7 +83,7 @@ def chiffrer(page, mot, fichier_limite=''):
     (fichier chiffré à part, téléchargé seulement dans ce cas) — même adresse, autre mot de passe."""
     import json
     D = chiffrer_donnees(page, mot)
-    return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,shrink-to-fit=no,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow"><title>Emmanuelle Jane Paris</title><link rel="icon" href="{LOGO}">
 <style>html,body{{margin:0;height:100%;background:#070605;color:#F2E8D8;font-family:Georgia,serif}}
 .b{{min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;background:radial-gradient(circle at 50% 30%,#1d1712,#070605 70%)}}
