@@ -87,8 +87,11 @@
       <button type="button" class="wz-suppr" data-wz="suppr" data-v="${i}" aria-label="Retirer">×</button></li>`).join('')}</ul>
       <p class="wz-total">Environ <strong>${money0(totalLignes(d))}</strong> HT <small>(prix habituels ; modifiables à la fin)</small></p>`;
   }
+  // Libellés selon le document : facture, ou proforma (= bon de commande, imprimée avec les photos des parfums)
+  const DOCS = {facture:{titre:'Faire une facture', nom:'Facture', ouvre:'la facture s’ouvre déjà remplie', btn:'Préparer la facture ›'},
+    proforma:{titre:'Faire un bon de commande', nom:'Bon de commande (proforma)', ouvre:'le bon de commande s’ouvre déjà rempli, avec les photos des parfums', btn:'Préparer le bon de commande ›'}};
   const facture = type => ({
-    titre: type === 'devis' ? 'Faire un devis' : 'Faire une facture',
+    titre: DOCS[type].titre,
     debut: 'soc', ordre: ['soc', 'client', 'parfums', 'paiement', 'recap'],
     etapes: {
       soc: {q:'Pour quelle société ?', h:() => `<div class="wz-grille2">${gros('soc', 'BSD', 'BSD', 'France · factures EJ…')}${gros('soc', 'NB', 'NB Evolution', 'Dubaï · factures NB…')}</div>`},
@@ -111,13 +114,13 @@
         suite:() => { const n = P.data.lignes.reduce((x, l) => x + l.qty, 0); return {l:n ? `Continuer (${n} carton${n > 1 ? 's' : ''}) ›` : 'Continuer ›', off:!n}; }, valider:() => aller_('paiement')},
       paiement: {q:'Comment le client va-t-il payer ?', h:() => `<div class="wz-liste">${PAIEMENTS.map(([k, t, s]) => gros('pay', k, t, s, P.data.preset === k ? 'actif' : '')).join('')}</div>`},
       recap: {q:'On vérifie ensemble', h:() => { const d = P.data, pay = PAIEMENTS.find(p => p[0] === d.preset);
-        return `<dl class="wz-recap"><dt>Document</dt><dd>${type === 'devis' ? 'Devis' : 'Facture'} ${d.soc === 'NB' ? 'NB Evolution (Dubaï)' : 'BSD (France)'}</dd>
+        return `<dl class="wz-recap"><dt>Document</dt><dd>${DOCS[type].nom} ${d.soc === 'NB' ? 'NB Evolution (Dubaï)' : 'BSD (France)'}</dd>
           <dt>Client</dt><dd>${esc(d.client)}${d.pays ? ' · ' + esc(d.pays) : ''}</dd>
           <dt>Parfums</dt><dd>${d.lignes.map(l => `${l.qty} carton${l.qty > 1 ? 's' : ''} de <strong>${esc(l.reference)}</strong> <small>(${esc(nomCol(l.collection))})</small>`).join('<br>')}</dd>
           ${(() => { const e = d.lignes.filter(l => l.collection !== 'BRUMES' && l.collection !== 'ROYAL').reduce((x, l) => x + l.qty, 0); return e ? `<dt>Offert</dt><dd>${e} échantillon${e > 1 ? 's' : ''} 2 ml (1 par carton, modifiable)</dd>` : ''; })()}
           <dt>Total estimé</dt><dd><strong>${money0(totalLignes(d))}</strong> HT</dd><dt>Paiement</dt><dd>${pay ? pay[1] + (pay[0] ? ' — ' + pay[2] : '') : '—'}</dd></dl>
-          <p class="wz-aide">En cliquant ci-dessous, ${type === 'devis' ? 'le devis s’ouvre déjà rempli' : 'la facture s’ouvre déjà remplie'}. Vous pourrez encore changer un prix ou ajouter un cadeau, puis cliquer sur <strong>Enregistrer</strong>.</p>`; },
-        suite:() => ({l:type === 'devis' ? 'Préparer le devis ›' : 'Préparer la facture ›'}),
+          <p class="wz-aide">En cliquant ci-dessous, ${DOCS[type].ouvre}. Vous pourrez encore changer un prix ou ajouter un cadeau, puis cliquer sur <strong>Enregistrer</strong>.</p>`; },
+        suite:() => ({l:DOCS[type].btn}),
         valider:() => { const d = P.data; fermer(); aller('documents');
           setTimeout(() => D().preparer({type, societe:d.soc, client:d.client, pays:d.pays, adresse:d.adresse, lignes:d.lignes, preset:d.preset}), 60); }}
     },
@@ -171,7 +174,7 @@
           ${c.der ? `<p class="wz-der">Dernière commande : <strong>${esc(c.der.date)}</strong> — facture ${esc(c.der.facture)} — ${money0(c.der.ca)}</p>` : '<p class="wz-der">Pas encore de commande enregistrée.</p>'}
           ${tops.length ? `<p class="wz-aide">Parfums qu’il achète le plus : ${tops.map(([r, n]) => `<strong>${esc(r)}</strong> (${nb(n)} fl.)`).join(', ')}</p>` : ''}
           ${info.adresse ? `<p class="wz-aide">Adresse : ${esc(info.adresse).replace(/\n/g, ', ')}</p>` : ''}
-          <h4 class="wz-h4">Que voulez-vous faire ?</h4><div class="wz-grille2">${gros('fact', 'facture', 'Lui faire une facture', '')}
+          <h4 class="wz-h4">Que voulez-vous faire ?</h4><div class="wz-grille2">${gros('fact', 'facture', 'Lui faire une facture', '')}${gros('fact', 'proforma', 'Lui faire un bon de commande', 'proforma avec photos')}
           ${c.der ? gros('derf', c.der.facture, 'Voir sa dernière facture', esc(c.der.facture)) : ''}${gros('crm', c.nom, 'Voir sa fiche complète', 'historique, notes, contacts')}</div>`; }}
     },
     clic: {
@@ -223,7 +226,7 @@
   function refsBtn(q){ const L = toutesRefs(q).slice(0, 40); return L.length ? L.map(([c, r]) => `<button type="button" class="wz-ref" data-wz="choixref" data-v="${esc(r)}">${photo(c, r)}<strong>${esc(r)}</strong><small>${esc(nomCol(c))}</small></button>`).join('') : '<p class="wz-vide">Aucun parfum de ce nom.</p>'; }
   function ouvrirAssistant(){ const box = document.querySelector('.ia-box'), fab = document.querySelector('.ia-fab'); if(box && box.hidden && fab) fab.click(); }
 
-  const PARCOURS = {facture:facture('facture'), stock, client, question};
+  const PARCOURS = {facture:facture('facture'), proforma:facture('proforma'), stock, client, question};
 
   /* ---------- Événements ---------- */
   // Saisie directe du nombre de cartons : on met à jour les chiffres autour (stock, total, bouton) sans redessiner le champ,

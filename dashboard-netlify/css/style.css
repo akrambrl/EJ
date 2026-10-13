@@ -1417,3 +1417,7 @@ html .kpis-top .kpi-main .kpi-value{font-size:1.65rem!important}
 html .chart-container,html .gx-card,html .crm-fiche,html .j-vis,html .sl-mois,html .eq-mission,html .j-card{border-radius:var(--r-lg)!important;box-shadow:var(--ombre)!important;border:1px solid var(--line)!important}
 html .chart-container{background:var(--surface)!important}
 @media (max-width:700px){ html .kpis-top{margin:0 0 6px!important;padding:2px 0 8px!important} }
+/* Accès Natali : interface épurée (pas d'année, pas de bascule de mode, pas de mentions techniques) */
+html[data-role] .sb-block:has(.year-switcher),html[data-role] #sbMode,html[data-role] #cloudFoot,html[data-role] .footer,html[data-role] #ctxLine,html[data-role] .sb-foot{display:none!important}
+html[data-role] .ac-bonjour{font-size:1.6rem}
+.ac-surv button{gap:12px}

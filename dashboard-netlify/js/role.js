@@ -3,6 +3,8 @@
    données à la construction (outils/acces_limite.py) ; ici on masque les pages et blocs qui n'ont plus de sens. */
 (function(){
   if(!window.EJ_ROLE) return;
+  // Toujours le mode simple (grandes entrées, accueil clair) : pas de bascule vers « toutes les pages »
+  document.documentElement.dataset.mode = 'simple'; try { localStorage.setItem('ej_mode', 'simple'); } catch(e) {}
   const PERMIS = ['accueil', 'journal', 'equipe-natali', 'stock', 'inventaire', 'appro', 'expeditions', 'conformite', 'documents', 'crm', 'prospects', 'salons'];
   const ok = t => PERMIS.includes(t);
   // Menu : on retire les entrées interdites et les titres de groupe devenus vides
