@@ -233,9 +233,33 @@
   const FIN_Q = /(chiffre d.?affaire|\bca\b|benefice|marge|rentab|impot|tresor|banque|compte bancaire|charges?\b|salaire|resultat|cout|prix de revient|depense|fournisseurs? a payer|creance|doit de l.?argent|me doit|encaiss|objectif|budget|tva|bilan)/;
   const refusFin = q => window.EJ_ROLE && FIN_Q.test(norm(q));
   const REFUS = 'Cette information financière n’est pas disponible avec votre accès. Je peux vous aider sur le stock, les clients, les factures et devis, les expéditions ou les salons.';
+  function direct(q){
+    for(const r of R){ try { if(r.test(q)){ const h = r.f(q); if(h) return h; } } catch(e) { console.warn(e); } }
+    return null;
+  }
+  // Questions de suite (« et de NB ? », « et en 2025 ? », « pour Passion Parfum ? ») : on reprend la question précédente
+  // en remplaçant ce que la nouvelle précise (société, client, pays, référence, année, mois).
+  let precedente = null;
+  function suite(q){
+    if(!precedente) return null;
+    const f = norm(q).replace(/^(et|aussi|pareil|meme chose|idem)\b\s*/, '').trim();
+    let p = ' ' + norm(precedente) + ' ';
+    const ote = x => { if(x) p = p.split(' ' + norm(x) + ' ').join(' '); };
+    const cli = trouver(q, clientsNoms()), pays = paysDe(q), ref = trouver(q, refsNoms());
+    if(socDe(q) || cli){ p = p.replace(/\b(bsd|nb|evolution)\b/g, ' '); ote(trouver(precedente, clientsNoms())); ote(paysDe(precedente)); }
+    if(pays){ ote(paysDe(precedente)); ote(trouver(precedente, clientsNoms())); }
+    if(ref) ote(trouver(precedente, refsNoms()));
+    if(/\b20\d\d\b/.test(f)) p = p.replace(/\b20\d\d\b/g, ' ');
+    if(MOIS.some(m => f.includes(m))) MOIS.forEach(m => { p = p.replace(new RegExp('\\b' + m + '\\b', 'g'), ' '); });
+    const c = (p + ' ' + f).replace(/\s+/g, ' ').trim(), h = direct(c);
+    return h ? {h, c} : null;
+  }
   function repondreLocal(q){
     if(refusFin(q)) return REFUS;
-    for(const r of R){ try { if(r.test(q)){ const h = r.f(q); if(h) return h; } } catch(e) { console.warn(e); } }
+    const relance = /^(et|aussi|pareil|meme chose|idem|pour)\b/.test(norm(q));
+    const s1 = relance ? suite(q) : null; if(s1){ precedente = s1.c; return s1.h; }
+    const h = direct(q); if(h){ precedente = q; return h; }
+    const s2 = norm(q).split(' ').length <= 5 ? suite(q) : null; if(s2){ precedente = s2.c; return s2.h; }
     return null;
   }
   const AIDE = `Je peux répondre sur : le <strong>stock</strong> d'une référence, la <strong>dernière facture</strong> d'un client, le <strong>chiffre d'affaires</strong> (client, pays, mois, année), les <strong>meilleurs clients</strong> et <strong>références</strong>, les <strong>salons</strong>, les <strong>créances</strong>, les <strong>échéances fiscales</strong>, la <strong>trésorerie</strong>, les <strong>impôts</strong>, les <strong>fournisseurs à payer</strong>, les <strong>prospects</strong>, les <strong>expéditions</strong>.`;
