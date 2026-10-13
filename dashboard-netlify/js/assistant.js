@@ -34,7 +34,8 @@
     try { Object.keys(REG.val('crm', {})).forEach(k => s.add(k)); } catch(e) {}
     return [...s];
   }
-  const refsNoms = () => [...new Set(stockItems().map(i => i.reference).concat((stats().total.refs || []).map(r => r.reference)))];
+  // (les lignes « Lot de brumes… » ne sont pas des parfums : sinon « brumes » tout court les désignerait)
+  const refsNoms = () => [...new Set(stockItems().map(i => i.reference).concat((stats().total.refs || []).map(r => r.reference)))].filter(n => !/^lot\b/i.test(n));
   const paysNoms = () => [...new Set((stats().total.pays || []).map(p => p.pays))];
 
   // Trouve dans la question le nom (client, référence, pays) le plus long qui y figure ; tolère une petite faute de frappe.
@@ -65,6 +66,24 @@
   const R = [];
   const regle = (test, f) => R.push({test, f});
 
+  // Formats des collections (contenance, flacons par carton, prix standard)
+  const FORMATS = {'VIP':['VIP', 90], 'VIP BLACK':['VIP Black', 90], '50ML':['VIP Black 50 ml', 50], 'ROYAL':['Royal', 100], 'BRUMES':['Brumes', 250]};
+  const collDe = q => { const Q = norm(q); return /\bbrume/.test(Q) ? 'BRUMES' : /\broyal\b/.test(Q) ? 'ROYAL' : /\b50 ?ml\b|\b50 millilitre/.test(Q) ? '50ML' : /\bblack\b/.test(Q) ? 'VIP BLACK' : /\bvip\b/.test(Q) ? 'VIP' : null; };
+  function formatHtml(c){
+    const x = (typeof ALL !== 'undefined' && ALL.costs && ALL.costs[c]) || {}, [nom, ml0] = FORMATS[c], ml = x.volume_ml || ml0;
+    const vend = x.units_sold_per_carton, tot = x.units_total_per_carton || x.carton_size;
+    return `<li><strong>${esc(nom)}</strong> : flacons de <strong>${ml} ml</strong>${tot ? ` · carton de ${tot} flacons${vend && vend < tot ? ` (${vend} facturés + ${tot - vend} testeur${tot - vend > 1 ? 's' : ''} offert${tot - vend > 1 ? 's' : ''})` : ''}` : ''}${x.standard_price_carton ? ` · prix standard ${money0(x.standard_price_carton)} le carton (${money(x.standard_price_bottle)} le flacon)` : ''}</li>`;
+  }
+  regle(q => /(\bml\b|millilitre|contenance|taille|format|volume|combien de flacons par carton|par carton|conditionnement|litre)/.test(norm(q)) && !/(vendu|vente|stock|reste)/.test(norm(q)), q => {
+    const c = collDe(q);
+    return c ? `<ul>${formatHtml(c)}</ul>` : `Formats des collections :<ul>${Object.keys(FORMATS).map(formatHtml).join('')}</ul>`;
+  });
+  // Ventes d'une collection entière (« combien de brumes vendues en 2025 », « CA du VIP Black »)
+  regle(q => !!collDe(q) && /(vendu|vente|chiffre|\bca\b|combien)/.test(norm(q)) && !/(stock|reste|dispo)/.test(norm(q)) && !trouver(q, refsNoms()), q => {
+    const c = collDe(q), y = annee(q) || 'total', x = (stats()[y].collections || []).find(z => z.collection === c);
+    if(!x) return `Aucune vente de ${esc(FORMATS[c][0])} sur ${y === 'total' ? '2025 + 2026' : y}.`;
+    return `<strong>${esc(FORMATS[c][0])}</strong> ${y === 'total' ? '(2025 + 2026)' : 'en ' + y} : <strong>${nombre(x.btl)} flacons</strong> vendus${x.testers ? ` + ${nombre(x.testers)} testeurs offerts` : ''} · ${money0(x.ca)}.${btn('Références', 'refs')}`;
+  });
   // Facture par numéro
   regle(q => /\b(ej|nb|av)\s?\d{6,8}\b/i.test(q), q => {
     const num = q.match(/\b(ej|nb|av)\s?(\d{6,8})\b/i); const n = (num[1] + num[2]).toUpperCase();
@@ -131,7 +150,10 @@
   });
   regle(q => /(stock|reste|dispo|combien de (flacons|bouteilles))/.test(norm(q)), q => {
     const r = trouver(q, refsNoms()), it = stockItems();
-    if(!r){ const tot = it.reduce((a, i) => a + (i.qty || 0), 0); const parCol = {}; it.forEach(i => { parCol[i.collection] = (parCol[i.collection] || 0) + i.qty; });
+    const c = !r && collDe(q);
+    if(c){ const L = it.filter(i => i.collection === c).sort((a, b) => b.qty - a.qty), tot = L.reduce((a, i) => a + Math.max(0, i.qty), 0), ko = L.filter(i => i.qty <= 0);
+      return `Stock <strong>${esc(FORMATS[c][0])}</strong> : <strong>${nombre(tot)} flacons</strong>${ko.length ? ` · <span class="ia-ko">${ko.length} en rupture</span>` : ''}<ul>${L.filter(i => i.qty > 0).slice(0, 10).map(i => `<li>${esc(i.reference)} : ${nombre(i.qty)}</li>`).join('')}</ul>${ko.length ? `<div class="ia-sub">En rupture : ${ko.map(i => esc(i.reference)).join(', ')}</div>` : ''}${btn('Page Stock', 'stock')}`; }
+    if(!r){ const tot = it.reduce((a, i) => a + Math.max(0, i.qty || 0), 0); const parCol = {}; it.forEach(i => { parCol[i.collection] = (parCol[i.collection] || 0) + Math.max(0, i.qty || 0); });
       return `Stock total : <strong>${nombre(tot)} flacons</strong> (compté le ${fr(ALL.stock_ref_date)}).<div class="ia-sub">${Object.entries(parCol).map(([c, n]) => `${esc(c)} : ${nombre(n)}`).join(' · ')}</div>Précise une référence, par exemple « stock de Moon ».${btn('Page Stock', 'stock')}`; }
     const L = it.filter(i => i.reference === r);
     const cov = window.EJ_GESTION ? EJ_GESTION.couverture().list.filter(x => x.ref === r) : [];
