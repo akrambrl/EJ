@@ -310,7 +310,13 @@
   function renderEditor(){
     const d = cur, t = TYPES[d.type];
     $('docEdTitle').textContent = (docs.some(x => x.id === d.id) ? 'Modifier — ' : 'Nouveau — ') + t.label + ' ' + (d.societe === 'NB' ? 'NB Evolution' : 'BSD');
-    const clients = [...new Set(BASE_FACT.map(f => f.client).concat(docs.map(x => x.client)).concat(Object.keys(SETT.clients)).concat(Object.keys(CLIENTS_BASE)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+    const clientsTous = [...new Set(BASE_FACT.map(f => f.client).concat(docs.map(x => x.client)).concat(Object.keys(SETT.clients)).concat(Object.keys(CLIENTS_BASE)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+    // Liste du client limitée à la société du document : un client habituellement facturé par BSD n'est pas proposé pour NB, et inversement
+    // (factures NB… → NB Evolution, autres → BSD, ventes internes BSD → NB comprises ; clients sans historique : proposés aux deux).
+    const socsCli = {}; const so = (c, x) => { if(c) (socsCli[c] || (socsCli[c] = new Set())).add(x); };
+    BASE_FACT.forEach(f => so(f.client, /^NB/.test(f.facture) ? 'NB' : 'BSD')); SOC.INTRA.forEach(f => so(f.client, 'BSD'));
+    docs.forEach(x => { if(x.type !== 'devis') so(x.client, x.societe); });
+    const clients = clientsTous.filter(c => !socsCli[c] || socsCli[c].has(d.societe));
     const paysList = [...new Set(BASE_FACT.map(f => f.pays).concat(UE).concat(['France', 'Émirats Arabes Unis', 'Israël']))].sort((a, b) => a.localeCompare(b, 'fr'));
     const opt = (v, c, lbl) => `<option value="${esc(v)}"${String(v) === String(c) ? ' selected' : ''}>${esc(lbl || v)}</option>`;
     const detail = (() => { try { return localStorage.getItem('ej_doc_detail') === '1'; } catch(e) { return false; } })();

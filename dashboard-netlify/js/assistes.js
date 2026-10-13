@@ -20,6 +20,11 @@
     factures().forEach(f => { if(!f.client) return; const c = m[f.client] || (m[f.client] = {nom:f.client, pays:f.pays, n:0, ca:0, der:null, nb:false});
       c.n++; c.ca += f.ca || 0; if(!c.der || pdate(f.date) >= pdate(c.der.date)){ c.der = f; c.pays = f.pays || c.pays; } if(/^NB/.test(f.facture)) c.nb = true; });
     if(typeof CLIENTS !== 'undefined') Object.entries(CLIENTS).forEach(([k, v]) => { if(!m[k]) m[k] = {nom:k, pays:v.pays, n:0, ca:0, der:null}; });
+    // Société(s) qui facturent habituellement chaque client : factures NB… → NB Evolution, autres → BSD (ventes internes BSD → NB comprises)
+    const so = (nom, s) => { if(m[nom]) (m[nom].socs || (m[nom].socs = new Set())).add(s); };
+    factures().forEach(f => so(f.client, /^NB/.test(f.facture) ? 'NB' : 'BSD'));
+    try { (EJ_SOC.INTRA || []).forEach(f => so(f.client, 'BSD')); } catch(e) {}
+    try { D().list().forEach(d => { if(d.client && d.type !== 'devis') { if(!m[d.client]) m[d.client] = {nom:d.client, pays:d.pays, n:0, ca:0, der:null}; so(d.client, d.societe); } }); } catch(e) {}
     return Object.values(m).sort((a, b) => (b.der ? pdate(b.der.date) : 0) - (a.der ? pdate(a.der.date) : 0) || a.nom.localeCompare(b.nom, 'fr'));
   }
   function stockItems(col){ return ((((ALL.stock || {})[col]) || {}).items || []).slice().sort((a, b) => a.reference.localeCompare(b.reference, 'fr')); }
@@ -56,8 +61,9 @@
 
   /* ---------- Briques ---------- */
   const gros = (act, val, titre, sous, cls) => `<button type="button" class="wz-choix${cls ? ' ' + cls : ''}" data-wz="${act}" data-v="${esc(val)}"><strong>${titre}</strong>${sous ? `<small>${sous}</small>` : ''}</button>`;
-  function listeClients(filtre, act){
-    const q = norm(filtre), L = clients().filter(c => !q || norm(c.nom).includes(q) || norm(c.pays).includes(q)).slice(0, q ? 30 : 12);
+  function listeClients(filtre, act, soc){
+    // soc : n'afficher que les clients de cette société (ceux sans historique restent proposés aux deux)
+    const q = norm(filtre), L = clients().filter(c => !soc || !c.socs || c.socs.has(soc)).filter(c => !q || norm(c.nom).includes(q) || norm(c.pays).includes(q)).slice(0, q ? 30 : 12);
     return L.length ? L.map(c => gros(act, c.nom, esc(c.nom), drapeau(c.pays) + esc([c.pays, c.der ? 'dernière commande le ' + c.der.date : 'pas encore de commande'].filter(Boolean).join(' · ')))).join('')
       : '<p class="wz-vide">Aucun client trouvé avec ce nom.</p>';
   }
@@ -95,8 +101,8 @@
     debut: 'soc', ordre: ['soc', 'client', 'parfums', 'paiement', 'recap'],
     etapes: {
       soc: {q:'Pour quelle société ?', h:() => `<div class="wz-grille2">${gros('soc', 'BSD', 'BSD', 'France · factures EJ…')}${gros('soc', 'NB', 'NB Evolution', 'Dubaï · factures NB…')}</div>`},
-      client: {q:'Pour quel client ?', h:() => `${champRecherche('Tapez le nom du client ou le pays…', P.data.rech)}<div id="wzListe" class="wz-liste">${listeClients(P.data.rech, 'client')}</div>
-        <button type="button" class="wz-lien" data-wz="nouveau">+ C’est un nouveau client</button>`, apres:() => brancherRecherche('wzListe', v => { P.data.rech = v; return listeClients(v, 'client'); })},
+      client: {q:'Pour quel client ?', h:() => `${champRecherche('Tapez le nom du client ou le pays…', P.data.rech)}<div id="wzListe" class="wz-liste">${listeClients(P.data.rech, 'client', P.data.soc)}</div>
+        <button type="button" class="wz-lien" data-wz="nouveau">+ C’est un nouveau client</button>`, apres:() => brancherRecherche('wzListe', v => { P.data.rech = v; return listeClients(v, 'client', P.data.soc); })},
       nouveau: {q:'Nouveau client', h:() => `<label class="wz-lab">Nom de la société cliente<input class="wz-in" id="wzNom" data-wz-focus value="${esc(P.data.client || '')}"></label>
         <label class="wz-lab">Pays<input class="wz-in" id="wzPays" value="${esc(P.data.pays || '')}" placeholder="Ex. Arabie saoudite"></label>
         <label class="wz-lab">Adresse (facultatif)<textarea class="wz-in" id="wzAdr" rows="3">${esc(P.data.adresse || '')}</textarea></label>`,
