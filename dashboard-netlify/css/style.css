@@ -1421,3 +1421,8 @@ html .chart-container{background:var(--surface)!important}
 html[data-role] .sb-block:has(.year-switcher),html[data-role] #sbMode,html[data-role] #cloudFoot,html[data-role] .footer,html[data-role] #ctxLine,html[data-role] .sb-foot{display:none!important}
 html[data-role] .ac-bonjour{font-size:1.6rem}
 .ac-surv button{gap:12px}
+/* Cachet + signature sur les documents imprimés */
+.pd-cachet{display:flex;justify-content:flex-end;margin:6px 0 4px;break-inside:avoid}
+.pd-cachet img{width:230px;height:auto;transform:rotate(-2deg);opacity:.95}
+.doc-check{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;text-transform:none!important;letter-spacing:0!important;font-size:.85rem!important}
+.doc-check input{width:auto!important}

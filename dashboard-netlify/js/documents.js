@@ -346,6 +346,7 @@
         <div>
           <h3 class="doc-h3">Testeurs, remise et cadeaux</h3>
           <div class="doc-grid">
+            ${typeof CACHETS !== 'undefined' && CACHETS[d.societe] ? `<label class="doc-check"><input type="checkbox" data-f="cachet"${d.cachet !== false ? ' checked' : ''}> Tamponner et signer (cachet ${d.societe === 'NB' ? 'NB Evolution' : 'BSD'})</label>` : ''}
             <label>Valeur douane d'un testeur (€)<input type="number" step="0.01" min="0" data-f="prixTesteur" value="${esc(d.prixTesteur)}"></label><label>Valeur douane d'un échantillon 2 ml (€)<input type="number" step="0.01" min="0" data-f="prixEch" value="${esc(d.prixEch == null ? PRIX_ECH : d.prixEch)}"></label>
             <label>Remise commerciale (%)<input type="number" step="0.5" min="0" data-f="remisePct" value="${esc(d.remisePct)}"></label>
             <label>ou remise (montant €)<input type="number" step="0.01" min="0" data-f="remiseMontant" value="${esc(d.remiseMontant || '')}" placeholder="0"></label>
@@ -454,6 +455,7 @@
       if(e.type === 'change'){ renderPay(); const s = $('docEdBody').querySelector('[data-pay="preset"]'); if(s) s.value = presetOf(cur) || ''; }
       return;
     }
+    if(f === 'cachet'){ cur.cachet = el.checked; return; }
     if(f){
       const v = el.value;
       if(f === 'societe' || f === 'type'){
@@ -649,11 +651,15 @@
           <div class="pd-net"><span>${L.net[d.type]}</span><span>${money(k.ttc)}</span></div>
         </div>
       </div>
+      ${cachetHtml(d)}
       ${d.type === 'devis' ? `<div class="pd-sign"><div>${L.sign}</div></div>` : ''}
       <div class="pd-mentions">${mentions.map(m => `<p>${m}</p>`).join('')}</div>
       <div class="pd-legal">${legal.filter(Boolean).map(esc).join(' · ')}</div>
     </div>`;
   }
+  // Cachet + signature de la société (data/cachets.js), si disponible et « Tamponner et signer » coché (par défaut oui)
+  const cachetDe = d => (typeof CACHETS !== 'undefined' && CACHETS[d.societe] && d.cachet !== false) ? CACHETS[d.societe] : '';
+  const cachetHtml = d => cachetDe(d) ? `<div class="pd-cachet"><img src="${cachetDe(d)}" alt="Cachet et signature"></div>` : '';
   // Bon de livraison : quantités sans prix, à signer à la réception.
   function blHtml(d, k, S, lg, L){
     const rows = k.rows.filter(r => num(r.src.qty) > 0 && !isSvc(r.src));
@@ -665,6 +671,7 @@
       <table class="pd-table"><thead><tr><th>${L.coll}</th><th>${L.ref}</th><th class="c">${L.ml}</th><th class="c">${L.ean}</th><th class="c">${L.colis}</th><th class="c">${L.fl}</th><th class="c">${L.tst}</th></tr></thead>
         <tbody>${rows.map(r => `<tr><td>${esc(COLL[r.src.collection][lg])}</td><td>${esc(String(r.src.reference).toUpperCase())}</td><td class="c">${mlOf(r.src)}</td><td class="c pd-ean">${esc(fmtEan(r.src.ean))}</td><td class="c">${r.cartons || '—'}</td><td class="c">${r.btl}</td><td class="c">${r.testers || 0}</td></tr>`).join('')}</tbody>
         <tfoot><tr><td colspan="4" class="r">${L.total}</td><td class="c">${colis}</td><td class="c">${sum(rows, r => r.btl)}</td><td class="c">${sum(rows, r => r.testers || 0)}</td></tr></tfoot></table>
+      ${cachetHtml(d)}
       <div class="pd-sign"><div>${L.blRecu}</div></div>
       <div class="pd-legal">${esc(S.nom)}</div></div>`;
   }
