@@ -58,13 +58,25 @@
     // Accès limité (Natali) : ce qui sert au quotidien (stock à surveiller, stock, dernières factures), sans classement des ventes
     const surveiller = []; COLS.forEach(c => ((ALL.stock && ALL.stock[c] && ALL.stock[c].items) || []).forEach(i => { if(i.qty <= 0 || i.status === 'critical' || i.status === 'low') surveiller.push(Object.assign({col:c}, i)); }));
     surveiller.sort((a, b) => a.qty - b.qty);
+    const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+    const listeFactures = recentes.length ? `<ul class="ac-fl">${recentes.map(f => { const m = String(f.date || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      return `<li><button type="button" data-facture="${esc(f.facture)}"><span class="ac-cal">${m ? `<b>${+m[1]}</b><small>${MOIS[+m[2] - 1]} ${m[3].slice(2)}</small>` : '<b>—</b>'}</span>
+        <span class="ac-nm"><strong>${esc(f.client)}</strong><small>${drapeau(f.pays)}${esc(f.pays || '')} · ${esc(f.facture)} · ${nb(f.btl)} flacons</small></span><b>${money0(f.ca)}</b></button></li>`; }).join('')}</ul>`
+      : '<p class="ac-vide">Aucune facture.</p>';
+    const maxSt = Math.max(1, ...stock.map(s => s.total));
+    const listeStock = `<ul class="ac-st ac-stb">${stock.map(s => `<li><button type="button" data-go="stock"><span class="ac-nm"><strong>${NOMS[s.c] || s.c}</strong>
+        <span class="vx-bar"><i style="width:${Math.max(1.5, s.total / maxSt * 100).toFixed(1)}%"></i></span><small>${s.top.map(i => esc(i.reference) + ' ' + nb(i.qty)).join(' · ') || '—'}</small></span>
+      <span class="ac-sq"><b>${nb(s.total)}</b><small>${s.rupture ? `<em class="ko">${s.rupture} en rupture</em>` : ''}${s.rupture && s.bas ? ' · ' : ''}${s.bas ? `<em class="bas">${s.bas} bas</em>` : ''}${!s.rupture && !s.bas ? '<em class="ok">tout va bien</em>' : ''}</small></span></button></li>`).join('')}</ul>`;
+    const kpi = (t, v, sub, cls) => `<div class="vx-kpi${cls ? ' ' + cls : ''}"><span>${t}</span><strong>${v}</strong>${sub ? `<small>${sub}</small>` : ''}</div>`;
+    const kpis = fin
+      ? `<div class="vx-kpis ac-kpis">${kpi('Chiffre d’affaires', money0(P.kpi_ca), periode, 'vx-main')}${kpi('Factures', nb(P.kpi_factures), nb(P.kpi_clients) + ' clients')}${kpi('Flacons vendus', nb(P.kpi_btl), periode)}${kpi('Stock', nb(totalStock), 'flacons', surveiller.length ? 'vx-bas' : 'vx-ok')}</div>`
+      : `<div class="vx-kpis ac-kpis">${kpi('Stock', nb(totalStock), 'flacons', 'vx-main')}${kpi('À surveiller', nb(surveiller.length), 'parfums', surveiller.length ? 'vx-bas' : 'vx-ok')}${kpi('Dernière facture', recentes[0] ? esc(recentes[0].date) : '—', recentes[0] ? esc(recentes[0].client) : '')}</div>`;
     const vueComplete = `
       <div class="ac-vue">
         <section class="ac-bloc"><div class="ac-bh"><h3>Meilleurs clients</h3><span>${esc(periode)}</span></div>
           ${clients.length ? `<ol class="ac-cl">${clients.map((c, i) => `<li><button type="button" data-client="${esc(c.client)}"><span class="ac-med">${medaille(i)}</span><span class="ac-nm"><strong>${esc(c.client)}</strong><small>${drapeau(c.pays)}${esc(c.pays || '')} · ${c.factures} facture${c.factures > 1 ? 's' : ''} · ${nb(c.btl)} flacons</small></span>${fin ? `<b>${money0(c.ca)}</b>` : ''}</button></li>`).join('')}</ol>` : '<p class="ac-vide">Aucune vente sur cette période.</p>'}</section>
         <section class="ac-bloc"><div class="ac-bh"><h3>Stock actuel</h3><span>${nb(totalStock)} flacons</span></div>
-          <ul class="ac-st">${stock.map(s => `<li><button type="button" data-go="stock"><span class="ac-nm"><strong>${NOMS[s.c] || s.c}</strong><small>${s.top.map(i => esc(i.reference) + ' ' + nb(i.qty)).join(' · ') || '—'}</small></span>
-            <span class="ac-sq"><b>${nb(s.total)}</b><small>${s.rupture ? `<em class="ko">${s.rupture} en rupture</em>` : ''}${s.rupture && s.bas ? ' · ' : ''}${s.bas ? `<em class="bas">${s.bas} bas</em>` : ''}${!s.rupture && !s.bas ? '<em class="ok">tout va bien</em>' : ''}</small></span></button></li>`).join('')}</ul>
+          ${listeStock}
           <p class="ac-plus"><button type="button" data-go="stock">Voir le stock détaillé ›</button></p></section>
         <section class="ac-bloc ac-large"><div class="ac-bh"><h3>Meilleures ventes</h3><span>${esc(periode)} · les 5 plus grosses factures</span></div>
           ${ventes.length ? `<ol class="ac-vt">${ventes.map((f, i) => { const r = refsDe(f), ct = cartons(f);
@@ -72,8 +84,7 @@
               <small>${esc(f.facture)} · ${esc(f.date)} · ${drapeau(f.pays)}${esc(f.pays || '')} · ${ct ? nb(ct) + ' cartons · ' : ''}${nb(f.btl)} flacons</small>
               <small class="ac-refs">${r.slice(0, 4).map(([n, q]) => `${esc(n)}${q ? ' <i>' + nb(q) + '</i>' : ''}`).join(' · ')}${r.length > 4 ? ` · +${r.length - 4} autres` : ''}</small></span><b>${money0(f.ca)}</b></button></li>`; }).join('')}</ol>` : '<p class="ac-vide">Aucune vente sur cette période.</p>'}</section>
         <section class="ac-bloc ac-large"><div class="ac-bh"><h3>Dernières factures éditées</h3><span>les plus récentes d'abord</span></div>
-          <table class="ac-ft"><thead><tr><th>Date</th><th>N°</th><th>Client</th><th>Pays</th><th class="r">Montant</th></tr></thead><tbody>
-          ${recentes.map(f => `<tr data-facture="${esc(f.facture)}"><td>${esc(f.date)}</td><td>${esc(f.facture)}</td><td>${esc(f.client)}</td><td>${drapeau(f.pays)}${esc(f.pays || '')}</td><td class="r">${money0(f.ca)}</td></tr>`).join('')}</tbody></table>
+          ${listeFactures}
           <p class="ac-plus"><button type="button" data-go="documents">Voir toutes les factures et proformas ›</button></p></section>
       </div>`;
     const vueNatali = window.EJ_ROLE ? `
@@ -82,12 +93,10 @@
           ${surveiller.length ? `<ul class="ac-st ac-surv">${surveiller.slice(0, 6).map(i => `<li><button type="button" data-go="stock">${typeof PHOTOS !== 'undefined' && PHOTOS[i.col + '|' + i.reference] ? `<img class="wz-ph-l" src="${PHOTOS[i.col + '|' + i.reference]}" alt="">` : ''}<span class="ac-nm"><strong>${esc(i.reference)}</strong><small>${NOMS[i.col] || i.col}</small></span>
             <span class="ac-sq"><b>${nb(Math.max(0, i.qty))}</b><small><em class="${i.qty <= 0 ? 'ko' : 'bas'}">${i.qty <= 0 ? 'en rupture' : 'bientôt épuisé'}</em></small></span></button></li>`).join('')}</ul>${surveiller.length > 6 ? `<p class="ac-plus"><button type="button" data-go="stock">Voir les ${surveiller.length - 6} autres ›</button></p>` : ''}` : '<p class="ac-vide">Aucun parfum en rupture ni presque épuisé.</p>'}</section>
         <section class="ac-bloc"><div class="ac-bh"><h3>Stock actuel</h3><span>${nb(totalStock)} flacons</span></div>
-          <ul class="ac-st">${stock.map(s => `<li><button type="button" data-go="stock"><span class="ac-nm"><strong>${NOMS[s.c] || s.c}</strong><small>${s.top.map(i => esc(i.reference) + ' ' + nb(i.qty)).join(' · ') || '—'}</small></span>
-            <span class="ac-sq"><b>${nb(s.total)}</b><small>${s.rupture ? `<em class="ko">${s.rupture} en rupture</em>` : ''}${s.rupture && s.bas ? ' · ' : ''}${s.bas ? `<em class="bas">${s.bas} bas</em>` : ''}${!s.rupture && !s.bas ? '<em class="ok">tout va bien</em>' : ''}</small></span></button></li>`).join('')}</ul>
+          ${listeStock}
           <p class="ac-plus"><button type="button" data-go="stock">Voir le stock détaillé ›</button></p></section>
         <section class="ac-bloc ac-large"><div class="ac-bh"><h3>Dernières factures éditées</h3><span>les plus récentes d'abord</span></div>
-          <table class="ac-ft"><thead><tr><th>Date</th><th>N°</th><th>Client</th><th>Pays</th><th class="r">Montant</th></tr></thead><tbody>
-          ${recentes.map(f => `<tr data-facture="${esc(f.facture)}"><td>${esc(f.date)}</td><td>${esc(f.facture)}</td><td>${esc(f.client)}</td><td>${drapeau(f.pays)}${esc(f.pays || '')}</td><td class="r">${money0(f.ca)}</td></tr>`).join('')}</tbody></table>
+          ${listeFactures}
           <p class="ac-plus"><button type="button" data-go="documents">Voir toutes les factures et proformas ›</button></p></section>
       </div>` : '';
     const h = new Date().getHours();
@@ -103,6 +112,7 @@
         <button type="button" class="ac-act" data-go="fournisseurs">Déposer une facture fournisseur</button>
         ${window.EJ_ASSISTANT && EJ_ASSISTANT.vocal ? '<button type="button" class="ac-act ac-voix" data-ia-open="1" data-ia-voix="1">🎤 Demander à voix haute</button>' : ''}
       </div>
+      ${kpis}
       ${window.EJ_ROLE ? vueNatali : vueComplete}
       ${simple() ? '' : '<p class="ac-mode">Vous êtes en mode complet (toutes les pages). <button type="button" data-mode-simple="1">Revenir au mode simple</button></p>'}
       <p class="ac-mode ac-mode-s">Besoin des autres pages (prix de revient, impôts, équipe…) ? <button type="button" data-mode-complet="1">Afficher toutes les pages</button></p>`;
