@@ -54,16 +54,21 @@
     if(s.perso) h += '<span class="sl-badge">Ajouté</span>';
     return h;
   }
+  // Bloc date façon calendrier : jour(s) en grand, mois en dessous
+  function cal(s){
+    if(!exact(s)) return '<div class="sl-cal sl-cal-x"><b>?</b><span>' + MOIS_C[month(s)] + '</span></div>';
+    const a = parse(s.debut), b = parse(s.fin || s.debut);
+    const j = +a === +b ? String(a.getDate()) : a.getMonth() === b.getMonth() ? a.getDate() + '–' + b.getDate() : a.getDate() + '→' + b.getDate();
+    return '<div class="sl-cal"><b>' + j + '</b><span>' + MOIS_C[a.getMonth()] + (a.getMonth() !== b.getMonth() ? '–' + MOIS_C[b.getMonth()] : '') + '</span></div>';
+  }
   function item(s){
-    const e = etat(s);
-    return '<div class="sl-item sl-' + e + (s.prio ? ' is-prio' : '') + '" data-id="' + s.id + '">' +
-      '<div class="sl-date">' + esc(dates(s)) + '</div>' +
-      '<div class="sl-nom">' + (s.site ? '<a href="' + esc(s.site) + '" target="_blank" rel="noopener">' + esc(s.nom) + '</a>' : esc(s.nom)) + '</div>' +
-      '<div class="sl-lieu">' + esc(s.ville) + (s.pays ? ' · ' + esc(s.pays) : '') + '</div>' +
-      '<div class="sl-meta"><span class="sl-cat sl-cat-' + esc(s.cat) + '">' + esc(CAT[s.cat] || s.cat) + '</span>' + badges(s) + '</div>' +
-      (s.note ? '<div class="sl-note">' + esc(s.note) + '</div>' : '') +
-      '<div class="sl-actions"><span class="sl-dans">' + dans(s) + '</span>' +
-        (exact(s) && e !== 'passe' && s.statut !== 'reporte' ? '<button type="button" class="sl-ics" data-id="' + s.id + '">Ajouter à l’agenda</button>' : '') +
+    const e = etat(s), flag = typeof drapeau === 'function' ? drapeau(s.pays) : '';
+    return '<div class="sl-card sl-' + e + (s.prio ? ' is-prio' : '') + '" data-id="' + s.id + '">' + cal(s) +
+      '<div class="sl-body"><div class="sl-top"><span class="sl-nom">' + (s.site ? '<a href="' + esc(s.site) + '" target="_blank" rel="noopener">' + esc(s.nom) + '</a>' : esc(s.nom)) + '</span>' + badges(s) + '</div>' +
+      '<div class="sl-lieu">' + flag + esc(s.ville) + (s.pays ? ' · ' + esc(s.pays) : '') + ' <span class="sl-cat sl-cat-' + esc(s.cat) + '">' + esc(CAT[s.cat] || s.cat) + '</span></div>' +
+      (s.note ? '<div class="sl-note">' + esc(s.note) + '</div>' : '') + '</div>' +
+      '<div class="sl-side"><span class="sl-dans sl-dans-' + e + '">' + dans(s) + '</span>' +
+        (exact(s) && e !== 'passe' && s.statut !== 'reporte' ? '<button type="button" class="sl-ics" data-id="' + s.id + '">+ Agenda</button>' : '') +
         (s.perso ? '<button type="button" class="sl-del" data-id="' + s.id + '">Supprimer</button>' : '') + '</div>' +
       '</div>';
   }
@@ -84,13 +89,11 @@
 
     const vis = liste.filter(s => String(year(s)) === annee && (filtre === 'tous' || (filtre === 'prio' ? s.prio : s.cat === filtre)))
       .sort((a, b) => a.debut.localeCompare(b.debut));
-    const t = today(), curM = String(t.getFullYear()) === annee ? t.getMonth() : -1;
-    let h = '';
-    for(let m = 0; m < 12; m++){
-      const ev = vis.filter(s => month(s) === m);
-      h += '<div class="sl-mois' + (m === curM ? ' sl-courant' : '') + (ev.length ? '' : ' sl-vide') + '"><div class="sl-mois-t">' + MOIS[m] +
-        (ev.length ? '<span>' + ev.length + '</span>' : '') + '</div>' + (ev.length ? ev.map(item).join('') : '<div class="sl-rien">—</div>') + '</div>';
-    }
+    // Liste par mois : d'abord les salons à venir (et en cours), puis les salons passés, repliés
+    const groupe = L => { let h = ''; for(let m = 0; m < 12; m++){ const ev = L.filter(s => month(s) === m); if(ev.length) h += '<div class="sl-groupe"><div class="sl-groupe-t">' + MOIS[m] + ' ' + annee + '<span>' + ev.length + '</span></div>' + ev.map(item).join('') + '</div>'; } return h; };
+    const avenir = vis.filter(s => etat(s) !== 'passe'), passes = vis.filter(s => etat(s) === 'passe');
+    let h = avenir.length ? groupe(avenir) : '<p class="sl-vide-msg">Aucun salon à venir sur cette sélection.</p>';
+    if(passes.length) h += '<details class="sl-passes"><summary>Salons déjà passés en ' + annee + ' (' + passes.length + ')</summary>' + groupe(passes) + '</details>';
     root.querySelector('#slGrid').innerHTML = h;
     const nPrio = vis.filter(s => s.prio).length, nConf = vis.filter(s => s.statut === 'a_confirmer').length;
     root.querySelector('#slResume').textContent = vis.length + ' salon' + (vis.length > 1 ? 's' : '') + ' en ' + annee +
