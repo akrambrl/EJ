@@ -313,24 +313,27 @@
     const clients = [...new Set(BASE_FACT.map(f => f.client).concat(docs.map(x => x.client)).concat(Object.keys(SETT.clients)).concat(Object.keys(CLIENTS_BASE)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
     const paysList = [...new Set(BASE_FACT.map(f => f.pays).concat(UE).concat(['France', 'Émirats Arabes Unis', 'Israël']))].sort((a, b) => a.localeCompare(b, 'fr'));
     const opt = (v, c, lbl) => `<option value="${esc(v)}"${String(v) === String(c) ? ' selected' : ''}>${esc(lbl || v)}</option>`;
+    const detail = (() => { try { return localStorage.getItem('ej_doc_detail') === '1'; } catch(e) { return false; } })();
+    $('docEdBody').classList.toggle('doc-simple', !detail);
     $('docEdBody').innerHTML = `
+      <div class="doc-vue"><span>${detail ? 'Tous les détails sont affichés.' : 'Vue simple : seulement l’essentiel.'}</span><button type="button" class="doc-btn small" data-act="detail">${detail ? 'Revenir à la vue simple' : 'Afficher tous les détails'}</button></div>
       <div class="doc-grid">
         <label>Société<select data-f="societe">${opt('BSD', d.societe, 'BSD · France')}${opt('NB', d.societe, 'NB Evolution · Dubaï')}</select></label>
         <label>Type<select data-f="type">${Object.keys(TYPES).filter(k => k !== 'devis' || d.type === 'devis').map(k => opt(k, d.type, TYPES[k].label)).join('')}</select></label>
-        <label>Numéro<input data-f="numero" value="${esc(d.numero)}"></label>
+        <label class="adv">Numéro<input data-f="numero" value="${esc(d.numero)}"></label>
         <label>Date<input type="date" data-f="date" value="${esc(d.date)}"></label>
         ${d.type === 'facture' ? `<label>Échéance<input type="date" data-f="echeance" value="${esc(d.echeance)}"></label>` : (d.type === 'avoir' || d.type === 'bl') ? `<label>${d.type === 'avoir' ? "Facture d'origine" : 'Facture liée'}<input data-f="source" value="${esc(d.source || '')}" placeholder="EJ2026…"></label>` : `<label>Valable jusqu'au<input type="date" data-f="validite" value="${esc(d.validite)}"></label>`}
-        <label>Statut<select data-f="statut">${t.statuts.map(s => opt(s, d.statut)).join('')}</select></label>
-        <label>Langue du document<select data-f="langue">${opt('fr', d.langue, 'Français')}${opt('en', d.langue, 'English')}</select></label>
+        <label class="adv">Statut<select data-f="statut">${t.statuts.map(s => opt(s, d.statut)).join('')}</select></label>
+        <label class="adv">Langue du document<select data-f="langue">${opt('fr', d.langue, 'Français')}${opt('en', d.langue, 'English')}</select></label>
       </div>
       <h3 class="doc-h3">Client</h3>
       <div class="doc-grid">
         <label class="span2">Nom du client<input data-f="client" list="docClients" value="${esc(d.client)}" placeholder="${d.societe === 'BSD' ? 'Ex. Arzum Group MMC — ou NB Evolution (…) pour une vente au groupe' : 'Ex. Oud House Ltd'}"></label>
         <label>Pays<input data-f="pays" list="docPays" value="${esc(d.pays)}"></label>
-        <label>${d.societe === 'NB' ? 'N° société / TVA du client' : 'N° TVA du client'}<input data-f="tvaClient" value="${esc(d.tvaClient)}" placeholder="${d.societe === 'BSD' ? 'Obligatoire en intra-UE' : ''}"></label>
-        <label class="span2">Adresse<textarea data-f="adresse" rows="2">${esc(d.adresse)}</textarea></label>
-        <label class="span2">TVA<select data-f="regime">${Object.keys(REGIMES[d.societe]).map(k => opt(k, d.regime, REGIMES[d.societe][k].label)).join('')}</select></label>
-        ${d.societe === 'NB' && d.type === 'facture' ? `<label class="span2">Facture d'achat BSD correspondante (coût de NB)<select data-f="lien"><option value="">— aucune / coût de fabrication —</option>${intraChoices().map(o => opt(o.n, d.lien, o.l)).join('')}</select></label>` : ''}
+        <label class="adv">${d.societe === 'NB' ? 'N° société / TVA du client' : 'N° TVA du client'}<input data-f="tvaClient" value="${esc(d.tvaClient)}" placeholder="${d.societe === 'BSD' ? 'Obligatoire en intra-UE' : ''}"></label>
+        <label class="span2 adv">Adresse<textarea data-f="adresse" rows="2">${esc(d.adresse)}</textarea></label>
+        <label class="span2 adv">TVA<select data-f="regime">${Object.keys(REGIMES[d.societe]).map(k => opt(k, d.regime, REGIMES[d.societe][k].label)).join('')}</select></label>
+        ${d.societe === 'NB' && d.type === 'facture' ? `<label class="span2 adv">Facture d'achat BSD correspondante (coût de NB)<select data-f="lien"><option value="">— aucune / coût de fabrication —</option>${intraChoices().map(o => opt(o.n, d.lien, o.l)).join('')}</select></label>` : ''}
       </div>
       ${d.societe === 'BSD' && SOC.isIntra(d) ? `<div class="info-box" style="margin-top:4px">Vente de BSD à NB Evolution : comptée dans la vue BSD, exclue de la vue Groupe (vente interne).</div>` : ''}
       <datalist id="docClients">${clients.map(c => `<option value="${esc(c)}">`).join('')}</datalist>
@@ -338,24 +341,24 @@
       ${PARFUMS.map(c => `<datalist id="docRefs-${c.replace(/\s/g, '')}">${REFS[c].map(r => `<option value="${esc(r)}">`).join('')}</datalist>`).join('')}
       <h3 class="doc-h3">Lignes</h3>
       <div class="doc-table-wrap"><table class="doc-lines">
-        <thead><tr><th>Collection</th><th>Référence</th><th>EAN</th><th>Vente</th><th class="text-right">Qté</th><th class="text-right">Fl./ctn</th><th class="text-right">Testeurs</th><th class="text-right" title="Échantillons 2 ml offerts (1 par carton par défaut)">Éch. 2 ml</th><th class="text-right">Prix HT</th><th class="text-right">Total HT</th><th></th></tr></thead>
+        <thead><tr><th>Collection</th><th>Référence</th><th class="adv">EAN</th><th class="adv">Vente</th><th class="text-right"><span class="adv">Qté</span><span class="sim">Cartons</span></th><th class="text-right adv">Fl./ctn</th><th class="text-right adv">Testeurs</th><th class="text-right adv" title="Échantillons 2 ml offerts (1 par carton par défaut)">Éch. 2 ml</th><th class="text-right">Prix HT</th><th class="text-right">Total HT</th><th></th></tr></thead>
         <tbody>${d.lines.map((l, i) => lineRow(l, i)).join('')}</tbody>
       </table></div>
-      <div class="doc-row-actions"><button class="doc-btn" data-act="addline">+ Ajouter une ligne</button><button class="doc-btn" data-act="sim">Appliquer la grille du simulateur d'offres</button><span id="docSimMsg" class="doc-sub"></span></div>
+      <div class="doc-row-actions"><button class="doc-btn" data-act="addline">+ Ajouter une ligne</button><button class="doc-btn adv" data-act="sim">Appliquer la grille du simulateur d'offres</button><span id="docSimMsg" class="doc-sub"></span></div>
       <div class="doc-grid doc-grid-bottom">
         <div>
-          <h3 class="doc-h3">Testeurs, remise et cadeaux</h3>
+          <h3 class="doc-h3"><span class="adv">Testeurs, remise et cadeaux</span><span class="sim">Remise et cachet</span></h3>
           <div class="doc-grid">
             ${typeof CACHETS !== 'undefined' && CACHETS[d.societe] ? `<label class="doc-check"><input type="checkbox" data-f="cachet"${d.cachet !== false ? ' checked' : ''}> Tamponner et signer (cachet ${d.societe === 'NB' ? 'NB Evolution' : 'BSD'})</label>` : ''}
-            <label>Valeur douane d'un testeur (€)<input type="number" step="0.01" min="0" data-f="prixTesteur" value="${esc(d.prixTesteur)}"></label><label>Valeur douane d'un échantillon 2 ml (€)<input type="number" step="0.01" min="0" data-f="prixEch" value="${esc(d.prixEch == null ? PRIX_ECH : d.prixEch)}"></label>
+            <label class="adv">Valeur douane d'un testeur (€)<input type="number" step="0.01" min="0" data-f="prixTesteur" value="${esc(d.prixTesteur)}"></label><label class="adv">Valeur douane d'un échantillon 2 ml (€)<input type="number" step="0.01" min="0" data-f="prixEch" value="${esc(d.prixEch == null ? PRIX_ECH : d.prixEch)}"></label>
             <label>Remise commerciale (%)<input type="number" step="0.5" min="0" data-f="remisePct" value="${esc(d.remisePct)}"></label>
-            <label>ou remise (montant €)<input type="number" step="0.01" min="0" data-f="remiseMontant" value="${esc(d.remiseMontant || '')}" placeholder="0"></label>
+            <label class="adv">ou remise (montant €)<input type="number" step="0.01" min="0" data-f="remiseMontant" value="${esc(d.remiseMontant || '')}" placeholder="0"></label>
             ${(syncEch(d), CADEAUX.map(a => { const auto = a === 'Échantillons 2ml' && hasEch(d);
-              return `<label>${esc(a)}${auto ? ' <small class="doc-sub">(total des lignes)</small>' : ''}<input type="number" min="0" step="1" data-cad="${esc(a)}" value="${esc((d.cadeaux || {})[a] || '')}" placeholder="0"${auto ? ' readonly title="Total de la colonne « Éch. 2 ml » des lignes"' : ''}></label>`; }).join(''))}
+              return `<label class="adv">${esc(a)}${auto ? ' <small class="doc-sub">(total des lignes)</small>' : ''}<input type="number" min="0" step="1" data-cad="${esc(a)}" value="${esc((d.cadeaux || {})[a] || '')}" placeholder="0"${auto ? ' readonly title="Total de la colonne « Éch. 2 ml » des lignes"' : ''}></label>`; }).join(''))}
           </div>
-          <p class="doc-sub">Les testeurs apparaissent sur le document à leur valeur douane, puis sont déduits automatiquement dans la remise : ils restent gratuits et n'entrent pas dans le CA.</p>
-          <label class="doc-full">Autres conditions / mentions<textarea data-f="conditions" rows="2">${esc(d.conditions)}</textarea></label>
-          <label class="doc-full">Notes internes (non imprimées)<textarea data-f="notes" rows="2">${esc(d.notes)}</textarea></label>
+          <p class="doc-sub adv">Les testeurs apparaissent sur le document à leur valeur douane, puis sont déduits automatiquement dans la remise : ils restent gratuits et n'entrent pas dans le CA.</p>
+          <label class="doc-full adv">Autres conditions / mentions<textarea data-f="conditions" rows="2">${esc(d.conditions)}</textarea></label>
+          <label class="doc-full adv">Notes internes (non imprimées)<textarea data-f="notes" rows="2">${esc(d.notes)}</textarea></label>
         </div>
         <div class="doc-totals" id="docTotals"></div>
       </div>
@@ -392,12 +395,12 @@
     return `<tr data-i="${i}">
       <td><select data-l="collection">${COLLECTIONS.map(c => `<option value="${c}"${c === l.collection ? ' selected' : ''}>${esc(COLL[c].court)}</option>`).join('')}</select></td>
       <td><input data-l="reference" value="${esc(l.reference)}" ${svc ? 'placeholder="Désignation"' : `list="docRefs-${l.collection.replace(/\s/g, '')}" placeholder="Référence"`}></td>
-      <td>${svc ? '' : `<input class="ean${eanBad ? ' bad' : ''}" data-l="ean" value="${esc(l.ean)}" placeholder="à saisir" title="${eanBad ? 'Code EAN-13 invalide (clé de contrôle)' : 'Code EAN-13'}">`}</td>
-      <td>${svc ? '<span class="doc-sub">forfait</span>' : `<select data-l="mode"><option value="carton"${l.mode === 'carton' ? ' selected' : ''}>Carton</option><option value="unite"${l.mode === 'unite' ? ' selected' : ''}>À l'unité</option></select>`}${l.collection === 'BRUMES' ? `<select data-l="format" class="doc-format"><option value="250"${l.format !== '265' ? ' selected' : ''}>250 ml</option><option value="265"${l.format === '265' ? ' selected' : ''}>265 ml</option></select>` : ''}</td>
+      <td class="adv">${svc ? '' : `<input class="ean${eanBad ? ' bad' : ''}" data-l="ean" value="${esc(l.ean)}" placeholder="à saisir" title="${eanBad ? 'Code EAN-13 invalide (clé de contrôle)' : 'Code EAN-13'}">`}</td>
+      <td class="adv">${svc ? '<span class="doc-sub">forfait</span>' : `<select data-l="mode"><option value="carton"${l.mode === 'carton' ? ' selected' : ''}>Carton</option><option value="unite"${l.mode === 'unite' ? ' selected' : ''}>À l'unité</option></select>`}${l.collection === 'BRUMES' ? `<select data-l="format" class="doc-format"><option value="250"${l.format !== '265' ? ' selected' : ''}>250 ml</option><option value="265"${l.format === '265' ? ' selected' : ''}>265 ml</option></select>` : ''}</td>
       <td><input class="num" type="number" min="0" step="1" data-l="qty" value="${esc(l.qty)}"></td>
-      <td>${!svc && l.mode === 'carton' ? `<input class="num" type="number" min="1" step="1" data-l="perCarton" value="${esc(l.perCarton)}">` : ''}</td>
-      <td>${svc ? '' : `<input class="num" type="number" min="0" step="1" data-l="testers" value="${esc(l.testers)}">`}</td>
-      <td>${svc ? '' : `<input class="num" type="number" min="0" step="1" data-l="ech" value="${esc(l.ech == null ? '' : l.ech)}" placeholder="0" title="Échantillons 2 ml de ${esc(l.reference || 'ce parfum')} offerts">`}</td>
+      <td class="adv">${!svc && l.mode === 'carton' ? `<input class="num" type="number" min="1" step="1" data-l="perCarton" value="${esc(l.perCarton)}">` : ''}</td>
+      <td class="adv">${svc ? '' : `<input class="num" type="number" min="0" step="1" data-l="testers" value="${esc(l.testers)}">`}</td>
+      <td class="adv">${svc ? '' : `<input class="num" type="number" min="0" step="1" data-l="ech" value="${esc(l.ech == null ? '' : l.ech)}" placeholder="0" title="Échantillons 2 ml de ${esc(l.reference || 'ce parfum')} offerts">`}</td>
       <td><input class="num" type="number" min="0" step="0.01" data-l="prix" value="${esc(l.prix)}"></td>
       <td class="text-right" data-total>${money(k.ca)}</td>
       <td><button class="doc-x" data-act="delline" title="Supprimer la ligne">×</button></td>
@@ -419,16 +422,16 @@
     const marge = k.ht - cout;
     $('docTotals').innerHTML = `
       <div class="kv"><span>Produits</span><span>${money(k.produits)}</span></div>
-      ${k.testersVal ? `<div class="kv"><span>Testeurs (valeur douane : ${k.testers} × ${money(k.pt)})</span><span>${money(k.testersVal)}</span></div>` : ''}
-      ${k.echVal ? `<div class="kv"><span>Échantillons 2 ml (valeur douane : ${k.nEch} × ${money(k.pe)})</span><span>${money(k.echVal)}</span></div>` : ''}
-      <div class="kv"><span>Total</span><span>${money(k.brut)}</span></div>
-      ${k.testersVal ? `<div class="kv"><span>Remise testeurs (automatique)</span><span>${money(k.remiseTesteurs)}</span></div>` : ''}
-      ${k.echVal ? `<div class="kv"><span>Remise échantillons 2 ml (automatique)</span><span>${money(k.remiseEch)}</span></div>` : ''}
+      ${k.testersVal ? `<div class="kv adv"><span>Testeurs (valeur douane : ${k.testers} × ${money(k.pt)})</span><span>${money(k.testersVal)}</span></div>` : ''}
+      ${k.echVal ? `<div class="kv adv"><span>Échantillons 2 ml (valeur douane : ${k.nEch} × ${money(k.pe)})</span><span>${money(k.echVal)}</span></div>` : ''}
+      <div class="kv adv"><span>Total</span><span>${money(k.brut)}</span></div>
+      ${k.testersVal ? `<div class="kv adv"><span>Remise testeurs (automatique)</span><span>${money(k.remiseTesteurs)}</span></div>` : ''}
+      ${k.echVal ? `<div class="kv adv"><span>Remise échantillons 2 ml (automatique)</span><span>${money(k.remiseEch)}</span></div>` : ''}
       ${k.remiseCom ? `<div class="kv"><span>${esc(remiseLabel(cur, 'fr'))}</span><span>${money(k.remiseCom)}</span></div>` : ''}
       <div class="kv"><span>Total HT</span><span>${money(k.ht)}</span></div>
       <div class="kv"><span>${k.regime.taux ? `TVA ${k.regime.taux} %` : 'TVA (0 % / exonéré)'}</span><span>${money(k.tva)}</span></div>
       <div class="kv strong"><span>${cur.type === 'devis' ? 'Total TTC' : 'Net à payer'}</span><span>${money(k.ttc)}</span></div>
-      <div class="doc-internal">
+      <div class="doc-internal adv">
         <div class="kv"><span>Bouteilles payées / testeurs</span><span>${k.btl} / ${k.testers}</span></div>
         <div class="kv"><span>${pc != null ? "Coût d'achat (facture BSD)" : 'Coût de revient estimé'}</span><span>${money(cout)}</span></div>
         <div class="kv"><span>Marge estimée</span><span class="${marge < 0 ? 'amount-negative' : 'amount-positive'}">${money(marge)}${k.ht ? ` · ${(marge / k.ht * 100).toFixed(1).replace('.', ',')} %` : ''}</span></div>
@@ -786,6 +789,7 @@
   ed.addEventListener('click', e => {
     const b = e.target.closest('[data-act]'); if(!b || !cur) return;
     const act = b.dataset.act;
+    if(act === 'detail'){ try { localStorage.setItem('ej_doc_detail', $('docEdBody').classList.contains('doc-simple') ? '1' : '0'); } catch(e) {} renderEditor(); return; }
     if(act === 'addline'){ const last = cur.lines[cur.lines.length - 1]; cur.lines.push(newLine(last && PARFUMS.includes(last.collection) ? last.collection : 'VIP', cur.pays)); renderEditor(); }
     else if(act === 'delline'){ cur.lines.splice(+b.closest('tr').dataset.i, 1); if(!cur.lines.length) cur.lines.push(newLine('VIP', cur.pays)); renderEditor(); }
     else if(act === 'sim') applySimulator();

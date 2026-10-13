@@ -1426,3 +1426,15 @@ html[data-role] .ac-bonjour{font-size:1.6rem}
 .pd-cachet img{width:230px;height:auto;transform:rotate(-2deg);opacity:.95}
 .doc-check{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;text-transform:none!important;letter-spacing:0!important;font-size:.85rem!important}
 .doc-check input{width:auto!important}
+/* Éditeur de facture : vue simple (par défaut) / tous les détails */
+.doc-vue{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px;margin:0 0 14px;border-radius:var(--r-md,12px);background:rgba(201,164,86,.10);font-size:.88rem;color:var(--muted)}
+.doc-simple .adv{display:none!important}
+#docEdBody:not(.doc-simple) .sim{display:none!important}
+.doc-simple .doc-lines input[data-l="reference"]{min-width:180px}
+.doc-simple .doc-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.doc-simple .doc-lines th{text-align:left!important}
+.doc-simple .doc-lines td input,.doc-simple .doc-lines td select{width:100%}
+.doc-simple .doc-grid-bottom{grid-template-columns:minmax(0,1fr) minmax(300px,380px)!important;align-items:start}
+.doc-totals .kv span:last-child{white-space:nowrap}
+.doc-totals .kv.strong span{font-size:1.25rem}
+@media (max-width:800px){ .doc-simple .doc-grid-bottom{grid-template-columns:1fr!important} }
