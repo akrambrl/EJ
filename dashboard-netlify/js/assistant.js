@@ -21,8 +21,11 @@
   const MOIS = ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
 
   /* ================= Données ================= */
-  let cacheStats = null, cacheT = 0;
-  function stats(){ if(!cacheStats || Date.now() - cacheT > 30000){ cacheStats = window.EJ_SOC && EJ_SOC.statsFor ? EJ_SOC.statsFor('groupe') : ALL; cacheT = Date.now(); } return cacheStats; }
+  // socQ = société visée par la question en cours (« … de BSD », « … NB ») ; sinon le groupe
+  const cacheStats = {}; let socQ = null;
+  function stats(){ const v = socQ || 'groupe', c = cacheStats[v];
+    if(!c || Date.now() - c.t > 30000) cacheStats[v] = {t:Date.now(), s:window.EJ_SOC && EJ_SOC.statsFor ? EJ_SOC.statsFor(v) : ALL};
+    return cacheStats[v].s; }
   const factures = () => (stats().total.factures || []).slice().sort((a, b) => frToIso(b.date).localeCompare(frToIso(a.date)) || String(b.facture).localeCompare(String(a.facture)));
   function stockItems(){ const out = []; if(typeof ALL !== 'undefined' && ALL.stock) Object.values(ALL.stock).forEach(c => (c.items || []).forEach(i => out.push(Object.assign({collection:c.collection}, i)))); return out; }
   function clientsNoms(){
@@ -174,8 +177,10 @@
     return `Meilleurs clients ${y === 'total' ? '(2025 + 2026)' : y} :<ol>${L.map(c => `<li>${esc(c.client)} (${drapeau(c.pays)}${esc(c.pays)}) : ${money0(c.ca)}</li>`).join('')}</ol>${btn('Clients', 'clients')}`;
   });
   regle(q => /(meilleur|top|plus vendu|best)/.test(norm(q)) && /(ref|parfum|produit|vente|vendu)/.test(norm(q)), q => {
-    const y = annee(q) || 'total', L = (stats()[y].refs || []).filter(r => r.btl).slice().sort((a, b) => b.btl - a.btl).slice(0, 8);
-    return `Références les plus vendues ${y === 'total' ? '(2025 + 2026)' : y} :<ol>${L.map(r => `<li>${esc(r.reference)} (${esc(r.collection)}) : ${nombre(r.btl)} fl. · ${money0(r.ca)}</li>`).join('')}</ol>${btn('Références', 'refs')}`;
+    // classement en chiffre d'affaires ; en flacons si la question parle de quantités
+    const parQte = /(flacon|bouteille|quantite|volume|unite)/.test(norm(q));
+    const y = annee(q) || 'total', L = (stats()[y].refs || []).filter(r => r.btl).slice().sort((a, b) => parQte ? b.btl - a.btl : b.ca - a.ca).slice(0, 8);
+    return `Références les plus vendues ${y === 'total' ? '(2025 + 2026)' : y}${parQte ? ' (en flacons)' : ' (en chiffre d’affaires)'} :<ol>${L.map(r => `<li>${esc(r.reference)} (${esc(r.collection)}) : ${nombre(r.btl)} fl. · ${money0(r.ca)}</li>`).join('')}</ol>${btn('Références', 'refs')}`;
   });
   // Bénéfice / marge
   regle(q => /(benefice|marge|rentab|resultat)/.test(norm(q)), q => {
@@ -233,9 +238,16 @@
   const FIN_Q = /(chiffre d.?affaire|\bca\b|benefice|marge|rentab|impot|tresor|banque|compte bancaire|charges?\b|salaire|resultat|cout|prix de revient|depense|fournisseurs? a payer|creance|doit de l.?argent|me doit|encaiss|objectif|budget|tva|bilan)/;
   const refusFin = q => window.EJ_ROLE && FIN_Q.test(norm(q));
   const REFUS = 'Cette information financière n’est pas disponible avec votre accès. Je peux vous aider sur le stock, les clients, les factures et devis, les expéditions ou les salons.';
+  const NOM_SOC = {BSD:'BSD (France)', NB:'NB Evolution (Dubaï)'};
   function direct(q){
-    for(const r of R){ try { if(r.test(q)){ const h = r.f(q); if(h) return h; } } catch(e) { console.warn(e); } }
-    return null;
+    socQ = null;
+    const so = socDe(q);
+    // « NB Evolution (Jamal) » est un client : dans ce cas on reste sur le groupe
+    if(so && !(so === 'NB' && clientsNoms().some(c => /nb evolution/i.test(c) && norm(q).includes(norm(c))))) socQ = so;
+    try {
+      for(const r of R){ try { if(r.test(q)){ const h = r.f(q); if(h) return socQ && !h.includes(NOM_SOC[socQ]) ? `<div class="ia-soc">Société : <strong>${NOM_SOC[socQ]}</strong></div>` + h : h; } } catch(e) { console.warn(e); } }
+      return null;
+    } finally { socQ = null; }
   }
   // Questions de suite (« et de NB ? », « et en 2025 ? », « pour Passion Parfum ? ») : on reprend la question précédente
   // en remplaçant ce que la nouvelle précise (société, client, pays, référence, année, mois).
@@ -267,7 +279,11 @@
   /* ================= Mode IA (Claude) ================= */
   // Un seul outil : Claude choisit le sujet et un filtre ; on lui renvoie les données en JSON (listes limitées).
   const SUJETS = ['factures','clients','pays','stock','references','ventes_mensuelles','salons','creances','echeances','tresorerie','resultat_impots','fournisseurs_a_payer','prospects','commandes_fournisseurs','expeditions','documents_crees','charges_fixes','fiches_clients'];
-  function donnees(sujet, filtre, annee_){
+  function donnees(sujet, filtre, annee_, societe){
+    socQ = ['BSD', 'NB'].includes(societe) ? societe : null;
+    try { return donnees_(sujet, filtre, annee_); } finally { socQ = null; }
+  }
+  function donnees_(sujet, filtre, annee_){
     const f = norm(filtre || ''), y = annee_ && stats()[annee_] ? annee_ : null, S = stats()[y || 'total'], match = o => !f || norm(JSON.stringify(o)).includes(f);
     const lim = (a, n) => a.filter(match).slice(0, n || 40);
     switch(sujet){
@@ -296,7 +312,7 @@
     name:'consulter_donnees',
     description:"Lit les données du tableau de bord d'Emmanuelle Jane Paris (sociétés BSD en France et NB Evolution à Dubaï). Choisir le sujet ; filtre = texte à rechercher (nom de client, référence, pays, numéro…) ; annee = 2025 ou 2026 pour les sujets factures, clients, pays, references, ventes_mensuelles. Montants en euros. Appeler plusieurs fois si besoin.",
     input_schema:{type:'object', additionalProperties:false, required:['sujet'], properties:{
-      sujet:{type:'string', enum:SUJETS}, filtre:{type:'string', description:'Texte à rechercher, facultatif'}, annee:{type:'string', enum:['2025','2026'], description:'Année, facultatif'}}}
+      sujet:{type:'string', enum:SUJETS}, filtre:{type:'string', description:'Texte à rechercher, facultatif'}, annee:{type:'string', enum:['2025','2026'], description:'Année, facultatif'}, societe:{type:'string', enum:['BSD','NB'], description:'Société (BSD = France, NB = NB Evolution Dubaï) pour les sujets factures, clients, pays, references, ventes_mensuelles ; omettre pour le groupe'}}}
   };
   let SDK = null, client = null, histo = [];
   async function claude(question){
@@ -318,7 +334,7 @@
       if(rep.stop_reason === 'pause_turn') continue;
       const appels = rep.content.filter(b => b.type === 'tool_use');
       if(rep.stop_reason !== 'tool_use' || !appels.length) return rep.content.filter(b => b.type === 'text').map(b => b.text).join('\n') || '(pas de réponse)';
-      histo.push({role:'user', content:appels.map(b => { let r; try { const i = b.input || {}; r = SUJETS.includes(i.sujet) ? donnees(i.sujet, i.filtre, i.annee) : {erreur:'sujet inconnu'}; } catch(e) { r = {erreur:e.message}; }
+      histo.push({role:'user', content:appels.map(b => { let r; try { const i = b.input || {}; r = SUJETS.includes(i.sujet) ? donnees(i.sujet, i.filtre, i.annee, i.societe) : {erreur:'sujet inconnu'}; } catch(e) { r = {erreur:e.message}; }
         return {type:'tool_result', tool_use_id:b.id, content:JSON.stringify(r).slice(0, 60000)}; })});
     }
     return 'Réponse interrompue (trop d’étapes).';
