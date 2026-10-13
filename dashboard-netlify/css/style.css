@@ -1303,3 +1303,20 @@ html[data-role] .ac-mode{display:none!important}
 .ph-mini{width:30px;height:40px;object-fit:cover;border-radius:4px}
 .pd-ph{display:flex;align-items:center;gap:8px}
 .pd-ph img{width:34px;height:46px;object-fit:cover;border-radius:3px;flex:none}
+
+/* ---------- Mobile : la page ne doit pas glisser de gauche à droite ----------
+   - iPhone : un champ dont le texte fait moins de 16 px déclenche un zoom automatique quand on le touche,
+     et la page zoomée se met à glisser latéralement → 16 px minimum dans les champs sur mobile.
+   - Pas de rebond horizontal de la page (les tableaux larges gardent leur propre défilement). */
+@media (max-width:900px){
+  html,body{overflow-x:hidden;overflow-x:clip;overscroll-behavior-x:none;width:100%;max-width:100%}
+  body{touch-action:manipulation}
+  input,select,textarea,.search-box,.wz-in,.wz-nb,.ia-f input,.doc-modal input,.doc-modal select,.doc-modal textarea,.ff-f input,.ff-f select,.reg-wrap input,.reg-wrap select,.reg-wrap textarea{font-size:16px!important}
+  .page,.main,.section{max-width:100%;overflow-x:clip}
+}
+@media (max-width:600px){
+  .ac-bloc{padding:12px}
+  .ac-nm strong{white-space:normal;overflow:visible;line-height:1.25}
+  .ac-cl button,.ac-vt button,.ac-st button{flex-wrap:wrap;gap:8px;padding:10px}
+  .ac-cl b,.ac-vt b{font-size:.95rem}
+}
