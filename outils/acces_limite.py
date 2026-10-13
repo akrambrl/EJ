@@ -115,8 +115,6 @@ def _zero_numeriques_bloc(txt, nom):
 def nettoyer(rel, txt):
     """Contenu d'un fichier source → version sans chiffres financiers internes."""
     rel = rel.replace('\\', '/')
-    if rel == 'data/cachets.js':   # pas de cachet ni de signature dans l'accès limité
-        return 'const CACHETS = {};\n'
     if rel in TOUT_A_ZERO:
         return _blocs_const(txt, lambda n, o: _zero(o))
     if rel == 'data/ventes.js':
