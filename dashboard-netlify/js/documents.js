@@ -82,9 +82,12 @@
   const saveSett = () => store(SET_KEY, SETT);
   // Carnet d'adresses : data/clients.js, complété par les saisies faites dans ce navigateur (non vides).
   const CLIENTS_BASE = typeof CLIENTS !== 'undefined' ? CLIENTS : {};
-  function clientInfo(name){
+  // Vente interne BSD → NB : l'acheteur facturé est NB Evolution (Dubaï), pas son client final (dont le nom figure entre parenthèses)
+  const intraBSD = (name, s) => s === 'BSD' && /^nb evolution/i.test(name || '');
+  function clientInfo(name, s){
     const o = Object.assign({}, CLIENTS_BASE[name] || {});
     Object.entries(SETT.clients[name] || {}).forEach(([k, v]) => { if(v) o[k] = v; });
+    if(intraBSD(name, s)){ const N = soc('NB'); o.adresse = ['NB EVOLUTION', N.adresse, [N.cp_ville, N.pays].filter(Boolean).join(', '), N.licence ? 'License number : ' + N.licence : ''].filter(Boolean).join('\n'); o.tvaClient = N.trn || ''; }
     return o;
   }
   const eanOf = (col, ref, fmt) => (col === 'BRUMES' && fmt === '265')
@@ -478,7 +481,7 @@
       if(f === 'date' && e.type === 'change') renderPay();
       if(f === 'date' && e.type === 'change' && !docs.some(x => x.id === cur.id)){ cur.numero = nextNumero(cur.societe, cur.type, v); $('docEdBody').querySelector('[data-f="numero"]').value = cur.numero; }
       if(f === 'client' && e.type === 'change'){
-        const c = clientInfo(v);
+        const c = clientInfo(v, cur.societe);
         if(!cur.pays && (c.pays || LAST_PAYS[v])) cur.pays = c.pays || LAST_PAYS[v];
         if(!cur.adresse && c.adresse) cur.adresse = c.adresse;
         if(!cur.tvaClient && c.tvaClient) cur.tvaClient = c.tvaClient;
@@ -570,7 +573,7 @@
     const err = validate(d);
     if(err === 'cancel') return false;
     if(err){ alert(err); return false; }
-    SETT.clients[d.client] = {pays:d.pays, adresse:d.adresse, tvaClient:d.tvaClient}; saveSett();
+    if(!intraBSD(d.client, d.societe)){ SETT.clients[d.client] = {pays:d.pays, adresse:d.adresse, tvaClient:d.tvaClient}; saveSett(); }
     const i = docs.findIndex(x => x.id === d.id);
     if(i >= 0) docs[i] = d; else docs.push(d);
     saveDocs(); closeEditor();
@@ -842,7 +845,7 @@
     return best;
   }
   function preparer(o){
-    const d = blankDoc(o.type, o.societe), c = clientInfo(o.client || '');
+    const d = blankDoc(o.type, o.societe), c = clientInfo(o.client || '', o.societe);
     d.client = o.client || '';
     d.pays = o.pays || c.pays || LAST_PAYS[d.client] || '';
     d.adresse = o.adresse || c.adresse || '';

@@ -32,7 +32,7 @@
       .sort((a, b) => a.date.localeCompare(b.date) || a.numero.localeCompare(b.numero));
   }
   function fiche(f, doc){
-    const D = EJ_DOCS, info = D.clientInfo(f.client) || {};
+    const D = EJ_DOCS, info = D.clientInfo(f.client, 'BSD') || {};
     const pays = (doc && doc.pays) || f.pays || info.pays || '';
     const regime = (doc && doc.regime) || D.regimeFor('BSD', pays), R = D.REGIMES.BSD[regime] || D.REGIMES.BSD.export;
     const x = {numero:f.facture, date:frIso(f.date), client:f.client, pays, code:codePays(pays), adresse:(doc && doc.adresse) || info.adresse || '',
@@ -52,6 +52,8 @@
           prix:carton ? (l.prix || r2(l.ca / l.cartons)) : r2(l.ca / (l.btl || 1)), total:r2(l.ca)}; });
       if(x.taux) x.alertes.push('TVA recalculée (facture du registre)');
     }
+    // vente interne BSD → NB : l'acheteur est NB Evolution à Dubaï (le client final entre parenthèses n'est qu'une indication)
+    if(/^nb evolution/i.test(f.client || '')){ x.clientFinal = f.client; x.client = 'NB EVOLUTION'; x.pays = 'Émirats Arabes Unis'; x.code = 'AE'; x.regime = 'export'; x.taux = 0; x.mention = D.REGIMES.BSD.export.fr; x.tva = 0; x.ttc = x.ht; x.alertes = x.alertes.filter(a => !/TVA/.test(a)); }
     // une facture électronique doit avoir au moins une ligne
     if(!x.lignes.length) x.lignes.push({nom:'Ventes de parfums (détail sur la facture d’origine)', ean:'', qte:1, unite:'C62', prix:Math.abs(x.ht), total:Math.abs(x.ht)});
     x.avoir = x.ht < 0 || /^AV/i.test(x.numero);
