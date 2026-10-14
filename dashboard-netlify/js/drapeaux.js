@@ -13,6 +13,7 @@
     'cote d\'ivoire':'CI', 'cote divoire':'CI', 'cameroun':'CM', 'gabon':'GA', 'mali':'ML', 'ghana':'GH', 'afrique du sud':'ZA', 'kenya':'KE', 'libye':'LY', 'iran':'IR', 'syrie':'SY'
   };
   const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’]/g, "'").trim();
+  window.codePays = pays => ISO[norm(pays)] || '';   // code pays ISO (FR, QA…), utilisé par l'export facturation électronique
   window.drapeau = function(pays){
     const c = ISO[norm(pays)]; if(!c) return '';
     return String.fromCodePoint(...[...c].map(x => 0x1F1E6 + x.charCodeAt(0) - 65)) + ' ';

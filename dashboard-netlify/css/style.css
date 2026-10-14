@@ -1593,3 +1593,18 @@ html .ac-cl button,html .ac-st button,html .ac-vt button{border-radius:var(--r-m
   .ac-cal{width:46px}
   .ac-kpis > .vx-kpi:nth-child(3):last-child{grid-column:1/-1}
 }
+
+/* ---------- Export facturation électronique (js/efacture.js) ---------- */
+.fx-modal{max-width:980px}
+.fx-intro{color:var(--muted);font-size:.92rem;line-height:1.5;margin:0 0 14px}
+.fx-per{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:16px}
+.fx-per label{display:flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.fx-per input{padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:16px}
+.fx-liste{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:var(--r-md,12px);margin-bottom:12px}
+.fx-liste table{border:0;font-size:.86rem}
+.fx-liste th,.fx-liste td{padding:7px 9px}
+.fx-liste .r{text-align:right;white-space:nowrap}
+.fx-al{color:var(--warn);font-size:.78rem}
+.fx-note{color:var(--warn);font-size:.86rem}
+.fx-act{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+html[data-role] .fx-btn{display:none}

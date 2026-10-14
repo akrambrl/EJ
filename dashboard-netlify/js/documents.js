@@ -859,5 +859,5 @@
   const prixCarton = (client, col) => dernierPrix(client, col) || priceDefault(col, 'carton');
 
   window.EJ_DOCS = {list:() => docs.slice(), calc:docCalc, payState, echeancier, TYPES, setRecu, soc,
-    preparer, prixCarton, clientInfo, PRESETS, REFS, PARFUMS, COLL, perCarton:perCartonDefault};
+    preparer, prixCarton, clientInfo, PRESETS, REFS, PARFUMS, COLL, perCarton:perCartonDefault, REGIMES, regimeFor, isSvc, eanOf};
 })();
