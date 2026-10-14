@@ -992,7 +992,7 @@
 ### Facture N° EJ2026027
 - **Client** : NB Evolution (Jamal)
 - **Pays** : Irak 🇮🇶
-- **Date** : 30/07/2026
+- **Date** : 27/07/2026
 
 #### BRUMES (3,28€/brume — prix négocié, -18% vs standard)
 | Référence | Cartons | Brumes payées | Testers offerts | CA |

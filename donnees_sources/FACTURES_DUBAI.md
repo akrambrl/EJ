@@ -690,7 +690,7 @@ Ce fichier recense les factures telles qu'elles entrent dans les comptes de Duba
 - **Correspond à (dashboard EJ)** : EJ2026027
 - **Client** : NB Evolution (Jamal)
 - **Pays** : Irak 🇮🇶
-- **Date** : 30/07/2026
+- **Date** : 27/07/2026
 - **Devise** : EUR
 - **Remise appliquée côté EJ** : -18% (donc ici prix plein BRUMES : 4,00€/brume, au lieu de 3,28€)
 

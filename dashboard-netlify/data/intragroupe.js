@@ -3409,7 +3409,7 @@ const INTRAGROUPE = [
  },
  {
   "facture": "EJ2026027",
-  "date": "30/07/2026",
+  "date": "27/07/2026",
   "client": "NB Evolution (Jamal)",
   "pays": "Irak",
   "btl": 24748,
