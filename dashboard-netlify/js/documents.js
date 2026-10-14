@@ -669,7 +669,7 @@
     </div>`;
   }
   // NB Evolution : aucun logo ni mention « Emmanuelle Jane » sur ses documents (demande du 14/10/2026)
-  const logoDe = d => d.societe === 'NB' ? '' : '<img src="img/logo.png" alt="">';
+  const logoDe = d => d.societe === 'NB' ? '' : '<img src="' + (window.EJ_LOGO || 'img/logo.png') + '" alt="">';
   // Cachet + signature de la société (data/cachets.js), si disponible et « Tamponner et signer » coché (par défaut oui)
   const cachetDe = d => (typeof CACHETS !== 'undefined' && CACHETS[d.societe] && d.cachet !== false) ? CACHETS[d.societe] : '';
   const cachetHtml = d => cachetDe(d) ? `<div class="pd-cachet"><img src="${cachetDe(d)}" alt="Cachet et signature"></div>` : '';
