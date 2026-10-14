@@ -640,7 +640,7 @@
     const payBlock = ech.length ? `<div class="pd-pay"><strong>${L.pay}</strong><table><tbody>${ech.map(r => `<tr><td>${String(r.pct).replace('.', ',')} %</td><td>${esc(quandTxt(r, lg))}${r.due && r.quand !== 'date' ? ` (${esc(isoToFr(r.due))})` : ''}</td><td class="r">${money(r.montant)}</td></tr>`).join('')}</tbody></table></div>` : '';
     const bank = S.iban ? `<div class="pd-bank"><strong>${L.bank}</strong><br>${esc(S.banque)}<br>IBAN : ${esc(S.iban)}${S.bic ? '<br>BIC : ' + esc(S.bic) : ''}</div>` : '';
     const legal = d.societe === 'NB'
-      ? [S.nom + (S.sousTitre ? ' – ' + S.sousTitre.toUpperCase() : ''), [S.adresse, S.cp_ville, S.pays].filter(Boolean).join(', '), S.email && 'Mail : ' + S.email, S.portable && 'Port : ' + S.portable, S.licence && 'License number : ' + S.licence]
+      ? [S.nom, [S.adresse, S.cp_ville, S.pays].filter(Boolean).join(', '), S.email && 'Mail : ' + S.email, S.portable && 'Port : ' + S.portable, S.licence && 'License number : ' + S.licence]
       : [S.nom, S.forme, [S.adresse, S.cp_ville, S.pays].filter(Boolean).join(' '), S.siret && 'SIRET ' + S.siret, S.rcs, S.naf && 'NAF ' + S.naf, S.tva && (lg === 'en' ? 'VAT ' : 'TVA intracom. ') + S.tva];
     // Remises : testeurs seuls -> une ligne « Remise » comme sur les factures d'origine ; sinon détail.
     const discRows = !k.remise ? '' : ((k.testersVal || k.echVal) && k.remiseCom)
@@ -648,7 +648,7 @@
       : `<div><span>${k.remiseCom ? esc(remiseLabel(d, lg)) : L.disc}</span><span>${money(-k.remise)}</span></div>`;
     return `<div class="pd pd-${d.societe}">
       <div class="pd-head">
-        <div class="pd-brand"><img src="img/logo.png" alt=""><div class="pd-em"><div class="pd-co">${esc(S.nom)}</div>${S.sousTitre && d.societe === 'NB' ? `<div class="pd-co-sub">${esc(S.sousTitre)}</div>` : ''}${emitter.filter(Boolean).map(esc).join('<br>')}</div></div>
+        <div class="pd-brand">${logoDe(d)}<div class="pd-em"><div class="pd-co">${esc(S.nom)}</div>${emitter.filter(Boolean).map(esc).join('<br>')}</div></div>
         <div class="pd-title"><h1>${TYPES[d.type][lg]}</h1><div class="pd-num">N° ${esc(d.numero)}</div><div class="pd-dates">${dates}</div>${d.source ? `<div class="pd-ref">${L.from} ${esc(d.source)}</div>` : ''}</div>
       </div>
       <div class="pd-client"><div class="pd-label">${d.type === 'devis' ? L.to : L.bill}</div><strong>${esc(d.client)}</strong><br>${esc(d.adresse).replace(/\n/g, '<br>')}${d.adresse ? '<br>' : ''}${esc(d.pays)}${d.tvaClient ? `<br>${L.vatno} : ${esc(d.tvaClient)}` : ''}</div>
@@ -668,6 +668,8 @@
       <div class="pd-legal">${legal.filter(Boolean).map(esc).join(' · ')}</div>
     </div>`;
   }
+  // NB Evolution : aucun logo ni mention « Emmanuelle Jane » sur ses documents (demande du 14/10/2026)
+  const logoDe = d => d.societe === 'NB' ? '' : '<img src="img/logo.png" alt="">';
   // Cachet + signature de la société (data/cachets.js), si disponible et « Tamponner et signer » coché (par défaut oui)
   const cachetDe = d => (typeof CACHETS !== 'undefined' && CACHETS[d.societe] && d.cachet !== false) ? CACHETS[d.societe] : '';
   const cachetHtml = d => cachetDe(d) ? `<div class="pd-cachet"><img src="${cachetDe(d)}" alt="Cachet et signature"></div>` : '';
@@ -676,7 +678,7 @@
     const rows = k.rows.filter(r => num(r.src.qty) > 0 && !isSvc(r.src));
     const colis = sum(rows, r => r.cartons || 0);
     return `<div class="pd pd-${d.societe}">
-      <div class="pd-head"><div class="pd-brand"><img src="img/logo.png" alt=""><div class="pd-em"><div class="pd-co">${esc(S.nom)}</div>${esc([S.adresse, S.cp_ville, S.pays].filter(Boolean).join(', '))}</div></div>
+      <div class="pd-head"><div class="pd-brand">${logoDe(d)}<div class="pd-em"><div class="pd-co">${esc(S.nom)}</div>${esc([S.adresse, S.cp_ville, S.pays].filter(Boolean).join(', '))}</div></div>
         <div class="pd-title"><h1>${TYPES.bl[lg]}</h1><div class="pd-num">N° ${esc(d.numero)}</div><div class="pd-dates"><div><span>${L.date}</span>${esc(isoToFr(d.date))}</div></div>${d.source ? `<div class="pd-ref">${L.from} ${esc(d.source)}</div>` : ''}</div></div>
       <div class="pd-client"><div class="pd-label">${L.to}</div><strong>${esc(d.client)}</strong><br>${esc(d.adresse).replace(/\n/g, '<br>')}${d.adresse ? '<br>' : ''}${esc(d.pays)}</div>
       <table class="pd-table"><thead><tr><th>${L.coll}</th><th>${L.ref}</th><th class="c">${L.ml}</th><th class="c">${L.ean}</th><th class="c">${L.colis}</th><th class="c">${L.fl}</th><th class="c">${L.tst}</th></tr></thead>

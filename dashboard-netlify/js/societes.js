@@ -23,7 +23,7 @@
       conditions:'Paiement à réception de facture, par virement bancaire.', validite:30, echeance:30, prixTesteur:1
     },
     NB: {
-      code:'NB', label:'NB Evolution · Dubaï', court:'NB Evolution', nom:'NB EVOLUTION', sousTitre:'Parfums Emmanuelle Jane',
+      code:'NB', label:'NB Evolution · Dubaï', court:'NB Evolution', nom:'NB EVOLUTION', sousTitre:'',
       forme:'', adresse:'Dubai Silicon Oasis, DDP, Building A1', cp_ville:'Dubai', pays:'United Arab Emirates',
       tel:'', portable:'+33 7 85 04 22 07', email:'nassim@emmanuellejane.com',
       siret:'', rcs:'', naf:'', tva:'', licence:'30537', trn:'',
