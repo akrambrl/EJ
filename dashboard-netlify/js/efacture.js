@@ -34,7 +34,7 @@
   function fiche(f, doc){
     const D = EJ_DOCS, info = D.clientInfo(f.client, 'BSD') || {};
     const pays = (doc && doc.pays) || f.pays || info.pays || '';
-    const regime = (doc && doc.regime) || D.regimeFor('BSD', pays), R = D.REGIMES.BSD[regime] || D.REGIMES.BSD.export;
+    const regime = (doc && doc.regime) || (info.regime && D.REGIMES.BSD[info.regime] ? info.regime : D.regimeFor('BSD', pays)), R = D.REGIMES.BSD[regime] || D.REGIMES.BSD.export;
     const x = {numero:f.facture, date:frIso(f.date), client:f.client, pays, code:codePays(pays), adresse:(doc && doc.adresse) || info.adresse || '',
       tvaClient:(doc && doc.tvaClient) || info.tvaClient || '', regime, taux:R.taux, mention:R.fr, doc:!!doc, alertes:[]};
     if(doc){

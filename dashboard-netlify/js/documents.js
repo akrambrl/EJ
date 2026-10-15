@@ -486,6 +486,7 @@
         if(!cur.adresse && c.adresse) cur.adresse = c.adresse;
         if(!cur.tvaClient && c.tvaClient) cur.tvaClient = c.tvaClient;
         if(cur.pays){ cur.regime = regimeFor(cur.societe, cur.pays); if(cur.societe === 'BSD') cur.langue = cur.pays === 'France' ? 'fr' : 'en'; }
+        if(c.regime && REGIMES[cur.societe][c.regime]) cur.regime = c.regime;   // ex. Chypre du Nord : export, pas intracommunautaire
         retester(); renderEditor(); return;
       }
       if(f === 'pays' && e.type === 'change'){ cur.regime = regimeFor(cur.societe, v); if(cur.societe === 'BSD') cur.langue = v === 'France' ? 'fr' : 'en'; retester(); renderEditor(); return; }
@@ -851,6 +852,7 @@
     d.adresse = o.adresse || c.adresse || '';
     d.tvaClient = o.tvaClient || c.tvaClient || '';
     if(d.pays){ d.regime = regimeFor(d.societe, d.pays); if(d.societe === 'BSD') d.langue = d.pays === 'France' ? 'fr' : 'en'; }
+    if(c.regime && REGIMES[d.societe][c.regime]) d.regime = c.regime;
     if(o.lignes && o.lignes.length) d.lines = o.lignes.map(x => {
       const l = newLine(x.collection, d.pays); l.qty = Math.max(1, Math.round(num(x.qty)) || 1);
       const p = dernierPrix(d.client, x.collection); if(p) l.prix = p;
